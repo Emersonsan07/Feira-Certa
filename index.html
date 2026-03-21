@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feira Certa - Histórico de Preços</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <!-- Top Navigation -->
+        <nav class="top-navbar" id="navbar">
+            <div class="logo">
+                <i class="ph ph-basket"></i>
+                <h1>Feira Certa</h1>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#" class="nav-link active"><i class="ph ph-squares-four"></i> <span>Início</span></a>
+                <a href="#" class="nav-link" id="openCartBtn">
+                    <i class="ph ph-shopping-cart-simple"></i> <span>Lista</span>
+                    <span id="cartBadge" class="badge" style="display:none">0</span>
+                </a>
+                
+                <div class="config-wrapper">
+                    <a href="#" id="mobileConfigBtn" class="nav-link nav-icon" title="Configurações">
+                        <i class="ph ph-gear"></i>
+                    </a>
+                    
+                    <div class="config-dropdown" id="configGroup">
+                        <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
+                        <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Ler Backup</a>
+                        <input type="file" id="backupFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Pesquisar produto (ex: Arroz, Cerveja)...">
+                </div>
+                <div class="header-actions">
+                    <button id="importBtn" class="btn-primary">
+                        <i class="ph ph-upload-simple"></i>
+                        Carregar CSV
+                    </button>
+                    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                </div>
+            </header>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="ph ph-package"></i></div>
+                    <div class="stat-info">
+                        <h3>Total de Produtos</h3>
+                        <p id="totalProducts">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="ph ph-storefront"></i></div>
+                    <div class="stat-info">
+                        <h3>Mercados</h3>
+                        <p id="totalMarkets">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="ph ph-calendar-blank"></i></div>
+                    <div class="stat-info">
+                        <h3>Última Compra</h3>
+                        <p id="lastDate">--/--/----</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="products-section">
+                <div class="section-header">
+                    <h2>Histórico de Itens da Feira</h2>
+                </div>
+
+                <div class="category-filters" id="categoryFilters"></div>
+
+                <div class="status-message" id="statusMessage">
+                    Tente carregar automaticamente de resultado_feira.csv ou selecione o arquivo manualmente caso seja
+                    necessário.
+                </div>
+
+                <div class="products-grid" id="productsGrid">
+                    <!-- Cards will be injected here via JS -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Cart Sidebar -->
+        <div class="cart-sidebar" id="cartSidebar">
+            <div class="cart-header">
+                <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
+                <button class="close-cart" id="closeCartBtn"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div class="cart-items" id="cartItemsList">
+                <div class="empty-cart-msg">Sua lista está vazia. Adicione produtos na tela principal.</div>
+            </div>
+
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Custo Estimado</span>
+                    <h3 id="cartTotalValue">R$ 0,00</h3>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button class="btn-primary w-100" id="shareWhatsAppBtn"
+                        style="background:#25D366;box-shadow:none;display:none;">
+                        <i class="ph ph-whatsapp-logo"></i> Compartilhar
+                    </button>
+                    <button class="btn-primary" id="clearCartBtn"
+                        style="background:var(--danger);box-shadow:none;width:50px;display:flex;justify-content:center;padding:0.75rem 0;">
+                        <i class="ph ph-trash" style="margin:0;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Edit Item -->
+        <div class="modal-overlay" id="editModal">
+            <div class="modal-content" style="max-width: 450px;">
+                <button class="close-modal" id="closeEditModal"><i class="ph ph-x"></i></button>
+                <h2>Editar Item</h2>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">Nome Original Fisco</label>
+                    <input type="text" id="editOriginalName" disabled class="form-input disabled">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="form-label">Nome Personalizado</label>
+                    <input type="text" id="editCustomName" placeholder="Ex: Maçã Fuji" class="form-input">
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">Categoria</label>
+                    <select id="editCategory" class="form-input">
+                        <option value="Limpeza">Limpeza</option>
+                        <option value="Higiene Pessoal">Higiene Pessoal</option>
+                        <option value="Hortifruti - Frutas">Hortifruti - Frutas</option>
+                        <option value="Hortifruti - Legumes">Hortifruti - Legumes</option>
+                        <option value="Açougue">Açougue</option>
+                        <option value="Laticínios & Frios">Laticínios & Frios</option>
+                        <option value="Mercearia Básica">Mercearia Básica</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Doces & Snacks">Doces & Snacks</option>
+                        <option value="Padaria">Padaria</option>
+                        <option value="Utilidades">Utilidades</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <button id="saveEditBtn" class="btn-primary w-100">
+                    Salvar Mudanças
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal for Chart -->
+        <div class="modal-overlay" id="chartModal">
+            <div class="modal-content">
+                <button class="close-modal" id="closeModal"><i class="ph ph-x"></i></button>
+                <h2 id="modalTitle">Histórico de Preço</h2>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="modal-history-list" id="modalHistoryList">
+                    <!-- History lines -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Back to Top Button -->
+        <button id="backToTopBtn" class="fab-btn" title="Voltar ao Topo">
+            <i class="ph ph-arrow-up"></i>
+        </button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
