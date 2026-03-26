@@ -465,6 +465,9 @@ function renderProducts(filter = '') {
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     Última compra: ${latestEntry.date} &bull; Unidade: ${latestEntry.unit}
                 </div>
+                <div class="sparkline-container" title="Variação de Preço">
+                    ${generateSparklineSVG(history, colorName)}
+                </div>
                 <div class="product-actions">
                     <button class="btn-outline view-history-btn" data-product="${name}" title="Ver Histórico">
                         <i class="ph ph-chart-line-up"></i>
@@ -506,6 +509,43 @@ function renderProducts(filter = '') {
             renderProducts(searchInput.value); // Quick re-render to update button state
         });
     });
+}
+
+function generateSparklineSVG(history, colorName) {
+    if (!history || history.length < 2) return '<div class="sparkline-empty">Poucos dados numéricos</div>';
+    
+    const data = [...history].sort((a, b) => a.datetime - b.datetime).map(h => h.price);
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min;
+    const width = 100;
+    const height = 30;
+    const padding = 3;
+    
+    // Convert price values to XY coordinates mapping to SVG bounds
+    const points = data.map((val, i) => {
+        const x = (i / (data.length - 1)) * width;
+        let y = height / 2; // default centered straight line if all prices are equal
+        if (range !== 0) {
+            y = height - padding - ((val - min) / range) * (height - padding * 2);
+        }
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+
+    const svgId = 'spark_' + Math.random().toString(36).substr(2, 9);
+    
+    return `
+        <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="sparkline-svg" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="${svgId}" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stop-color="var(--cat-${colorName})" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="var(--cat-${colorName})" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            <polyline fill="none" stroke="var(--cat-${colorName})" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"/>
+            <polygon fill="url(#${svgId})" points="${points[0].split(',')[0]},${height} ${points.join(' ')} ${points[points.length-1].split(',')[0]},${height}"/>
+        </svg>
+    `;
 }
 
 function toggleCartItem(name, price) {
