@@ -197,6 +197,16 @@ document.addEventListener('DOMContentLoaded', () => {
     shareWhatsAppBtn.addEventListener('click', () => {
         shareViaWhatsApp();
     });
+
+    const smartListBtn = document.getElementById('smartListBtn');
+    if (smartListBtn) {
+        smartListBtn.addEventListener('click', generateSmartList);
+    }
+    
+    const expiringListBtn = document.getElementById('expiringListBtn');
+    if (expiringListBtn) {
+        expiringListBtn.addEventListener('click', generateExpiringList);
+    }
 });
 
 function setStatus(msg, isError = false) {
@@ -546,6 +556,113 @@ function generateSparklineSVG(history, colorName) {
             <polygon fill="url(#${svgId})" points="${points[0].split(',')[0]},${height} ${points.join(' ')} ${points[points.length-1].split(',')[0]},${height}"/>
         </svg>
     `;
+}
+
+function generateSmartList() {
+    if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
+        setStatus("Nenhum dado carregado para gerar a lista inteligente.", true);
+        return;
+    }
+
+    // Sort products by frequency
+    const productsByFrequency = Object.keys(groupedProducts).map(name => {
+        const history = groupedProducts[name];
+        const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
+        return {
+            name: name,
+            frequency: history.length,
+            latestPrice: sortedHistory[0].price
+        };
+    }).sort((a, b) => b.frequency - a.frequency);
+
+    const topItems = productsByFrequency.slice(0, 15);
+
+    let addedCount = 0;
+    topItems.forEach(item => {
+        if (!shoppingCart[item.name]) {
+            shoppingCart[item.name] = { price: item.latestPrice, qty: 1 };
+            addedCount++;
+        }
+    });
+
+    updateCartUI();
+    renderProducts(searchInput.value); 
+
+    if (addedCount > 0) {
+        setStatus(`Lista inteligente gerada! ${addedCount} itens mais comprados foram adicionados.`);
+    } else {
+        setStatus("Todos os itens sugeridos já estão na sua lista.");
+    }
+}
+
+function generateExpiringList() {
+    if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
+        setStatus("Nenhum dado carregado.", true);
+        return;
+    }
+
+    const todayMs = new Date().getTime();
+    let expiringCandidates = [];
+
+    Object.keys(groupedProducts).forEach(name => {
+        const history = groupedProducts[name];
+        const sortedHistory = [...history].sort((a, b) => a.datetime - b.datetime);
+        const latestPrice = sortedHistory[sortedHistory.length - 1].price;
+
+        let validDatesMs = [];
+        let lastDateMsObj = null;
+        
+        sortedHistory.forEach(h => {
+             const time = h.datetime.getTime();
+             if (lastDateMsObj !== time) {
+                 validDatesMs.push(time);
+                 lastDateMsObj = time;
+             }
+        });
+
+        if (validDatesMs.length >= 2) {
+            let totalDiffMs = 0;
+            for(let i = 1; i < validDatesMs.length; i++) {
+                totalDiffMs += (validDatesMs[i] - validDatesMs[i-1]);
+            }
+            const avgCycleMs = totalDiffMs / (validDatesMs.length - 1);
+            
+            const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
+            const msSinceLastPurchase = todayMs - lastPurchaseMs;
+            
+            const urgencyScore = msSinceLastPurchase / avgCycleMs;
+
+            if (urgencyScore >= 0.75) {
+                expiringCandidates.push({
+                    name: name,
+                    urgency: urgencyScore,
+                    latestPrice: latestPrice
+                });
+            }
+        }
+    });
+
+    expiringCandidates.sort((a, b) => b.urgency - a.urgency);
+    const topItems = expiringCandidates.slice(0, 15);
+
+    let addedCount = 0;
+    topItems.forEach(item => {
+        if (!shoppingCart[item.name]) {
+            shoppingCart[item.name] = { price: item.latestPrice, qty: 1 };
+            addedCount++;
+        }
+    });
+
+    updateCartUI();
+    renderProducts(searchInput.value); 
+
+    if (addedCount > 0) {
+        setStatus(`Sugestão ativada! ${addedCount} itens que provavelmente estão acabando foram adicionados.`);
+    } else if (topItems.length > 0) {
+        setStatus("Os itens que estão acabando já estão na sua lista.");
+    } else {
+         setStatus("Nenhum item em estado crítico de estoque no momento (ou faltam dados).");
+    }
 }
 
 function toggleCartItem(name, price) {
