@@ -282,6 +282,10 @@ function processData(data, replace = true) {
         rawPriceStr = rawPriceStr.replace(/\s/g, '').replace(',', '.');
         const price = parseFloat(rawPriceStr);
         const unit = row['Unidade'] || 'UN';
+        
+        let qtyRaw = row['Quantidade'] ? row['Quantidade'].toString().replace(/\s/g, '').replace(',', '.') : "1";
+        let parsedQty = parseFloat(qtyRaw);
+        if (isNaN(parsedQty) || parsedQty <= 0) parsedQty = 1;
 
         if (!product) return;
 
@@ -294,6 +298,7 @@ function processData(data, replace = true) {
             datetime: parseDate(dateRaw),
             market: market,
             price: isNaN(price) ? 0 : price,
+            qty: parsedQty,
             unit: unit,
             originalName: originalProduct,
             customCategory: customCat
@@ -568,9 +573,17 @@ function generateSmartList() {
     const productsByFrequency = Object.keys(groupedProducts).map(name => {
         const history = groupedProducts[name];
         const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
+        
+        // Calculate average quantity
+        let totalQty = 0;
+        history.forEach(h => totalQty += h.qty);
+        const avgQty = totalQty / history.length;
+        const recommendedQty = Math.max(1, Math.round(avgQty));
+
         return {
             name: name,
             frequency: history.length,
+            recommendedQty: recommendedQty,
             latestPrice: sortedHistory[0].price
         };
     }).sort((a, b) => b.frequency - a.frequency);
@@ -580,8 +593,8 @@ function generateSmartList() {
     let addedCount = 0;
     topItems.forEach(item => {
         if (!shoppingCart[item.name]) {
-            shoppingCart[item.name] = { price: item.latestPrice, qty: 1 };
-            addedCount++;
+            shoppingCart[item.name] = { price: item.latestPrice, qty: item.recommendedQty };
+            addedCount += item.recommendedQty;
         }
     });
 
@@ -608,6 +621,11 @@ function generateExpiringList() {
         const history = groupedProducts[name];
         const sortedHistory = [...history].sort((a, b) => a.datetime - b.datetime);
         const latestPrice = sortedHistory[sortedHistory.length - 1].price;
+        
+        let totalQty = 0;
+        history.forEach(h => totalQty += h.qty);
+        const avgQty = totalQty / history.length;
+        const recommendedQty = Math.max(1, Math.round(avgQty));
 
         let validDatesMs = [];
         let lastDateMsObj = null;
@@ -636,6 +654,7 @@ function generateExpiringList() {
                 expiringCandidates.push({
                     name: name,
                     urgency: urgencyScore,
+                    recommendedQty: recommendedQty,
                     latestPrice: latestPrice
                 });
             }
@@ -648,8 +667,8 @@ function generateExpiringList() {
     let addedCount = 0;
     topItems.forEach(item => {
         if (!shoppingCart[item.name]) {
-            shoppingCart[item.name] = { price: item.latestPrice, qty: 1 };
-            addedCount++;
+            shoppingCart[item.name] = { price: item.latestPrice, qty: item.recommendedQty };
+            addedCount += item.recommendedQty;
         }
     });
 
@@ -708,29 +727,56 @@ function updateCartUI() {
 
     shareBtn.style.display = 'flex';
 
+    const groupedCart = {};
     itemsKeys.forEach(name => {
-        // ... remaining loop
-        const item = shoppingCart[name];
-        totalItems += item.qty;
-        totalPrice += (item.price * item.qty);
+        const cat = resolveCategory(name);
+        if (!groupedCart[cat]) groupedCart[cat] = [];
+        groupedCart[cat].push(name);
+    });
 
-        const el = document.createElement('div');
-        el.className = 'cart-item';
-        el.innerHTML = `
-            <div class="cart-item-info">
-                <h4 title="${name}">${name}</h4>
-                <p>${formatCurrency(item.price)} cada</p>
-                <div style="font-weight:600; color:var(--success); margin-top:2px;">
-                    ${formatCurrency(item.price * item.qty)}
+    const categories = Object.keys(groupedCart).sort((a, b) => {
+        if (a === 'Outros') return 1;
+        if (b === 'Outros') return -1;
+        return a.localeCompare(b);
+    });
+
+    categories.forEach(cat => {
+        const colorClass = getColorClassForCategory(cat);
+        const header = document.createElement('div');
+        header.style.fontSize = '0.85rem';
+        header.style.fontWeight = 'bold';
+        header.style.color = `var(--cat-${colorClass})`;
+        header.style.marginTop = '1rem';
+        header.style.marginBottom = '0.5rem';
+        header.style.textTransform = 'uppercase';
+        header.innerHTML = `<i class="ph ph-tag"></i> ${cat}`;
+        listContainer.appendChild(header);
+
+        groupedCart[cat].sort();
+
+        groupedCart[cat].forEach(name => {
+            const item = shoppingCart[name];
+            totalItems += item.qty;
+            totalPrice += (item.price * item.qty);
+
+            const el = document.createElement('div');
+            el.className = 'cart-item';
+            el.innerHTML = `
+                <div class="cart-item-info">
+                    <h4 title="${name}">${name}</h4>
+                    <p>${formatCurrency(item.price)} cada</p>
+                    <div style="font-weight:600; color:var(--success); margin-top:2px;">
+                        ${formatCurrency(item.price * item.qty)}
+                    </div>
                 </div>
-            </div>
-            <div class="cart-item-actions">
-                <button class="qty-btn dec-btn" data-name="${name}">-</button>
-                <span>${item.qty}</span>
-                <button class="qty-btn inc-btn" data-name="${name}">+</button>
-            </div>
-        `;
-        listContainer.appendChild(el);
+                <div class="cart-item-actions">
+                    <button class="qty-btn dec-btn" data-name="${name}">-</button>
+                    <span>${item.qty}</span>
+                    <button class="qty-btn inc-btn" data-name="${name}">+</button>
+                </div>
+            `;
+            listContainer.appendChild(el);
+        });
     });
 
     badge.style.display = 'inline-block';
@@ -749,17 +795,27 @@ function updateCartUI() {
 function getCategory(name) {
     const n = name.toLowerCase();
 
-    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra)/)) return "Limpeza";
-    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |d a rexona|pap hig|ph |ph f dupla|absorvente|abs |fralda|apar barb|algodao|bastonete|prot diar|cr skala)/)) return "Higiene Pessoal";
+    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform)/)) return "Limpeza";
+    
+    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene)/)) return "Higiene Pessoal";
+    
     if (n.match(/(banana|maça|maçã|maca |maca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|mexerica|morango|purapolpa|polpa|maracuj|abacate)/)) return "Hortifruti - Frutas";
+    
     if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|pimentao|pimentão|abobora|mandioca|mand |repolho|salsa |salada)/)) return "Hortifruti - Legumes";
-    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filezinho|peixe|linguica|linguiça|salsicha|porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao)/)) return "Açougue";
+    
+    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao)/)) return "Açougue";
+    
+    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa)/)) return "Doces & Snacks";
+    
     if (n.match(/(leite|lte |queijo|qjo |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo )/)) return "Laticínios & Frios";
-    if (n.match(/(arroz|arr |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |milho|flocao|extrato|ext |extr tom|molho|m shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|maionese|mostarda)/)) return "Mercearia Básica";
-    if (n.match(/(cerveja|refrigerante|suco|agua|água|vinho|vin |vodka|coca |cha |v q morg)/)) return "Bebidas";
-    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh)/)) return "Doces & Snacks";
-    if (n.match(/(pao|pão|torrada|bolo|mb italac|lasanha|rosq)/)) return "Padaria";
-    if (n.match(/(pap alumin|folha alum|filme pvc|pap toalha|sacola|filtro|isopor)/)) return "Utilidades";
+    
+    if (n.match(/(arroz|arr |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec)/)) return "Mercearia Básica";
+    
+    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |v q morg|sprite|guarana|del valle)/)) return "Bebidas";
+    
+    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq)/)) return "Padaria";
+    
+    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm)/)) return "Utilidades";
 
     return "Outros";
 }
