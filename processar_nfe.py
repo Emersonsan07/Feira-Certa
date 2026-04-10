@@ -144,11 +144,36 @@ def processar_notas(pasta_notas, arquivo_saida):
         print(f"Nenhum arquivo XML ou PDF encontrado na pasta {pasta_notas}.")
         return
 
+    # Ler arquivos já processados do CSV (se existir)
+    arquivos_processados = set()
+    cabecalho_existe = False
+    
+    if os.path.exists(arquivo_saida):
+        if os.path.getsize(arquivo_saida) > 0:
+            cabecalho_existe = True
+            try:
+                with open(arquivo_saida, mode='r', encoding='utf-8-sig') as f:
+                    reader = csv.reader(f, delimiter=';')
+                    try:
+                        next(reader) # skip header
+                    except StopIteration:
+                        pass # arquivo pode estar apenas com o BOM do utf8 e não ter cabecalho legível
+                    
+                    for row in reader:
+                        if row and len(row) > 0:
+                            arquivos_processados.add(row[0])
+            except Exception as e:
+                print(f"Erro ao ler histórico de notas CSV: {e}")
+
     dados_totais = []
     # Limite de 60 dias (aprox. 2 meses)
     data_limite = datetime.now() - timedelta(days=60)
 
     for arquivo in arquivos:
+        if arquivo in arquivos_processados:
+            print(f"Ignorado: {arquivo} (já processado anteriormente)")
+            continue
+
         caminho_arquivo = os.path.join(pasta_notas, arquivo)
         extensao = arquivo.lower().split('.')[-1]
         
@@ -185,14 +210,18 @@ def processar_notas(pasta_notas, arquivo_saida):
 
     if dados_totais:
         # Exportar para CSV - Encoding para PT-BR
-        with open(arquivo_saida, mode='w', newline='', encoding='utf-8-sig') as f:
+        modo_abertura = 'a' if cabecalho_existe else 'w'
+        
+        with open(arquivo_saida, mode=modo_abertura, newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f, delimiter=';') 
-            writer.writerow(['Nota / Arquivo', 'Data', 'Fornecedor', 'Produto', 'Quantidade', 'Unidade', 'Valor Unitário (R$)', 'Valor Total (R$)'])
+            if not cabecalho_existe:
+                writer.writerow(['Nota / Arquivo', 'Data', 'Fornecedor', 'Produto', 'Quantidade', 'Unidade', 'Valor Unitário (R$)', 'Valor Total (R$)'])
             writer.writerows(dados_totais)
-        print(f"\nSucesso! {len(dados_totais)} produtos exportados para '{arquivo_saida}'.")
-        print("Você pode importar/copiar este arquivo para o Google Sheets.")
+            
+        print(f"\nSucesso! {len(dados_totais)} novos itens extraídos para '{arquivo_saida}'.")
+        print("Você já pode recarregar o sistema e utilizar os novos dados.")
     else:
-        print("\nNenhum dado foi extraído (Os arquivos podem estar vazios ou num formato desconhecido).")
+        print("\nNenhum dado NOVO foi extraído (Os arquivos detectados na pasta já estavam processados no CSV base ou inválidos).")
 
 if __name__ == "__main__":
     pasta_base = os.path.dirname(os.path.abspath(__file__))

@@ -182,10 +182,14 @@ document.addEventListener('DOMContentLoaded', () => {
     openCartBtn.addEventListener('click', (e) => {
         e.preventDefault();
         cartSidebar.classList.add('open');
+        if (window.innerWidth <= 768) {
+            document.body.style.overflow = 'hidden';
+        }
     });
 
     closeCartBtn.addEventListener('click', () => {
         cartSidebar.classList.remove('open');
+        document.body.style.overflow = '';
     });
 
     clearCartBtn.addEventListener('click', () => {
@@ -569,24 +573,37 @@ function generateSmartList() {
         return;
     }
 
+    const todayMs = new Date().getTime();
+
     // Sort products by frequency
-    const productsByFrequency = Object.keys(groupedProducts).map(name => {
-        const history = groupedProducts[name];
-        const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
+    const productsByFrequency = Object.keys(groupedProducts)
+        .map(name => {
+            const history = groupedProducts[name];
+            
+            // Filter out items bought only once (noise)
+            if (history.length < 2) return null;
 
-        // Calculate average quantity
-        let totalQty = 0;
-        history.forEach(h => totalQty += h.qty);
-        const avgQty = totalQty / history.length;
-        const recommendedQty = Math.max(1, Math.round(avgQty));
+            const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
+            const msSinceLastPurchase = todayMs - sortedHistory[0].datetime.getTime();
+            
+            // Protection against very recently bought items (last 4 days limit)
+            if (msSinceLastPurchase < (4 * 24 * 60 * 60 * 1000)) return null;
 
-        return {
-            name: name,
-            frequency: history.length,
-            recommendedQty: recommendedQty,
-            latestPrice: sortedHistory[0].price
-        };
-    }).sort((a, b) => b.frequency - a.frequency);
+            // Calculate average quantity
+            let totalQty = 0;
+            history.forEach(h => totalQty += h.qty);
+            const avgQty = totalQty / history.length;
+            const recommendedQty = Math.max(1, Math.round(avgQty));
+
+            return {
+                name: name,
+                frequency: history.length,
+                recommendedQty: recommendedQty,
+                latestPrice: sortedHistory[0].price
+            };
+        })
+        .filter(item => item !== null)
+        .sort((a, b) => b.frequency - a.frequency);
 
     const topItems = productsByFrequency.slice(0, 15);
 
@@ -628,35 +645,49 @@ function generateExpiringList() {
         const recommendedQty = Math.max(1, Math.round(avgQty));
 
         let validDatesMs = [];
+        let validQty = [];
         let lastDateMsObj = null;
 
         sortedHistory.forEach(h => {
-            const time = h.datetime.getTime();
-            if (lastDateMsObj !== time) {
-                validDatesMs.push(time);
-                lastDateMsObj = time;
-            }
+             const time = h.datetime.getTime();
+             if (lastDateMsObj !== time) {
+                 validDatesMs.push(time);
+                 validQty.push(h.qty);
+                 lastDateMsObj = time;
+             } else {
+                 validQty[validQty.length - 1] += h.qty;
+             }
         });
 
         if (validDatesMs.length >= 2) {
             let totalDiffMs = 0;
-            for (let i = 1; i < validDatesMs.length; i++) {
-                totalDiffMs += (validDatesMs[i] - validDatesMs[i - 1]);
+            let totalUnitsConsumed = 0;
+            for(let i = 1; i < validDatesMs.length; i++) {
+                totalDiffMs += (validDatesMs[i] - validDatesMs[i-1]);
+                totalUnitsConsumed += validQty[i-1];
             }
-            const avgCycleMs = totalDiffMs / (validDatesMs.length - 1);
+            
+            if (totalUnitsConsumed > 0) {
+                const avgCycleMsPerUnit = totalDiffMs / totalUnitsConsumed;
+                
+                const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
+                const lastQtyAndRecommended = validQty[validQty.length - 1];
+                const msSinceLastPurchase = todayMs - lastPurchaseMs;
+                
+                const expectedLifeTimeMs = lastQtyAndRecommended * avgCycleMsPerUnit;
 
-            const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
-            const msSinceLastPurchase = todayMs - lastPurchaseMs;
+                if (expectedLifeTimeMs > 0) {
+                    const urgencyScore = msSinceLastPurchase / expectedLifeTimeMs;
 
-            const urgencyScore = msSinceLastPurchase / avgCycleMs;
-
-            if (urgencyScore >= 0.75) {
-                expiringCandidates.push({
-                    name: name,
-                    urgency: urgencyScore,
-                    recommendedQty: recommendedQty,
-                    latestPrice: latestPrice
-                });
+                    if (urgencyScore >= 0.75 && urgencyScore <= 3.0) {
+                        expiringCandidates.push({
+                            name: name,
+                            urgency: urgencyScore,
+                            recommendedQty: recommendedQty,
+                            latestPrice: latestPrice
+                        });
+                    }
+                }
             }
         }
     });
