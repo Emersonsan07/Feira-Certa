@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('closeModal').addEventListener('click', closeModal);
-    
+
     const closeEditModalBtn = document.getElementById('closeEditModal');
     if (closeEditModalBtn) {
         closeEditModalBtn.addEventListener('click', () => {
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             configGroup.classList.toggle('open');
         });
-        
+
         // Esconder menu se clicar fora (no celular)
         document.addEventListener('click', (e) => {
             if (!mobileConfigBtn.contains(e.target) && !configGroup.contains(e.target)) {
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            const date = new Date().toISOString().slice(0,10);
+            const date = new Date().toISOString().slice(0, 10);
             a.download = `feira_certa_backup_nomes_${date}.json`;
             a.click();
             URL.revokeObjectURL(url);
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (smartListBtn) {
         smartListBtn.addEventListener('click', generateSmartList);
     }
-    
+
     const expiringListBtn = document.getElementById('expiringListBtn');
     if (expiringListBtn) {
         expiringListBtn.addEventListener('click', generateExpiringList);
@@ -266,7 +266,7 @@ function processData(data, replace = true) {
         // Check overrides
         let product = originalProduct;
         let customCat = null;
-        
+
         if (itemOverrides[originalProduct]) {
             if (itemOverrides[originalProduct].customName) {
                 product = itemOverrides[originalProduct].customName;
@@ -282,7 +282,7 @@ function processData(data, replace = true) {
         rawPriceStr = rawPriceStr.replace(/\s/g, '').replace(',', '.');
         const price = parseFloat(rawPriceStr);
         const unit = row['Unidade'] || 'UN';
-        
+
         let qtyRaw = row['Quantidade'] ? row['Quantidade'].toString().replace(/\s/g, '').replace(',', '.') : "1";
         let parsedQty = parseFloat(qtyRaw);
         if (isNaN(parsedQty) || parsedQty <= 0) parsedQty = 1;
@@ -336,19 +336,19 @@ function resolveCategory(name) {
 function initCategoryFilters() {
     const container = document.getElementById('categoryFilters');
     if (!container) return;
-    
+
     // As categorias originais
     const cats = new Set();
     Object.keys(groupedProducts).forEach(name => cats.add(resolveCategory(name)));
-    
-    const sortedCats = Array.from(cats).sort((a,b) => {
+
+    const sortedCats = Array.from(cats).sort((a, b) => {
         if (a === 'Outros') return 1;
         if (b === 'Outros') return -1;
         return a.localeCompare(b);
     });
-    
+
     container.innerHTML = '';
-    
+
     const btnTodas = document.createElement('button');
     btnTodas.className = `category-chip ${activeCategory === 'Todas' ? 'active' : ''}`;
     btnTodas.textContent = 'Topo';
@@ -367,7 +367,7 @@ function initCategoryFilters() {
         btn.addEventListener('click', () => {
             activeCategory = cat;
             updateCategoryUI();
-            
+
             const safeId = "cat-" + cat.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '');
             const target = document.getElementById(safeId);
             if (target) {
@@ -528,7 +528,7 @@ function renderProducts(filter = '') {
 
 function generateSparklineSVG(history, colorName) {
     if (!history || history.length < 2) return '<div class="sparkline-empty">Poucos dados numéricos</div>';
-    
+
     const data = [...history].sort((a, b) => a.datetime - b.datetime).map(h => h.price);
     const min = Math.min(...data);
     const max = Math.max(...data);
@@ -536,7 +536,7 @@ function generateSparklineSVG(history, colorName) {
     const width = 100;
     const height = 30;
     const padding = 3;
-    
+
     // Convert price values to XY coordinates mapping to SVG bounds
     const points = data.map((val, i) => {
         const x = (i / (data.length - 1)) * width;
@@ -548,7 +548,7 @@ function generateSparklineSVG(history, colorName) {
     });
 
     const svgId = 'spark_' + Math.random().toString(36).substr(2, 9);
-    
+
     return `
         <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="sparkline-svg" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -558,7 +558,7 @@ function generateSparklineSVG(history, colorName) {
                 </linearGradient>
             </defs>
             <polyline fill="none" stroke="var(--cat-${colorName})" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${points.join(' ')}"/>
-            <polygon fill="url(#${svgId})" points="${points[0].split(',')[0]},${height} ${points.join(' ')} ${points[points.length-1].split(',')[0]},${height}"/>
+            <polygon fill="url(#${svgId})" points="${points[0].split(',')[0]},${height} ${points.join(' ')} ${points[points.length - 1].split(',')[0]},${height}"/>
         </svg>
     `;
 }
@@ -573,7 +573,7 @@ function generateSmartList() {
     const productsByFrequency = Object.keys(groupedProducts).map(name => {
         const history = groupedProducts[name];
         const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
-        
+
         // Calculate average quantity
         let totalQty = 0;
         history.forEach(h => totalQty += h.qty);
@@ -599,7 +599,7 @@ function generateSmartList() {
     });
 
     updateCartUI();
-    renderProducts(searchInput.value); 
+    renderProducts(searchInput.value);
 
     if (addedCount > 0) {
         setStatus(`Lista inteligente gerada! ${addedCount} itens mais comprados foram adicionados.`);
@@ -621,7 +621,7 @@ function generateExpiringList() {
         const history = groupedProducts[name];
         const sortedHistory = [...history].sort((a, b) => a.datetime - b.datetime);
         const latestPrice = sortedHistory[sortedHistory.length - 1].price;
-        
+
         let totalQty = 0;
         history.forEach(h => totalQty += h.qty);
         const avgQty = totalQty / history.length;
@@ -629,25 +629,25 @@ function generateExpiringList() {
 
         let validDatesMs = [];
         let lastDateMsObj = null;
-        
+
         sortedHistory.forEach(h => {
-             const time = h.datetime.getTime();
-             if (lastDateMsObj !== time) {
-                 validDatesMs.push(time);
-                 lastDateMsObj = time;
-             }
+            const time = h.datetime.getTime();
+            if (lastDateMsObj !== time) {
+                validDatesMs.push(time);
+                lastDateMsObj = time;
+            }
         });
 
         if (validDatesMs.length >= 2) {
             let totalDiffMs = 0;
-            for(let i = 1; i < validDatesMs.length; i++) {
-                totalDiffMs += (validDatesMs[i] - validDatesMs[i-1]);
+            for (let i = 1; i < validDatesMs.length; i++) {
+                totalDiffMs += (validDatesMs[i] - validDatesMs[i - 1]);
             }
             const avgCycleMs = totalDiffMs / (validDatesMs.length - 1);
-            
+
             const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
             const msSinceLastPurchase = todayMs - lastPurchaseMs;
-            
+
             const urgencyScore = msSinceLastPurchase / avgCycleMs;
 
             if (urgencyScore >= 0.75) {
@@ -673,14 +673,14 @@ function generateExpiringList() {
     });
 
     updateCartUI();
-    renderProducts(searchInput.value); 
+    renderProducts(searchInput.value);
 
     if (addedCount > 0) {
         setStatus(`Sugestão ativada! ${addedCount} itens que provavelmente estão acabando foram adicionados.`);
     } else if (topItems.length > 0) {
         setStatus("Os itens que estão acabando já estão na sua lista.");
     } else {
-         setStatus("Nenhum item em estado crítico de estoque no momento (ou faltam dados).");
+        setStatus("Nenhum item em estado crítico de estoque no momento (ou faltam dados).");
     }
 }
 
@@ -796,25 +796,25 @@ function getCategory(name) {
     const n = name.toLowerCase();
 
     if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform)/)) return "Limpeza";
-    
+
     if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene)/)) return "Higiene Pessoal";
-    
+
     if (n.match(/(banana|maça|maçã|maca |maca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|mexerica|morango|purapolpa|polpa|maracuj|abacate)/)) return "Hortifruti - Frutas";
-    
+
     if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|pimentao|pimentão|abobora|mandioca|mand |repolho|salsa |salada)/)) return "Hortifruti - Legumes";
-    
+
     if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao)/)) return "Açougue";
-    
+
     if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa)/)) return "Doces & Snacks";
-    
+
     if (n.match(/(leite|lte |queijo|qjo |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo )/)) return "Laticínios & Frios";
-    
-    if (n.match(/(arroz|arr |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec)/)) return "Mercearia Básica";
-    
+
+    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec)/)) return "Mercearia Básica";
+
     if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |v q morg|sprite|guarana|del valle)/)) return "Bebidas";
-    
+
     if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq)/)) return "Padaria";
-    
+
     if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm)/)) return "Utilidades";
 
     return "Outros";
@@ -981,44 +981,44 @@ function closeModal() {
 function openEditModal(name) {
     const history = groupedProducts[name];
     const originals = [...new Set(history.map(h => h.originalName))].filter(o => o);
-    
+
     document.getElementById('editOriginalName').value = originals.join(' | ');
     document.getElementById('editCustomName').value = name;
-    
+
     const currentCat = resolveCategory(name);
     const selectCat = document.getElementById('editCategory');
-    
+
     let optionExists = Array.from(selectCat.options).some(opt => opt.value === currentCat);
     if (!optionExists) {
         selectCat.add(new Option(currentCat, currentCat));
     }
     selectCat.value = currentCat;
-    
+
     document.getElementById('editModal').classList.add('active');
-    
+
     document.getElementById('saveEditBtn').onclick = () => saveProductEdit(name, originals);
 }
 
 function saveProductEdit(currentName, originalNames) {
     const customName = document.getElementById('editCustomName').value.trim();
     const customCat = document.getElementById('editCategory').value;
-    
+
     originalNames.forEach(orig => {
         if (!itemOverrides[orig]) itemOverrides[orig] = {};
         itemOverrides[orig].customName = customName || orig;
         itemOverrides[orig].customCategory = customCat;
     });
-    
+
     localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
-    
+
     // Updates the cart if the name was changed and it is inside the cart
     if (customName && customName !== currentName && shoppingCart[currentName]) {
         shoppingCart[customName] = shoppingCart[currentName];
         delete shoppingCart[currentName];
     }
-    
+
     document.getElementById('editModal').classList.remove('active');
-    
+
     // Reprocessar toda a lista com as novas classificações
     processData(marketData, true);
     updateCartUI();
