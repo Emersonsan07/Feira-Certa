@@ -1,0 +1,6 @@
+# === ARQUIVO DE LINKS DAS NOTAS FISCAIS ===
+# Cole aqui os links (URLs) gerados pelos QR Codes das suas notas fiscais.
+# O sistema no app.js/processar_nfe.py passará, linha por linha lendo e processando
+#
+# Exemplo (você pode apagar/colar os seus abaixo):
+https://www.dfe.ms.gov.br/nfce/qrcode/?chNFe=SuaChaveAqui

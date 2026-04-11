@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 import re
 from datetime import datetime, timedelta
 import shutil
+import requests
+from bs4 import BeautifulSoup
 
 try:
     import pdfplumber
@@ -128,10 +130,100 @@ def processar_pdf_nfce(caminho_arquivo):
     
     return itens_extraidos
 
+def processar_url_nfce(url):
+    itens_extraidos = []
+    try:
+        # A página da Sefaz muitas vezes exige os headers corretos para não bloquear o acesso
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        response = requests.get(url, headers=headers, timeout=15)
+        
+        if response.status_code != 200:
+            print(f"Erro ao acessar {url}: Status {response.status_code}")
+            return []
+            
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Encontrar fornecedor (mercado)
+        fornecedor = "Desconhecido"
+        # Tenta padrao comum (id u20, class txtTopo ou dentro do cabeçalho)
+        nome_emitente = soup.find('div', id='u20')
+        if not nome_emitente:
+            nome_emitente = soup.find('div', class_='txtTopo')
+            
+        if nome_emitente:
+            fornecedor = nome_emitente.text.strip()
+            
+        # Pega a data de emissão
+        data_emissao = "Desconhecida"
+        for elemento in soup.find_all(['li', 'div', 'span', 'strong']):
+            texto = elemento.get_text()
+            if 'Emissão' in texto or 'Emissao' in texto:
+                match = re.search(r'(\d{2}/\d{2}/\d{4})', texto)
+                if match:
+                    data_emissao = match.group(1)
+                    break
+        
+        # Pega os produtos (tabela tabResult ou itens avulsos)
+        tabela = soup.find('table', id='tabResult')
+        if not tabela:
+            tabela = soup
+            
+        itens_html = tabela.find_all('tr', id=re.compile(r'^Item'))
+        if not itens_html:
+            itens_html = tabela.find_all('tr')
+            
+        for item in itens_html:
+            nome_tag = item.find('span', class_='txtTit')
+            if not nome_tag:
+                # Tenta outra estrutura comum se txtTit nao existir
+                tds = item.find_all('td')
+                if len(tds) >= 4:
+                    nome = tds[0].get_text(strip=True)
+                    qtd = tds[1].get_text(strip=True).replace(',', '.')
+                    unidade = tds[2].get_text(strip=True)
+                    v_unit = tds[3].get_text(strip=True).replace(',', '.')
+                    v_total = str(float(qtd) * float(v_unit))
+                    v_unit = v_unit.replace('.', ',')
+                    v_total = v_total.replace('.', ',')
+                    qtd = qtd.replace('.', ',')
+                    nome_arquivo_url = url.split('?')[-1][:20] if '?' in url else url[-20:]
+                    itens_extraidos.append([nome_arquivo_url, data_emissao, fornecedor, nome, qtd, unidade, v_unit, v_total])
+                continue
+                
+            nome = nome_tag.get_text(strip=True)
+            
+            qtd_tag = item.find('span', class_='Rqtd')
+            qtd = qtd_tag.get_text(strip=True).replace('Qtde.:', '').strip() if qtd_tag else "0"
+            
+            un_tag = item.find('span', class_='RUN')
+            unidade = un_tag.get_text(strip=True).replace('UN:', '').strip() if un_tag else ""
+            
+            vu_tag = item.find('span', class_='RvlUnit')
+            v_unit = vu_tag.get_text(strip=True).replace('Vl. Unit.:', '').strip() if vu_tag else "0"
+            
+            vt_tag = item.find('span', class_='valor')
+            v_total = "0"
+            if item.find_all('span', class_='valor'):
+                v_total = item.find_all('span', class_='valor')[-1].get_text(strip=True)
+            
+            # Limpeza caso a raspa traga lixo
+            qtd = re.sub(r'[^\d,]', '', qtd)
+            v_unit = re.sub(r'[^\d,]', '', v_unit)
+            v_total = re.sub(r'[^\d,]', '', v_total)
+            
+            nome_arquivo_url = url.split('?')[-1][:20] if '?' in url else url[-20:]
+            
+            itens_extraidos.append([nome_arquivo_url, data_emissao, fornecedor, nome, qtd, unidade, v_unit, v_total])
+            
+    except Exception as e:
+        print(f"Erro ao processar URL: {e}")
+        
+    return itens_extraidos
+
 def processar_notas(pasta_notas, arquivo_saida):
     if not os.path.exists(pasta_notas):
-        print(f"A pasta {pasta_notas} não existe.")
-        return
+        print(f"A pasta {pasta_notas} não existe. Criando...")
+        os.makedirs(pasta_notas)
 
     # Criar pasta 'arquivadas' se não existir
     pasta_arquivadas = os.path.join(pasta_notas, 'arquivadas')
@@ -140,8 +232,18 @@ def processar_notas(pasta_notas, arquivo_saida):
 
     arquivos = [f for f in os.listdir(pasta_notas) if f.lower().endswith(('.xml', '.pdf'))]
     
-    if not arquivos:
-        print(f"Nenhum arquivo XML ou PDF encontrado na pasta {pasta_notas}.")
+    urls_para_processar = []
+    pasta_base_projeto = os.path.dirname(pasta_notas)
+    caminho_urls = os.path.join(pasta_base_projeto, 'urls_notas.txt')
+    if os.path.exists(caminho_urls):
+        with open(caminho_urls, 'r', encoding='utf-8') as f:
+            for linha in f:
+                url_limpa = linha.strip()
+                if url_limpa and url_limpa.startswith('http'):
+                    urls_para_processar.append(url_limpa)
+    
+    if not arquivos and not urls_para_processar:
+        print(f"Nenhum arquivo XML/PDF encontrado na pasta {pasta_notas} e urls_notas.txt está vazio ou inexistente.")
         return
 
     # Ler arquivos já processados do CSV (se existir)
@@ -207,6 +309,35 @@ def processar_notas(pasta_notas, arquivo_saida):
                 print(f"Processado: {arquivo} ({len(itens)} itens)")
         else:
             print(f"Aviso: {arquivo} processado, mas nenhum item extraído.")
+
+    # Processar as URLs
+    for url in urls_para_processar:
+        if any(url.endswith(p) for p in arquivos_processados) or any(p in url for p in arquivos_processados): 
+            # Verificaçao frouxa para url truncada
+            continue
+            
+        print(f"\nProcessando URL online...")
+        itens_url = processar_url_nfce(url)
+        
+        if itens_url:
+            data_str = itens_url[0][1]
+            nota_antiga = False
+            
+            if data_str != "Desconhecida":
+                try:
+                    data_obj = datetime.strptime(data_str, '%d/%m/%Y')
+                    if data_obj < data_limite:
+                        nota_antiga = True
+                except ValueError:
+                    pass
+
+            if nota_antiga:
+                print(f"Ignorada: URL de {data_str} (Mais antiga que 60 dias)")
+            else:
+                dados_totais.extend(itens_url)
+                print(f"Processado: URL com {len(itens_url)} itens")
+        else:
+            print(f"Aviso: URL processada, mas nenhum item extraído ou estrutura inválida.")
 
     if dados_totais:
         # Exportar para CSV - Encoding para PT-BR
