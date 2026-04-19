@@ -3,4 +3,4 @@
 # O sistema no app.js/processar_nfe.py passará, linha por linha lendo e processando
 #
 # Exemplo (você pode apagar/colar os seus abaixo):
-https://www.dfe.ms.gov.br/nfce/qrcode/?p=50260408370598000201651090005401161994598836%7C2%7C1%7C1%7CE49686B7C1B7319259020F39B4BCAA942B0FC995
+https://www.dfe.ms.gov.br/nfce/qrcode/?chNFe=SuaChaveAqui

@@ -579,11 +579,12 @@ function generateSmartList() {
     const productsByFrequency = Object.keys(groupedProducts)
         .map(name => {
             const history = groupedProducts[name];
+            const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
             
             // Filter out items bought only once (noise)
-            if (history.length < 2) return null;
+            if (validHistory.length < 2) return null;
 
-            const sortedHistory = [...history].sort((a, b) => b.datetime - a.datetime);
+            const sortedHistory = [...validHistory].sort((a, b) => b.datetime - a.datetime);
             const msSinceLastPurchase = todayMs - sortedHistory[0].datetime.getTime();
             
             // Protection against very recently bought items (last 4 days limit)
@@ -591,13 +592,13 @@ function generateSmartList() {
 
             // Calculate average quantity
             let totalQty = 0;
-            history.forEach(h => totalQty += h.qty);
-            const avgQty = totalQty / history.length;
+            validHistory.forEach(h => totalQty += h.qty);
+            const avgQty = totalQty / validHistory.length;
             const recommendedQty = Math.max(1, Math.round(avgQty));
 
             return {
                 name: name,
-                frequency: history.length,
+                frequency: validHistory.length,
                 recommendedQty: recommendedQty,
                 latestPrice: sortedHistory[0].price
             };
@@ -636,12 +637,18 @@ function generateExpiringList() {
 
     Object.keys(groupedProducts).forEach(name => {
         const history = groupedProducts[name];
-        const sortedHistory = [...history].sort((a, b) => a.datetime - b.datetime);
+        
+        // Filtrar histórico com datas válidas
+        const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
+        
+        if (validHistory.length < 2) return;
+
+        const sortedHistory = [...validHistory].sort((a, b) => a.datetime - b.datetime);
         const latestPrice = sortedHistory[sortedHistory.length - 1].price;
 
         let totalQty = 0;
-        history.forEach(h => totalQty += h.qty);
-        const avgQty = totalQty / history.length;
+        validHistory.forEach(h => totalQty += h.qty);
+        const avgQty = totalQty / validHistory.length;
         const recommendedQty = Math.max(1, Math.round(avgQty));
 
         let validDatesMs = [];
@@ -679,7 +686,7 @@ function generateExpiringList() {
                 if (expectedLifeTimeMs > 0) {
                     const urgencyScore = msSinceLastPurchase / expectedLifeTimeMs;
 
-                    if (urgencyScore >= 0.75 && urgencyScore <= 3.0) {
+                    if (urgencyScore >= 0.75 && urgencyScore <= 4.0) {
                         expiringCandidates.push({
                             name: name,
                             urgency: urgencyScore,
@@ -826,25 +833,25 @@ function updateCartUI() {
 function getCategory(name) {
     const n = name.toLowerCase();
 
-    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform)/)) return "Limpeza";
+    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform)/)) return "Limpeza";
 
-    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene)/)) return "Higiene Pessoal";
+    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene)/)) return "Higiene Pessoal";
 
-    if (n.match(/(banana|maça|maçã|maca |maca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|mexerica|morango|purapolpa|polpa|maracuj|abacate)/)) return "Hortifruti - Frutas";
+    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta)/)) return "Hortifruti - Frutas";
 
-    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|pimentao|pimentão|abobora|mandioca|mand |repolho|salsa |salada)/)) return "Hortifruti - Legumes";
+    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde)/)) return "Hortifruti - Legumes";
 
-    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao)/)) return "Açougue";
+    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha)/)) return "Açougue";
 
-    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa)/)) return "Doces & Snacks";
+    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq )/)) return "Doces & Snacks";
 
-    if (n.match(/(leite|lte |queijo|qjo |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo )/)) return "Laticínios & Frios";
+    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo )/)) return "Laticínios & Frios";
 
-    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec)/)) return "Mercearia Básica";
+    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel )/)) return "Mercearia Básica";
 
-    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |v q morg|sprite|guarana|del valle)/)) return "Bebidas";
+    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle)/)) return "Bebidas";
 
-    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq)/)) return "Padaria";
+    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa)/)) return "Padaria";
 
     if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm)/)) return "Utilidades";
 
