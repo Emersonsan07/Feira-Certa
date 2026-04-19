@@ -363,6 +363,8 @@ body {
     padding-bottom: 0.5rem;
     margin-bottom: 1.5rem;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 .category-filters::-webkit-scrollbar {
@@ -969,6 +971,158 @@ body {
 }
 
 /* ==========================================================================
+   FINANCE DASHBOARD & BUDGET
+   ========================================================================== */
+.finance-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+    .finance-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.finance-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.finance-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+}
+
+.finance-card h3 i {
+    color: #6366f1;
+    font-size: 1.25rem;
+}
+
+.inflation-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.inflation-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inflation-item-info h4 {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.inflation-item-info p {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.inflation-badge {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-full);
+}
+
+.budget-container {
+    background: var(--bg-elevated);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+}
+
+.budget-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    width: 80px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    outline: none;
+}
+
+.budget-input:focus {
+    border-color: #6366f1;
+}
+
+.budget-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-main);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.budget-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    width: 0%;
+    transition: width 0.5s ease, background 0.5s ease;
+}
+
+.budget-bar-fill.over-budget {
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.substitution-alert {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 2px solid var(--danger);
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 0.75rem;
+}
+
+.substitution-alert strong {
+    color: var(--danger);
+}
+
+.substitution-btn {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    margin-top: 0.4rem;
+    transition: 0.2s;
+    display: inline-block;
+}
+
+.substitution-btn:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ==========================================================================
    MEDIA QUERIES
    ========================================================================== */
 @media (max-width: 1024px) {
@@ -984,35 +1138,94 @@ body {
 @media (max-width: 768px) {
     .top-navbar {
         padding: 0.75rem 1rem;
-        flex-wrap: nowrap;
-        gap: 0.5rem;
+        justify-content: center;
+        border-bottom: 1px solid var(--border-focus);
     }
 
     .logo {
         gap: 0.5rem;
+        justify-content: center;
+        width: 100%;
     }
 
     .logo h1 {
-        display: none;
+        display: block;
+        font-size: 1.25rem;
     }
 
     .logo i {
         font-size: 1.5rem;
     }
-
-    .nav-menu {
-        gap: 0.25rem;
-        width: auto;
-        justify-content: flex-end;
-        flex: 1;
+    
+    .config-dropdown {
+        top: auto;
+        bottom: calc(100% + 15px);
+        right: 10px;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+        border: 1px solid var(--border-focus);
     }
 
-    .nav-link span:not(.badge) {
-        display: none;
+    .qty-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.2rem;
+        border-radius: var(--radius-sm);
+    }
+    
+    .cart-item-actions span {
+        font-size: 1.1rem;
+        font-weight: bold;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .app-container {
+        padding-bottom: 70px;
+    }
+
+    .nav-menu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(9, 9, 11, 0.98);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid var(--border-focus);
+        padding: 0.5rem 0;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+        justify-content: space-around;
+        align-items: center;
+        z-index: 1000;
+        margin: 0;
+        display: flex;
     }
 
     .nav-link {
+        flex-direction: column;
+        gap: 0.2rem;
         padding: 0.5rem;
+        background: transparent !important;
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .nav-link i {
+        font-size: 1.5rem;
+        margin: 0 auto;
+    }
+
+    .nav-link span:not(.badge) {
+        display: block;
+        font-size: 0.7rem;
+    }
+    
+    .nav-link.active {
+        color: #60a5fa !important;
+    }
+    
+    .nav-link.active i {
+        color: #60a5fa !important;
     }
 
     .main-content {
@@ -1027,12 +1240,22 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card:last-child {
+        grid-column: 1 / -1;
+    }
+    
+    .inflation-list {
+        max-height: 250px;
     }
     
     .stat-card {
-        padding: 1rem;
-        gap: 1rem;
+        padding: 0.75rem;
+        gap: 0.75rem;
+        flex-direction: column;
+        text-align: center;
     }
 
     .search-bar {

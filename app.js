@@ -211,6 +211,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (expiringListBtn) {
         expiringListBtn.addEventListener('click', generateExpiringList);
     }
+
+    const cartBudgetInput = document.getElementById('cartBudgetInput');
+    if (cartBudgetInput) {
+        cartBudgetInput.addEventListener('input', updateCartUI);
+    }
+
+    const navDashboardBtn = document.getElementById('navDashboardBtn');
+    const navProductsBtn = document.getElementById('navProductsBtn');
+    const dashboardView = document.getElementById('dashboardView');
+    const productsView = document.getElementById('productsView');
+
+    if (navDashboardBtn && navProductsBtn) {
+        navDashboardBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navDashboardBtn.classList.add('active');
+            navProductsBtn.classList.remove('active');
+            dashboardView.style.display = 'block';
+            productsView.style.display = 'none';
+            document.querySelector('.search-bar').style.visibility = 'hidden';
+        });
+
+        navProductsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            navProductsBtn.classList.add('active');
+            navDashboardBtn.classList.remove('active');
+            productsView.style.display = 'block';
+            dashboardView.style.display = 'none';
+            document.querySelector('.search-bar').style.visibility = 'visible';
+        });
+
+        // Initialize state
+        document.querySelector('.search-bar').style.visibility = 'hidden';
+    }
 });
 
 function setStatus(msg, isError = false) {
@@ -328,6 +361,7 @@ function processData(data, replace = true) {
 
     initCategoryFilters();
     renderProducts();
+    updateFinanceDashboard();
 }
 
 function resolveCategory(name) {
@@ -797,21 +831,73 @@ function updateCartUI() {
             totalItems += item.qty;
             totalPrice += (item.price * item.qty);
 
+            // Calculate historical average for this item
+            const history = groupedProducts[name];
+            let avgPrice = item.price;
+            let substitutionHtml = '';
+            
+            if (history && history.length > 1) {
+                let sumPrice = 0;
+                let cnt = 0;
+                history.forEach(h => {
+                    if (h.price > 0) {
+                        sumPrice += h.price;
+                        cnt++;
+                    }
+                });
+                if (cnt > 0) {
+                    avgPrice = sumPrice / cnt;
+                }
+                
+                if (item.price > avgPrice * 1.15) {
+                    let substitute = null;
+                    let lowestSubPrice = item.price;
+                    Object.keys(groupedProducts).forEach(subName => {
+                        if (subName !== name && resolveCategory(subName) === cat) {
+                            const subHist = groupedProducts[subName];
+                            if (subHist && subHist.length > 0) {
+                                const sortedSub = [...subHist].sort((a,b) => b.datetime - a.datetime);
+                                const latestSubPrice = sortedSub[0].price;
+                                if (latestSubPrice > 0 && latestSubPrice < lowestSubPrice * 0.8) {
+                                    lowestSubPrice = latestSubPrice;
+                                    substitute = { name: subName, price: latestSubPrice };
+                                }
+                            }
+                        }
+                    });
+                    
+                    if (substitute) {
+                        substitutionHtml = `
+                        <div class="substitution-alert">
+                            <i class="ph ph-warning-circle"></i> <strong>Preço Elevado!</strong> (Média: ${formatCurrency(avgPrice)})<br>
+                            Sugestão: ${substitute.name} por ${formatCurrency(substitute.price)}
+                            <br><button class="substitution-btn" onclick="toggleCartItem('${name.replace(/'/g, "\\'")}', 0); toggleCartItem('${substitute.name.replace(/'/g, "\\'")}', ${substitute.price}); renderProducts(); event.stopPropagation();">Trocar na Lista</button>
+                        </div>
+                        `;
+                    }
+                }
+            }
+
             const el = document.createElement('div');
             el.className = 'cart-item';
+            el.style.flexDirection = 'column';
+            el.style.alignItems = 'stretch';
             el.innerHTML = `
-                <div class="cart-item-info">
-                    <h4 title="${name}">${name}</h4>
-                    <p>${formatCurrency(item.price)} cada</p>
-                    <div style="font-weight:600; color:var(--success); margin-top:2px;">
-                        ${formatCurrency(item.price * item.qty)}
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="cart-item-info">
+                        <h4 title="${name}">${name}</h4>
+                        <p>${formatCurrency(item.price)} cada</p>
+                        <div style="font-weight:600; color:var(--success); margin-top:2px;">
+                            ${formatCurrency(item.price * item.qty)}
+                        </div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn dec-btn" data-name="${name}">-</button>
+                        <span>${item.qty}</span>
+                        <button class="qty-btn inc-btn" data-name="${name}">+</button>
                     </div>
                 </div>
-                <div class="cart-item-actions">
-                    <button class="qty-btn dec-btn" data-name="${name}">-</button>
-                    <span>${item.qty}</span>
-                    <button class="qty-btn inc-btn" data-name="${name}">+</button>
-                </div>
+                ${substitutionHtml}
             `;
             listContainer.appendChild(el);
         });
@@ -820,6 +906,23 @@ function updateCartUI() {
     badge.style.display = 'inline-block';
     badge.textContent = totalItems;
     totalEl.textContent = formatCurrency(totalPrice);
+
+    const budgetInput = document.getElementById('cartBudgetInput');
+    const budgetProgress = document.getElementById('cartBudgetProgress');
+    if (budgetInput && budgetProgress) {
+        const target = parseFloat(budgetInput.value) || 0;
+        if (target > 0) {
+            const pct = Math.min((totalPrice / target) * 100, 100);
+            budgetProgress.style.width = pct + '%';
+            if (totalPrice > target) {
+                budgetProgress.classList.add('over-budget');
+            } else {
+                budgetProgress.classList.remove('over-budget');
+            }
+        } else {
+            budgetProgress.style.width = '0%';
+        }
+    }
 
     // Attach qty events inside cart
     document.querySelectorAll('.dec-btn').forEach(btn => {
@@ -1061,4 +1164,134 @@ function saveProductEdit(currentName, originalNames) {
     processData(marketData, true);
     updateCartUI();
     setStatus("Produto atualizado e agrupado com sucesso!");
+}
+
+let financeChartInstance = null;
+
+function updateFinanceDashboard() {
+    const section = document.getElementById('financeSection');
+    const listEl = document.getElementById('inflationList');
+    const ctx = document.getElementById('financeChart');
+    if (!section || !listEl || !ctx) return;
+
+    if (Object.keys(groupedProducts).length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'grid';
+
+    // Calculate monthly expenses
+    const monthlyExpenses = {};
+    const inflationData = [];
+
+    Object.keys(groupedProducts).forEach(name => {
+        const history = groupedProducts[name];
+        
+        // Expense sum
+        history.forEach(h => {
+            if (h.datetime && !isNaN(h.datetime)) {
+                const mKey = `${h.datetime.getFullYear()}-${String(h.datetime.getMonth() + 1).padStart(2, '0')}`;
+                if (!monthlyExpenses[mKey]) monthlyExpenses[mKey] = 0;
+                monthlyExpenses[mKey] += (h.price * h.qty);
+            }
+        });
+
+        // Inflation calculation
+        if (history.length > 1) {
+            const sorted = [...history].sort((a,b) => a.datetime - b.datetime);
+            const latest = sorted[sorted.length - 1].price;
+            
+            let sumOld = 0;
+            let cntOld = 0;
+            for (let i = 0; i < sorted.length - 1; i++) {
+                if (sorted[i].price > 0) {
+                    sumOld += sorted[i].price;
+                    cntOld++;
+                }
+            }
+            if (cntOld > 0) {
+                const avgOld = sumOld / cntOld;
+                if (avgOld > 0 && latest > avgOld) {
+                    const diffPct = ((latest - avgOld) / avgOld) * 100;
+                    if (diffPct > 5) { // Only highlight if increased more than 5%
+                        inflationData.push({
+                            name: name,
+                            pct: diffPct,
+                            oldPrice: avgOld,
+                            newPrice: latest
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    // Sort and render inflation list
+    inflationData.sort((a, b) => b.pct - a.pct);
+    listEl.innerHTML = '';
+    const topInflation = inflationData.slice(0, 10); // top 10 vilões
+    
+    if (topInflation.length === 0) {
+        listEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.85rem; padding:1rem; text-align:center;">Nenhum aumento de preço detectado! 😊</div>';
+    } else {
+        topInflation.forEach(item => {
+            listEl.innerHTML += `
+                <div class="inflation-item">
+                    <div class="inflation-item-info">
+                        <h4 title="${item.name}">${item.name}</h4>
+                        <p>Média: ${formatCurrency(item.oldPrice)} ➔ Atual: <strong>${formatCurrency(item.newPrice)}</strong></p>
+                    </div>
+                    <div class="inflation-badge">+${item.pct.toFixed(0)}%</div>
+                </div>
+            `;
+        });
+    }
+
+    // Sort and render chart
+    const sortedMonths = Object.keys(monthlyExpenses).sort();
+    const labels = [];
+    const data = [];
+    
+    sortedMonths.forEach(m => {
+        const [yy, mm] = m.split('-');
+        labels.push(`${mm}/${yy}`);
+        data.push(monthlyExpenses[m]);
+    });
+
+    if (financeChartInstance) {
+        financeChartInstance.destroy();
+    }
+
+    financeChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Gastos (R$)',
+                data: data,
+                backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                borderRadius: 4,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#a1a1aa' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#a1a1aa' }
+                }
+            }
+        }
+    });
 }
