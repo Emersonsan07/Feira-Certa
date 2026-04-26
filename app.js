@@ -609,38 +609,56 @@ function generateSmartList() {
 
     const todayMs = new Date().getTime();
 
-    // Sort products by frequency
+    // Analisar recorrência e quantidades mensais para uma feira completa
     const productsByFrequency = Object.keys(groupedProducts)
         .map(name => {
             const history = groupedProducts[name];
             const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
-            
+
             // Filter out items bought only once (noise)
             if (validHistory.length < 2) return null;
 
             const sortedHistory = [...validHistory].sort((a, b) => b.datetime - a.datetime);
             const msSinceLastPurchase = todayMs - sortedHistory[0].datetime.getTime();
-            
+
             // Protection against very recently bought items (last 4 days limit)
             if (msSinceLastPurchase < (4 * 24 * 60 * 60 * 1000)) return null;
 
-            // Calculate average quantity
-            let totalQty = 0;
-            validHistory.forEach(h => totalQty += h.qty);
-            const avgQty = totalQty / validHistory.length;
-            const recommendedQty = Math.max(1, Math.round(avgQty));
+            // Agrupar compras por mês/ano para calcular o consumo real da "Feira do Mês"
+            const qtyByMonth = {};
+            validHistory.forEach(h => {
+                const monthKey = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
+                if (!qtyByMonth[monthKey]) qtyByMonth[monthKey] = 0;
+                qtyByMonth[monthKey] += h.qty;
+            });
+
+            const monthsCount = Object.keys(qtyByMonth).length;
+            let totalMonthlyQty = 0;
+            Object.values(qtyByMonth).forEach(qty => totalMonthlyQty += qty);
+
+            // Média de quantidade consumida por mês (e não por compra)
+            const avgMonthlyQty = totalMonthlyQty / monthsCount;
+            const recommendedQty = Math.max(1, Math.round(avgMonthlyQty));
 
             return {
                 name: name,
                 frequency: validHistory.length,
+                monthsCount: monthsCount,
                 recommendedQty: recommendedQty,
                 latestPrice: sortedHistory[0].price
             };
         })
         .filter(item => item !== null)
-        .sort((a, b) => b.frequency - a.frequency);
+        // Priorizar os itens que aparecem em mais meses (mais essenciais para a feira mensal) e depois pela frequência geral
+        .sort((a, b) => {
+            if (b.monthsCount !== a.monthsCount) {
+                return b.monthsCount - a.monthsCount;
+            }
+            return b.frequency - a.frequency;
+        });
 
-    const topItems = productsByFrequency.slice(0, 15);
+    // Uma lista completa para feira do mês precisa de mais itens do que apenas 15. Aumentamos para os top 200 itens.
+    const topItems = productsByFrequency.slice(0, 200);
 
     let addedCount = 0;
     topItems.forEach(item => {
@@ -671,10 +689,10 @@ function generateExpiringList() {
 
     Object.keys(groupedProducts).forEach(name => {
         const history = groupedProducts[name];
-        
+
         // Filtrar histórico com datas válidas
         const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
-        
+
         if (validHistory.length < 2) return;
 
         const sortedHistory = [...validHistory].sort((a, b) => a.datetime - b.datetime);
@@ -690,31 +708,31 @@ function generateExpiringList() {
         let lastDateMsObj = null;
 
         sortedHistory.forEach(h => {
-             const time = h.datetime.getTime();
-             if (lastDateMsObj !== time) {
-                 validDatesMs.push(time);
-                 validQty.push(h.qty);
-                 lastDateMsObj = time;
-             } else {
-                 validQty[validQty.length - 1] += h.qty;
-             }
+            const time = h.datetime.getTime();
+            if (lastDateMsObj !== time) {
+                validDatesMs.push(time);
+                validQty.push(h.qty);
+                lastDateMsObj = time;
+            } else {
+                validQty[validQty.length - 1] += h.qty;
+            }
         });
 
         if (validDatesMs.length >= 2) {
             let totalDiffMs = 0;
             let totalUnitsConsumed = 0;
-            for(let i = 1; i < validDatesMs.length; i++) {
-                totalDiffMs += (validDatesMs[i] - validDatesMs[i-1]);
-                totalUnitsConsumed += validQty[i-1];
+            for (let i = 1; i < validDatesMs.length; i++) {
+                totalDiffMs += (validDatesMs[i] - validDatesMs[i - 1]);
+                totalUnitsConsumed += validQty[i - 1];
             }
-            
+
             if (totalUnitsConsumed > 0) {
                 const avgCycleMsPerUnit = totalDiffMs / totalUnitsConsumed;
-                
+
                 const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
                 const lastQtyAndRecommended = validQty[validQty.length - 1];
                 const msSinceLastPurchase = todayMs - lastPurchaseMs;
-                
+
                 const expectedLifeTimeMs = lastQtyAndRecommended * avgCycleMsPerUnit;
 
                 if (expectedLifeTimeMs > 0) {
@@ -835,7 +853,7 @@ function updateCartUI() {
             const history = groupedProducts[name];
             let avgPrice = item.price;
             let substitutionHtml = '';
-            
+
             if (history && history.length > 1) {
                 let sumPrice = 0;
                 let cnt = 0;
@@ -848,7 +866,7 @@ function updateCartUI() {
                 if (cnt > 0) {
                     avgPrice = sumPrice / cnt;
                 }
-                
+
                 if (item.price > avgPrice * 1.15) {
                     let substitute = null;
                     let lowestSubPrice = item.price;
@@ -856,7 +874,7 @@ function updateCartUI() {
                         if (subName !== name && resolveCategory(subName) === cat) {
                             const subHist = groupedProducts[subName];
                             if (subHist && subHist.length > 0) {
-                                const sortedSub = [...subHist].sort((a,b) => b.datetime - a.datetime);
+                                const sortedSub = [...subHist].sort((a, b) => b.datetime - a.datetime);
                                 const latestSubPrice = sortedSub[0].price;
                                 if (latestSubPrice > 0 && latestSubPrice < lowestSubPrice * 0.8) {
                                     lowestSubPrice = latestSubPrice;
@@ -865,7 +883,7 @@ function updateCartUI() {
                             }
                         }
                     });
-                    
+
                     if (substitute) {
                         substitutionHtml = `
                         <div class="substitution-alert">
@@ -1187,7 +1205,7 @@ function updateFinanceDashboard() {
 
     Object.keys(groupedProducts).forEach(name => {
         const history = groupedProducts[name];
-        
+
         // Expense sum
         history.forEach(h => {
             if (h.datetime && !isNaN(h.datetime)) {
@@ -1199,9 +1217,9 @@ function updateFinanceDashboard() {
 
         // Inflation calculation
         if (history.length > 1) {
-            const sorted = [...history].sort((a,b) => a.datetime - b.datetime);
+            const sorted = [...history].sort((a, b) => a.datetime - b.datetime);
             const latest = sorted[sorted.length - 1].price;
-            
+
             let sumOld = 0;
             let cntOld = 0;
             for (let i = 0; i < sorted.length - 1; i++) {
@@ -1231,7 +1249,7 @@ function updateFinanceDashboard() {
     inflationData.sort((a, b) => b.pct - a.pct);
     listEl.innerHTML = '';
     const topInflation = inflationData.slice(0, 10); // top 10 vilões
-    
+
     if (topInflation.length === 0) {
         listEl.innerHTML = '<div style="color:var(--text-secondary); font-size:0.85rem; padding:1rem; text-align:center;">Nenhum aumento de preço detectado! 😊</div>';
     } else {
@@ -1252,7 +1270,7 @@ function updateFinanceDashboard() {
     const sortedMonths = Object.keys(monthlyExpenses).sort();
     const labels = [];
     const data = [];
-    
+
     sortedMonths.forEach(m => {
         const [yy, mm] = m.split('-');
         labels.push(`${mm}/${yy}`);
