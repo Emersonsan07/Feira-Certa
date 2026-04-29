@@ -268,8 +268,8 @@ def processar_notas(pasta_notas, arquivo_saida):
                 print(f"Erro ao ler histórico de notas CSV: {e}")
 
     dados_totais = []
-    # Limite de 60 dias (aprox. 2 meses)
-    data_limite = datetime.now() - timedelta(days=60)
+    # Limite de 90 dias (aprox. 3 meses)
+    data_limite = datetime.now() - timedelta(days=90)
 
     for arquivo in arquivos:
         if arquivo in arquivos_processados:
@@ -302,7 +302,7 @@ def processar_notas(pasta_notas, arquivo_saida):
                 # Se for antiga, mover para arquivadas e não incluir no CSV final
                 caminho_destino = os.path.join(pasta_arquivadas, arquivo)
                 shutil.move(caminho_arquivo, caminho_destino)
-                print(f"Arquivado: {arquivo} (Mais antiga que 60 dias, movida para 'arquivadas')")
+                print(f"Arquivado: {arquivo} (Mais antiga que 90 dias, movida para 'arquivadas')")
             else:
                 # Se for recente, adiciona aos dados
                 dados_totais.extend(itens)
@@ -332,7 +332,7 @@ def processar_notas(pasta_notas, arquivo_saida):
                     pass
 
             if nota_antiga:
-                print(f"Ignorada: URL de {data_str} (Mais antiga que 60 dias)")
+                print(f"Ignorada: URL de {data_str} (Mais antiga que 90 dias)")
             else:
                 dados_totais.extend(itens_url)
                 print(f"Processado: URL com {len(itens_url)} itens")
