@@ -16,6 +16,28 @@ except ImportError:
 # Definir os namespaces usados no XML da NFe
 ns = {'nfe': 'https://www.dfe.ms.gov.br/nfe/consulta/'}
 
+# Mapeamento de Razão Social para Nome Fantasia
+NOMES_FANTASIA = {
+    'SENDAS DISTRIBUIDORA S/A': 'Assaí',
+    'G T MIYAZATO - FRUTARIA ME': 'Frutaria Julio',
+    'SANTO ANTONIO DISTRIBUIDORA DE ALIMENTOS LTDA': 'Legal',
+    'SDB COMERCIO DE ALIMENTOS LTDA': 'Fort',
+    'DISTRIBUIDORA DE OVO': 'Distribuidora de Ovos'
+}
+
+def obter_nome_fantasia(nome_real):
+    if not nome_real:
+        return "Desconhecido"
+    
+    nome_limpo = nome_real.strip().upper()
+    
+    # Busca exata ou parcial
+    for razao, fantasia in NOMES_FANTASIA.items():
+        if razao.upper() in nome_limpo:
+            return fantasia
+            
+    return nome_real.strip()
+
 def processar_xml(caminho_arquivo):
     itens_extraidos = []
     try:
@@ -34,7 +56,8 @@ def processar_xml(caminho_arquivo):
             return []
 
         emitente_xml = infNFe.find('.//nfe:emit/nfe:xNome', ns)
-        fornecedor = emitente_xml.text if emitente_xml is not None else "Desconhecido"
+        fornecedor_bruto = emitente_xml.text if emitente_xml is not None else "Desconhecido"
+        fornecedor = obter_nome_fantasia(fornecedor_bruto)
 
         ide_xml = infNFe.find('.//nfe:ide/nfe:dhEmi', ns)
         if ide_xml is None:
@@ -97,7 +120,8 @@ def processar_pdf_nfce(caminho_arquivo):
         # Encontrar Fornecedor e Data
         for i, linha in enumerate(linhas):
             if "CNPJ:" in linha and i > 0 and fornecedor == "Desconhecido":
-                fornecedor = linhas[i-1].strip()
+                fornecedor_bruto = linhas[i-1].strip()
+                fornecedor = obter_nome_fantasia(fornecedor_bruto)
             
             match_data = regex_data.search(linha)
             if match_data and data_emissao == "Desconhecida":
@@ -151,7 +175,8 @@ def processar_url_nfce(url):
             nome_emitente = soup.find('div', class_='txtTopo')
             
         if nome_emitente:
-            fornecedor = nome_emitente.text.strip()
+            fornecedor_bruto = nome_emitente.text.strip()
+            fornecedor = obter_nome_fantasia(fornecedor_bruto)
             
         # Pega a data de emissão
         data_emissao = "Desconhecida"

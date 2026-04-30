@@ -1156,12 +1156,12 @@ body {
     .logo i {
         font-size: 1.5rem;
     }
-    
+
     .config-dropdown {
         top: auto;
         bottom: calc(100% + 15px);
         right: 10px;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8);
         border: 1px solid var(--border-focus);
     }
 
@@ -1171,7 +1171,7 @@ body {
         font-size: 1.2rem;
         border-radius: var(--radius-sm);
     }
-    
+
     .cart-item-actions span {
         font-size: 1.1rem;
         font-weight: bold;
@@ -1219,11 +1219,11 @@ body {
         display: block;
         font-size: 0.7rem;
     }
-    
+
     .nav-link.active {
         color: #60a5fa !important;
     }
-    
+
     .nav-link.active i {
         color: #60a5fa !important;
     }
@@ -1238,19 +1238,19 @@ body {
         align-items: stretch;
         gap: 0.75rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .stat-card:last-child {
         grid-column: 1 / -1;
     }
-    
+
     .inflation-list {
         max-height: 250px;
     }
-    
+
     .stat-card {
         padding: 0.75rem;
         gap: 0.75rem;
@@ -1268,7 +1268,7 @@ body {
         right: -100vw;
         border-left: none;
     }
-    
+
     .cart-header {
         padding: 1rem;
     }
@@ -1286,7 +1286,7 @@ body {
         width: 95%;
         padding: 1.25rem;
     }
-    
+
     .chart-container {
         height: 200px;
     }
