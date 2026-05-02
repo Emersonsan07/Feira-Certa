@@ -123,57 +123,53 @@
             </div>
         </main>
 
-        <!-- Cart Sidebar -->
-        <div class="cart-sidebar" id="cartSidebar">
-            <div class="cart-header">
-                <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
-                <button class="close-cart" id="closeCartBtn"><i class="ph ph-x"></i></button>
-            </div>
-
-            <div
-                style="padding: 0 1.5rem; margin-top: -0.5rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.6rem;">
-                <button id="smartListBtn" class="btn-primary w-100"
-                    style="background: linear-gradient(135deg, #a855f7, #ec4899); border: none; box-shadow: none;"
-                    title="Adiciona os itens de maior frequência (Ideal para a Feira Grande do Mês)">
-                    <i class="ph ph-magic-wand"></i> Gerar Compra do Mês
-                </button>
-                <button id="expiringListBtn" class="btn-primary w-100"
-                    style="background: linear-gradient(135deg, #f59e0b, #ef4444); border: none; box-shadow: none;"
-                    title="Adiciona os itens que já devem ter esgotado em casa (Ideal para tapar buracos)">
-                    <i class="ph ph-clock-countdown"></i> Gerar Reposição Semanal
-                </button>
-            </div>
-
-            <div class="cart-items" id="cartItemsList">
-                <div class="empty-cart-msg">Sua lista está vazia. Adicione produtos na tela principal.</div>
-            </div>
-
-            <div class="cart-footer">
-                <div class="budget-container" style="margin-bottom: 1rem;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-size: 0.85rem; color: var(--text-secondary);"><i class="ph ph-target"></i>
-                            Orçamento Alvo (R$)</span>
-                        <input type="number" id="cartBudgetInput" value="500" class="budget-input">
-                    </div>
-                    <div class="budget-bar-bg">
-                        <div class="budget-bar-fill" id="cartBudgetProgress"></div>
-                    </div>
+        <!-- Cart Modal (Pop Central) -->
+        <div class="modal-overlay" id="cartModal">
+            <div class="modal-content cart-modal-content">
+                <button class="close-modal" id="closeCartBtn"><i class="ph ph-x"></i></button>
+                
+                <div class="cart-header">
+                    <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
                 </div>
 
-                <div class="cart-total">
-                    <span>Custo Estimado</span>
-                    <h3 id="cartTotalValue">R$ 0,00</h3>
+                <div class="cart-smart-actions">
+                    <button id="smartListBtn" class="btn-smart" title="Adiciona os itens de maior frequência">
+                        <i class="ph ph-magic-wand"></i> Compra do Mês
+                    </button>
+                    <button id="expiringListBtn" class="btn-smart secondary" title="Adiciona os itens que já devem ter esgotado">
+                        <i class="ph ph-clock-countdown"></i> Reposição Semanal
+                    </button>
                 </div>
-                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                    <button class="btn-primary w-100" id="shareWhatsAppBtn"
-                        style="background:#25D366;box-shadow:none;display:none;">
-                        <i class="ph ph-whatsapp-logo"></i> Compartilhar
-                    </button>
-                    <button class="btn-primary" id="clearCartBtn"
-                        style="background:var(--danger);box-shadow:none;width:50px;display:flex;justify-content:center;padding:0.75rem 0;">
-                        <i class="ph ph-trash" style="margin:0;"></i>
-                    </button>
+
+                <div class="cart-items" id="cartItemsList">
+                    <div class="empty-cart-msg">Sua lista está vazia. Adicione produtos na tela principal.</div>
+                </div>
+
+                <div class="cart-footer">
+                    <div class="budget-section">
+                        <div class="budget-info">
+                            <span><i class="ph ph-target"></i> Orçamento Alvo</span>
+                            <input type="number" id="cartBudgetInput" value="500" class="budget-input">
+                        </div>
+                        <div class="budget-bar-bg">
+                            <div class="budget-bar-fill" id="cartBudgetProgress"></div>
+                        </div>
+                    </div>
+
+                    <div class="cart-summary">
+                        <div class="total-box">
+                            <span>Total Estimado</span>
+                            <h3 id="cartTotalValue">R$ 0,00</h3>
+                        </div>
+                        <div class="footer-actions">
+                            <button class="btn-share" id="shareWhatsAppBtn">
+                                <i class="ph ph-whatsapp-logo"></i> Compartilhar
+                            </button>
+                            <button class="btn-clear" id="clearCartBtn" title="Limpar Carrinho">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

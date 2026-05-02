@@ -93,9 +93,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 behavior: 'smooth'
             });
             // Fechar o carrinho tbm, caso o usuário chame isso de "recolher o menu"
-            const cartSidebar = document.getElementById('cartSidebar');
-            if (cartSidebar && cartSidebar.classList.contains('open')) {
-                cartSidebar.classList.remove('open');
+            const cartModal = document.getElementById('cartModal');
+            if (cartModal && cartModal.classList.contains('active')) {
+                cartModal.classList.remove('active');
+                document.body.style.overflow = '';
             }
         });
     }
@@ -175,21 +176,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Cart Events
     const openCartBtn = document.getElementById('openCartBtn');
     const closeCartBtn = document.getElementById('closeCartBtn');
-    const cartSidebar = document.getElementById('cartSidebar');
+    const cartModal = document.getElementById('cartModal');
     const clearCartBtn = document.getElementById('clearCartBtn');
     const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
 
     openCartBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        cartSidebar.classList.add('open');
-        if (window.innerWidth <= 768) {
-            document.body.style.overflow = 'hidden';
-        }
+        cartModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     });
 
     closeCartBtn.addEventListener('click', () => {
-        cartSidebar.classList.remove('open');
+        cartModal.classList.remove('active');
         document.body.style.overflow = '';
+    });
+
+    // Close on overlay click
+    cartModal.addEventListener('click', (e) => {
+        if (e.target === cartModal) {
+            cartModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
     });
 
     clearCartBtn.addEventListener('click', () => {
@@ -832,14 +839,13 @@ function updateCartUI() {
 
     categories.forEach(cat => {
         const colorClass = getColorClassForCategory(cat);
+        const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#ef4444';
+        
+        // Category section header (visual from image)
         const header = document.createElement('div');
-        header.style.fontSize = '0.85rem';
-        header.style.fontWeight = 'bold';
-        header.style.color = `var(--cat-${colorClass})`;
-        header.style.marginTop = '1rem';
-        header.style.marginBottom = '0.5rem';
-        header.style.textTransform = 'uppercase';
-        header.innerHTML = `<i class="ph ph-tag"></i> ${cat}`;
+        header.className = 'cart-category-title';
+        header.style.color = categoryColor;
+        header.textContent = cat;
         listContainer.appendChild(header);
 
         groupedCart[cat].sort();
@@ -849,75 +855,35 @@ function updateCartUI() {
             totalItems += item.qty;
             totalPrice += (item.price * item.qty);
 
-            // Calculate historical average for this item
+            // Calculate historical average
             const history = groupedProducts[name];
             let avgPrice = item.price;
-            let substitutionHtml = '';
-
-            if (history && history.length > 1) {
-                let sumPrice = 0;
-                let cnt = 0;
-                history.forEach(h => {
-                    if (h.price > 0) {
-                        sumPrice += h.price;
-                        cnt++;
-                    }
-                });
-                if (cnt > 0) {
-                    avgPrice = sumPrice / cnt;
-                }
-
-                if (item.price > avgPrice * 1.15) {
-                    let substitute = null;
-                    let lowestSubPrice = item.price;
-                    Object.keys(groupedProducts).forEach(subName => {
-                        if (subName !== name && resolveCategory(subName) === cat) {
-                            const subHist = groupedProducts[subName];
-                            if (subHist && subHist.length > 0) {
-                                const sortedSub = [...subHist].sort((a, b) => b.datetime - a.datetime);
-                                const latestSubPrice = sortedSub[0].price;
-                                if (latestSubPrice > 0 && latestSubPrice < lowestSubPrice * 0.8) {
-                                    lowestSubPrice = latestSubPrice;
-                                    substitute = { name: subName, price: latestSubPrice };
-                                }
-                            }
-                        }
-                    });
-
-                    if (substitute) {
-                        substitutionHtml = `
-                        <div class="substitution-alert">
-                            <i class="ph ph-warning-circle"></i> <strong>Preço Elevado!</strong> (Média: ${formatCurrency(avgPrice)})<br>
-                            Sugestão: ${substitute.name} por ${formatCurrency(substitute.price)}
-                            <br><button class="substitution-btn" onclick="toggleCartItem('${name.replace(/'/g, "\\'")}', 0); toggleCartItem('${substitute.name.replace(/'/g, "\\'")}', ${substitute.price}); renderProducts(); event.stopPropagation();">Trocar na Lista</button>
-                        </div>
-                        `;
-                    }
+            if (history && history.length > 0) {
+                const validPrices = history.map(h => h.price).filter(p => p > 0);
+                if (validPrices.length > 0) {
+                    avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
                 }
             }
 
-            const el = document.createElement('div');
-            el.className = 'cart-item';
-            el.style.flexDirection = 'column';
-            el.style.alignItems = 'stretch';
-            el.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="cart-item-info">
-                        <h4 title="${name}">${name}</h4>
-                        <p>${formatCurrency(item.price)} cada</p>
-                        <div style="font-weight:600; color:var(--success); margin-top:2px;">
-                            ${formatCurrency(item.price * item.qty)}
-                        </div>
-                    </div>
-                    <div class="cart-item-actions">
-                        <button class="qty-btn dec-btn" data-name="${name}">-</button>
-                        <span>${item.qty}</span>
-                        <button class="qty-btn inc-btn" data-name="${name}">+</button>
+            const card = document.createElement('div');
+            card.className = 'cart-item-card';
+            card.style.setProperty('--item-accent', categoryColor);
+            
+            card.innerHTML = `
+                <div class="cart-item-details">
+                    <div class="cart-item-name" title="${name}">${name}</div>
+                    <div class="cart-item-stats">
+                        <span title="Preço Médio Histórico">Média: ${formatCurrency(avgPrice)}</span>
+                        <span class="item-total-val">${formatCurrency(item.price * item.qty)}</span>
                     </div>
                 </div>
-                ${substitutionHtml}
+                <div class="cart-qty-controls">
+                    <button class="cart-qty-btn dec-btn" data-name="${name}"><i class="ph ph-minus"></i></button>
+                    <span class="cart-qty-value">${item.qty}</span>
+                    <button class="cart-qty-btn inc-btn" data-name="${name}"><i class="ph ph-plus"></i></button>
+                </div>
             `;
-            listContainer.appendChild(el);
+            listContainer.appendChild(card);
         });
     });
 
