@@ -2,6 +2,10 @@ let marketData = [];
 let groupedProducts = {};
 let currentChart = null;
 
+// Notas fiscais com mais de este número de meses serão ignoradas nos cálculos
+// de frequência e ciclo de consumo (mas mantidas no histórico de preços).
+const DATA_CUTOFF_MONTHS = 5;
+
 // Helper: Cor por Categoria
 function getColorClassForCategory(cat) {
     if (!cat) return 'outros';
@@ -28,6 +32,7 @@ let itemOverrides = JSON.parse(localStorage.getItem('feiraCertaOverrides')) || {
 const productsGrid = document.getElementById('productsGrid');
 const searchInput = document.getElementById('searchInput');
 const statusMessage = document.getElementById('statusMessage');
+const searchBarWrapper = document.getElementById('searchBarWrapper');
 
 document.addEventListener('DOMContentLoaded', () => {
     // Attempt to load CSV automatically
@@ -37,9 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('fileInput');
     const importBtn = document.getElementById('importBtn');
 
-    importBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
+    if (importBtn) {
+        importBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.click();
+        });
+    }
 
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -47,17 +55,12 @@ document.addEventListener('DOMContentLoaded', () => {
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
-                delimiter: ";", // Force semicolon since it's the structure
+                delimiter: ";",
                 complete: function (results) {
-                    // APPEND data instead of replacing
                     const isFirstLoad = marketData.length === 0;
-                    if (isFirstLoad) {
-                        processData(results.data, true);
-                    } else {
-                        processData(results.data, false);
-                    }
-                    setStatus(`Arquivo "${file.name}" carregado com sucesso.`);
-                    fileInput.value = ''; // Reset input to allow loading the same file again if needed
+                    processData(results.data, isFirstLoad);
+                    setStatus(`✅ Arquivo "${file.name}" carregado com sucesso.`);
+                    fileInput.value = '';
                 }
             });
         }
@@ -229,29 +232,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const dashboardView = document.getElementById('dashboardView');
     const productsView = document.getElementById('productsView');
 
-    if (navDashboardBtn && navProductsBtn) {
-        navDashboardBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navDashboardBtn.classList.add('active');
-            navProductsBtn.classList.remove('active');
-            dashboardView.style.display = 'block';
-            productsView.style.display = 'none';
-            document.querySelector('.search-bar').style.visibility = 'hidden';
-        });
+    // Quick action buttons no dashboard
+    const quickSmartListBtn = document.getElementById('quickSmartListBtn');
+    const quickExpiringBtn = document.getElementById('quickExpiringBtn');
+    if (quickSmartListBtn) quickSmartListBtn.addEventListener('click', () => { openCartAndRun(generateSmartList); });
+    if (quickExpiringBtn) quickExpiringBtn.addEventListener('click', () => { openCartAndRun(generateExpiringList); });
 
-        navProductsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navProductsBtn.classList.add('active');
-            navDashboardBtn.classList.remove('active');
-            productsView.style.display = 'block';
-            dashboardView.style.display = 'none';
-            document.querySelector('.search-bar').style.visibility = 'visible';
-        });
-
-        // Initialize state
-        document.querySelector('.search-bar').style.visibility = 'hidden';
+    function showView(view) {
+        const isDash = view === 'dashboard';
+        dashboardView.style.display = isDash ? 'block' : 'none';
+        productsView.style.display = isDash ? 'none' : 'block';
+        if (searchBarWrapper) searchBarWrapper.style.display = isDash ? 'none' : 'block';
+        navDashboardBtn.classList.toggle('active', isDash);
+        navProductsBtn.classList.toggle('active', !isDash);
     }
+
+    if (navDashboardBtn && navProductsBtn) {
+        navDashboardBtn.addEventListener('click', (e) => { e.preventDefault(); showView('dashboard'); });
+        navProductsBtn.addEventListener('click', (e) => { e.preventDefault(); showView('products'); });
+        showView('dashboard');
+    }
+
+    // Atualiza hint dos botões de acordo com o dia
+    updateQuickActionHints();
 });
+
+function openCartAndRun(fn) {
+    const cartModal = document.getElementById('cartModal');
+    cartModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    fn();
+}
+
+function updateQuickActionHints() {
+    const day = new Date().getDate();
+    const hintEl = document.getElementById('smartListHint');
+    const subtitleEl = document.getElementById('quickActionsSubtitle');
+    const periodBadge = document.getElementById('cartPeriodBadge');
+    let period, hint;
+    if (day <= 10) {
+        period = 'Início do mês';
+        hint = 'Lista completa para começo do mês';
+    } else if (day >= 21) {
+        period = 'Fim do mês';
+        hint = 'Preparação para o próximo mês';
+    } else {
+        period = 'Meio do mês';
+        hint = 'Itens ainda não comprados este mês';
+    }
+    if (hintEl) hintEl.textContent = hint;
+    if (subtitleEl) subtitleEl.textContent = period;
+    if (periodBadge) periodBadge.textContent = period;
+}
 
 function setStatus(msg, isError = false) {
     statusMessage.style.display = 'block';
@@ -366,9 +398,34 @@ function processData(data, replace = true) {
         }
     }
 
+    // Gasto do mês atual
+    const now = new Date();
+    const curMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let curMonthTotal = 0;
+    Object.values(groupedProducts).forEach(hist => {
+        hist.forEach(h => {
+            if (h.datetime && !isNaN(h.datetime)) {
+                const mk = `${h.datetime.getFullYear()}-${String(h.datetime.getMonth() + 1).padStart(2, '0')}`;
+                if (mk === curMonthKey) curMonthTotal += h.price * h.qty;
+            }
+        });
+    });
+    const statMonthEl = document.getElementById('statMonthTotal');
+    if (statMonthEl) {
+        statMonthEl.style.display = curMonthTotal > 0 ? 'flex' : 'none';
+        const el = document.getElementById('currentMonthTotal');
+        if (el) el.textContent = formatCurrency(curMonthTotal);
+    }
+
+    // Mostrar secao de acoes rapidas
+    const qaSection = document.getElementById('quickActionsSection');
+    if (qaSection) qaSection.style.display = 'block';
+
     initCategoryFilters();
     renderProducts();
     updateFinanceDashboard();
+    renderCategorySpending();
+    initCalendar();
 }
 
 function resolveCategory(name) {
@@ -614,26 +671,79 @@ function generateSmartList() {
         return;
     }
 
-    const todayMs = new Date().getTime();
+    const today = new Date();
+    const todayMs = today.getTime();
+    const dayOfMonth = today.getDate();
 
-    // Analisar recorrência e quantidades mensais para uma feira completa
+    // Corte temporal: ignorar compras mais antigas que DATA_CUTOFF_MONTHS para cálculo de frequência
+    const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
+
+    // Detectar período do mês:
+    // Início: dias 1–10 → sugerir lista completa para o mês que começa
+    // Final:  dias 21+  → sugerir lista completa para o próximo mês
+    // Meio:   dias 11–20 → lista parcial (itens essenciais ainda não comprados este mês)
+    let periodoLabel;
+    let compradoEsseMes = false;
+    if (dayOfMonth <= 10) {
+        periodoLabel = 'início do mês';
+    } else if (dayOfMonth >= 21) {
+        periodoLabel = 'fim do mês (preparação para o próximo)';
+    } else {
+        periodoLabel = 'meio do mês';
+        compradoEsseMes = true; // neste caso filtramos itens JÁ comprados este mês
+    }
+
+    const currentMonthKey = `${today.getFullYear()}-${today.getMonth()}`;
+
     const productsByFrequency = Object.keys(groupedProducts)
         .map(name => {
             const history = groupedProducts[name];
-            const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
 
-            // Filter out items bought only once (noise)
-            if (validHistory.length < 2) return null;
+            // Histórico com datas válidas (completo — para saber quando foi comprado)
+            const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
+            if (validHistory.length < 1) return null;
 
             const sortedHistory = [...validHistory].sort((a, b) => b.datetime - a.datetime);
             const msSinceLastPurchase = todayMs - sortedHistory[0].datetime.getTime();
 
-            // Protection against very recently bought items (last 4 days limit)
-            if (msSinceLastPurchase < (4 * 24 * 60 * 60 * 1000)) return null;
+            // Ignorar itens comprados nos últimos 3 dias (acabou de ser comprado)
+            if (msSinceLastPurchase < (3 * 24 * 60 * 60 * 1000)) return null;
 
-            // Agrupar compras por mês/ano para calcular o consumo real da "Feira do Mês"
+            // No meio do mês: pular itens já comprados este mês
+            if (compradoEsseMes) {
+                const compradoNoMes = validHistory.some(h => {
+                    const mk = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
+                    return mk === currentMonthKey;
+                });
+                if (compradoNoMes) return null;
+            }
+
+            // Usar apenas histórico recente (dentro do cutoff) para calcular frequência e quantidade
+            const recentHistory = validHistory.filter(h => h.datetime.getTime() >= cutoffMs);
+            // Se não há histórico recente mas tem histórico antigo, usa o antigo (produto voltou)
+            const histForCalc = recentHistory.length >= 1 ? recentHistory : validHistory;
+
+            // Detectar em qual período do mês o item costuma ser comprado
+            // Calcular o dia médio de compra (1–31)
+            let totalDayOfMonth = 0;
+            histForCalc.forEach(h => { totalDayOfMonth += h.datetime.getDate(); });
+            const avgBuyDayOfMonth = totalDayOfMonth / histForCalc.length;
+
+            // Para início/fim do mês: incluir itens cujo dia médio de compra corresponde ao período
+            // Para meio do mês: já filtrado acima
+            if (!compradoEsseMes) {
+                if (dayOfMonth <= 10) {
+                    // Queremos itens tipicamente comprados entre dia 1 e 15
+                    if (avgBuyDayOfMonth > 17) return null;
+                } else if (dayOfMonth >= 21) {
+                    // Queremos itens tipicamente comprados entre dia 15 e 31
+                    if (avgBuyDayOfMonth < 13) return null;
+                }
+            }
+
+            // Agrupar por mês para calcular quantidade mensal média
             const qtyByMonth = {};
-            validHistory.forEach(h => {
+            histForCalc.forEach(h => {
                 const monthKey = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
                 if (!qtyByMonth[monthKey]) qtyByMonth[monthKey] = 0;
                 qtyByMonth[monthKey] += h.qty;
@@ -642,29 +752,24 @@ function generateSmartList() {
             const monthsCount = Object.keys(qtyByMonth).length;
             let totalMonthlyQty = 0;
             Object.values(qtyByMonth).forEach(qty => totalMonthlyQty += qty);
-
-            // Média de quantidade consumida por mês (e não por compra)
             const avgMonthlyQty = totalMonthlyQty / monthsCount;
             const recommendedQty = Math.max(1, Math.round(avgMonthlyQty));
 
             return {
                 name: name,
-                frequency: validHistory.length,
+                frequency: histForCalc.length,
                 monthsCount: monthsCount,
                 recommendedQty: recommendedQty,
-                latestPrice: sortedHistory[0].price
+                latestPrice: sortedHistory[0].price,
+                avgBuyDayOfMonth: avgBuyDayOfMonth
             };
         })
         .filter(item => item !== null)
-        // Priorizar os itens que aparecem em mais meses (mais essenciais para a feira mensal) e depois pela frequência geral
         .sort((a, b) => {
-            if (b.monthsCount !== a.monthsCount) {
-                return b.monthsCount - a.monthsCount;
-            }
+            if (b.monthsCount !== a.monthsCount) return b.monthsCount - a.monthsCount;
             return b.frequency - a.frequency;
         });
 
-    // Uma lista completa para feira do mês precisa de mais itens do que apenas 15. Aumentamos para os top 200 itens.
     const topItems = productsByFrequency.slice(0, 200);
 
     let addedCount = 0;
@@ -679,7 +784,7 @@ function generateSmartList() {
     renderProducts(searchInput.value);
 
     if (addedCount > 0) {
-        setStatus(`Lista inteligente gerada! ${addedCount} itens mais comprados foram adicionados.`);
+        setStatus(`🛒 Feira do ${periodoLabel}: ${topItems.length} produtos sugeridos pelo histórico!`);
     } else {
         setStatus("Todos os itens sugeridos já estão na sua lista.");
     }
@@ -692,74 +797,98 @@ function generateExpiringList() {
     }
 
     const todayMs = new Date().getTime();
+
+    // Corte temporal: para o ciclo de consumo só contar compras recentes
+    const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
+
     let expiringCandidates = [];
 
     Object.keys(groupedProducts).forEach(name => {
         const history = groupedProducts[name];
 
-        // Filtrar histórico com datas válidas
+        // Histórico com datas válidas
         const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
-
         if (validHistory.length < 2) return;
 
-        const sortedHistory = [...validHistory].sort((a, b) => a.datetime - b.datetime);
-        const latestPrice = sortedHistory[sortedHistory.length - 1].price;
+        // Para cálculo do ciclo: usar apenas dados dentro do cutoff
+        const recentHistory = validHistory.filter(h => h.datetime.getTime() >= cutoffMs);
+        // Precisa de ao menos 2 pontos recentes para calcular o ciclo confiável
+        // Se não houver, usar todo o histórico como fallback
+        const histForCycle = recentHistory.length >= 2 ? recentHistory : validHistory;
 
-        let totalQty = 0;
-        validHistory.forEach(h => totalQty += h.qty);
-        const avgQty = totalQty / validHistory.length;
-        const recommendedQty = Math.max(1, Math.round(avgQty));
+        const sortedForCycle = [...histForCycle].sort((a, b) => a.datetime - b.datetime);
 
-        let validDatesMs = [];
-        let validQty = [];
-        let lastDateMsObj = null;
-
-        sortedHistory.forEach(h => {
-            const time = h.datetime.getTime();
-            if (lastDateMsObj !== time) {
-                validDatesMs.push(time);
-                validQty.push(h.qty);
-                lastDateMsObj = time;
-            } else {
-                validQty[validQty.length - 1] += h.qty;
-            }
+        // Agrupar por dia para evitar duplicatas de itens na mesma nota
+        const byDay = {};
+        sortedForCycle.forEach(h => {
+            const dayKey = h.datetime.toISOString().slice(0, 10);
+            if (!byDay[dayKey]) byDay[dayKey] = { ms: h.datetime.getTime(), qty: 0 };
+            byDay[dayKey].qty += h.qty;
         });
 
-        if (validDatesMs.length >= 2) {
-            let totalDiffMs = 0;
-            let totalUnitsConsumed = 0;
-            for (let i = 1; i < validDatesMs.length; i++) {
-                totalDiffMs += (validDatesMs[i] - validDatesMs[i - 1]);
-                totalUnitsConsumed += validQty[i - 1];
-            }
+        const dayKeys = Object.keys(byDay).sort();
+        if (dayKeys.length < 2) return;
 
-            if (totalUnitsConsumed > 0) {
-                const avgCycleMsPerUnit = totalDiffMs / totalUnitsConsumed;
+        // Calcular ciclo médio de consumo (ms por unidade)
+        let totalDiffMs = 0;
+        let totalUnitsConsumed = 0;
+        for (let i = 1; i < dayKeys.length; i++) {
+            totalDiffMs += (byDay[dayKeys[i]].ms - byDay[dayKeys[i - 1]].ms);
+            totalUnitsConsumed += byDay[dayKeys[i - 1]].qty;
+        }
+        if (totalUnitsConsumed <= 0) return;
 
-                const lastPurchaseMs = validDatesMs[validDatesMs.length - 1];
-                const lastQtyAndRecommended = validQty[validQty.length - 1];
-                const msSinceLastPurchase = todayMs - lastPurchaseMs;
+        const avgCycleMsPerUnit = totalDiffMs / totalUnitsConsumed;
 
-                const expectedLifeTimeMs = lastQtyAndRecommended * avgCycleMsPerUnit;
+        // Calcular urgência com base na última compra REAL (pode ser mais antiga que o cutoff)
+        const allSorted = [...validHistory].sort((a, b) => b.datetime - a.datetime);
+        const lastEntry = allSorted[0];
+        const lastPurchaseMs = lastEntry.datetime.getTime();
+        const msSinceLastPurchase = todayMs - lastPurchaseMs;
 
-                if (expectedLifeTimeMs > 0) {
-                    const urgencyScore = msSinceLastPurchase / expectedLifeTimeMs;
+        // Quantidade da última compra (agrupada pelo dia)
+        const lastDayKey = lastEntry.datetime.toISOString().slice(0, 10);
+        let lastQty = 0;
+        validHistory.forEach(h => {
+            if (h.datetime.toISOString().slice(0, 10) === lastDayKey) lastQty += h.qty;
+        });
+        if (lastQty <= 0) lastQty = 1;
 
-                    if (urgencyScore >= 0.75 && urgencyScore <= 4.0) {
-                        expiringCandidates.push({
-                            name: name,
-                            urgency: urgencyScore,
-                            recommendedQty: recommendedQty,
-                            latestPrice: latestPrice
-                        });
-                    }
-                }
-            }
+        const expectedLifeTimeMs = lastQty * avgCycleMsPerUnit;
+        if (expectedLifeTimeMs <= 0) return;
+
+        const urgencyScore = msSinceLastPurchase / expectedLifeTimeMs;
+
+        // Score entre 0.7 (quase na hora) e 3.5 (deveria ter comprado há tempo)
+        // Abaixo de 0.7 = tem estoque ainda; acima de 3.5 = provavelmente parou de usar
+        if (urgencyScore >= 0.7 && urgencyScore <= 3.5) {
+            // Quantidade recomendada: média das compras recentes por vez
+            let totalRecentQty = 0;
+            sortedForCycle.forEach(h => totalRecentQty += h.qty);
+            const avgRecentQty = totalRecentQty / sortedForCycle.length;
+            const recommendedQty = Math.max(1, Math.round(avgRecentQty));
+
+            // Rótulo de urgência para informar o usuário
+            let urgencyLabel = '';
+            if (urgencyScore >= 2.0) urgencyLabel = '🔴 Atrasado';
+            else if (urgencyScore >= 1.0) urgencyLabel = '🟠 Na hora';
+            else urgencyLabel = '🟡 Em breve';
+
+            expiringCandidates.push({
+                name: name,
+                urgency: urgencyScore,
+                urgencyLabel: urgencyLabel,
+                recommendedQty: recommendedQty,
+                latestPrice: lastEntry.price,
+                cycleAvgDays: Math.round(avgCycleMsPerUnit / (24 * 60 * 60 * 1000))
+            });
         }
     });
 
     expiringCandidates.sort((a, b) => b.urgency - a.urgency);
-    const topItems = expiringCandidates.slice(0, 15);
+
+    // Limitar a 20 itens para reposição semanal
+    const topItems = expiringCandidates.slice(0, 20);
 
     let addedCount = 0;
     topItems.forEach(item => {
@@ -773,11 +902,14 @@ function generateExpiringList() {
     renderProducts(searchInput.value);
 
     if (addedCount > 0) {
-        setStatus(`Sugestão ativada! ${addedCount} itens que provavelmente estão acabando foram adicionados.`);
+        const atrasados = expiringCandidates.filter(i => i.urgency >= 2.0).length;
+        let msg = `🔄 Reposição semanal: ${topItems.length} itens precisam ser repostos.`;
+        if (atrasados > 0) msg += ` (${atrasados} atrasados!)`;
+        setStatus(msg);
     } else if (topItems.length > 0) {
-        setStatus("Os itens que estão acabando já estão na sua lista.");
+        setStatus("Os itens que precisam de reposição já estão na sua lista.");
     } else {
-        setStatus("Nenhum item em estado crítico de estoque no momento (ou faltam dados).");
+        setStatus("Nenhum item precisa de reposição agora (ou faltam dados históricos).");
     }
 }
 
@@ -815,7 +947,12 @@ function updateCartUI() {
     const itemsKeys = Object.keys(shoppingCart);
 
     if (itemsKeys.length === 0) {
-        listContainer.innerHTML = '<div class="empty-cart-msg">Sua lista está vazia. Adicione produtos na tela principal.</div>';
+        listContainer.innerHTML = `
+            <div class="empty-cart-msg">
+                <i class="ph ph-basket" style="font-size: 2.5rem; opacity: 0.3;"></i>
+                <p>Sua lista está vazia.</p>
+                <p style="font-size: 0.8rem;">Use os botões acima para gerar sugestões ou adicione produtos na aba Produtos.</p>
+            </div>`;
         badge.style.display = 'none';
         totalEl.textContent = 'R$ 0,00';
         shareBtn.style.display = 'none';
@@ -840,7 +977,7 @@ function updateCartUI() {
     categories.forEach(cat => {
         const colorClass = getColorClassForCategory(cat);
         const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#ef4444';
-        
+
         // Category section header (visual from image)
         const header = document.createElement('div');
         header.className = 'cart-category-title';
@@ -868,7 +1005,7 @@ function updateCartUI() {
             const card = document.createElement('div');
             card.className = 'cart-item-card';
             card.style.setProperty('--item-accent', categoryColor);
-            
+
             card.innerHTML = `
                 <div class="cart-item-details">
                     <div class="cart-item-name" title="${name}">${name}</div>
@@ -893,18 +1030,23 @@ function updateCartUI() {
 
     const budgetInput = document.getElementById('cartBudgetInput');
     const budgetProgress = document.getElementById('cartBudgetProgress');
+    const pctLabel = document.getElementById('budgetPctLabel');
     if (budgetInput && budgetProgress) {
         const target = parseFloat(budgetInput.value) || 0;
         if (target > 0) {
-            const pct = Math.min((totalPrice / target) * 100, 100);
+            const rawPct = (totalPrice / target) * 100;
+            const pct = Math.min(rawPct, 100);
             budgetProgress.style.width = pct + '%';
             if (totalPrice > target) {
                 budgetProgress.classList.add('over-budget');
+                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% — acima do orçamento!`; pctLabel.style.color = '#f87171'; }
             } else {
                 budgetProgress.classList.remove('over-budget');
+                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% do orçamento`; pctLabel.style.color = rawPct > 80 ? '#fbbf24' : 'var(--text-secondary)'; }
             }
         } else {
             budgetProgress.style.width = '0%';
+            if (pctLabel) pctLabel.textContent = 'Defina um orçamento acima';
         }
     }
 
@@ -1015,11 +1157,31 @@ function shareViaWhatsApp() {
 
 function openModal(productName) {
     const history = groupedProducts[productName];
-    // sort ascending for chart
     const chartHistory = [...history].sort((a, b) => a.datetime - b.datetime);
 
     document.getElementById('modalTitle').textContent = productName;
 
+    // Stats pills
+    const statsRow = document.getElementById('chartStatsRow');
+    if (statsRow) {
+        const prices = history.map(h => h.price).filter(p => p > 0);
+        const minP = Math.min(...prices);
+        const maxP = Math.max(...prices);
+        const avgP = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const sorted = [...history].sort((a, b) => a.datetime - b.datetime);
+        const firstP = sorted[0].price;
+        const lastP = sorted[sorted.length - 1].price;
+        const varPct = firstP > 0 ? ((lastP - firstP) / firstP * 100).toFixed(1) : 0;
+        const varClass = varPct > 0 ? 'up' : 'down';
+        const varSign = varPct > 0 ? '+' : '';
+        statsRow.innerHTML = `
+            <div class="chart-stat-pill">⏱ <span>${history.length} compras</span></div>
+            <div class="chart-stat-pill">Mín: <strong>${formatCurrency(minP)}</strong></div>
+            <div class="chart-stat-pill">Méd: <strong>${formatCurrency(avgP)}</strong></div>
+            <div class="chart-stat-pill">Máx: <strong>${formatCurrency(maxP)}</strong></div>
+            <div class="chart-stat-pill ${varClass}">Variação: <strong>${varSign}${varPct}%</strong></div>
+        `;
+    }
     // Setup Chart
     const ctx = document.getElementById('priceChart').getContext('2d');
 
@@ -1279,3 +1441,380 @@ function updateFinanceDashboard() {
         }
     });
 }
+
+// Render category spending breakdown no dashboard
+function renderCategorySpending() {
+    const section = document.getElementById('categorySpendingSection');
+    const grid = document.getElementById('categorySpendingGrid');
+    if (!section || !grid || Object.keys(groupedProducts).length === 0) return;
+
+    const todayMs = Date.now();
+    const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
+
+    const catTotals = {};
+    const catCounts = {};
+
+    Object.keys(groupedProducts).forEach(name => {
+        const cat = resolveCategory(name);
+        groupedProducts[name].forEach(h => {
+            if (h.datetime && !isNaN(h.datetime) && h.datetime.getTime() >= cutoffMs) {
+                if (!catTotals[cat]) { catTotals[cat] = 0; catCounts[cat] = 0; }
+                catTotals[cat] += h.price * h.qty;
+                catCounts[cat]++;
+            }
+        });
+    });
+
+    const cats = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]);
+    if (cats.length === 0) { section.style.display = 'none'; return; }
+
+    const maxVal = catTotals[cats[0]];
+    section.style.display = 'block';
+    grid.innerHTML = '';
+
+    const colorMap = {
+        hortifruti: '#22c55e', acougue: '#ef4444', limpeza: '#3b82f6',
+        higiene: '#d946ef', laticinios: '#eab308', mercearia: '#f97316',
+        bebidas: '#0ea5e9', doces: '#ec4899', padaria: '#f59e0b',
+        utilidades: '#8b5cf6', outros: '#a1a1aa'
+    };
+
+    cats.slice(0, 10).forEach(cat => {
+        const colorKey = getColorClassForCategory(cat);
+        const color = colorMap[colorKey] || '#6366f1';
+        const pct = Math.round((catTotals[cat] / maxVal) * 100);
+        const card = document.createElement('div');
+        card.className = 'cat-spend-card';
+        card.style.setProperty('--card-accent', color);
+        card.innerHTML = `
+            <div class="cat-spend-name">${cat}</div>
+            <div class="cat-spend-value">${formatCurrency(catTotals[cat])}</div>
+            <div class="cat-spend-bar-bg"><div class="cat-spend-bar-fill" style="width:${pct}%"></div></div>
+            <div class="cat-spend-count">${catCounts[cat]} compras &bull; ${DATA_CUTOFF_MONTHS} meses</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// ============================================================
+//  CALENDÁRIO DE COMPRAS
+// ============================================================
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth(); // 0-indexed
+
+const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const CAT_COLOR_MAP = {
+    hortifruti:'#22c55e', acougue:'#ef4444', limpeza:'#3b82f6',
+    higiene:'#d946ef', laticinios:'#eab308', mercearia:'#f97316',
+    bebidas:'#0ea5e9', doces:'#ec4899', padaria:'#f59e0b',
+    utilidades:'#8b5cf6', outros:'#a1a1aa'
+};
+
+function initCalendar() {
+    const section = document.getElementById('calendarSection');
+    if (!section) return;
+    section.style.display = 'block';
+
+    document.getElementById('calPrevBtn').addEventListener('click', () => {
+        calendarMonth--;
+        if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+        renderCalendar();
+    });
+    document.getElementById('calNextBtn').addEventListener('click', () => {
+        calendarMonth++;
+        if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+        renderCalendar();
+    });
+    document.getElementById('calCloseDetail').addEventListener('click', () => {
+        document.getElementById('calendarDayDetail').style.display = 'none';
+    });
+    renderCalendar();
+}
+
+function buildDayMap() {
+    // dayMap[YYYY-MM-DD] = [ {name, price, market, cat} ]
+    const dayMap = {};
+    Object.keys(groupedProducts).forEach(name => {
+        const cat = resolveCategory(name);
+        groupedProducts[name].forEach(h => {
+            if (!h.datetime || isNaN(h.datetime)) return;
+            const key = h.datetime.toISOString().slice(0, 10);
+            if (!dayMap[key]) dayMap[key] = [];
+            dayMap[key].push({ name, price: h.price, qty: h.qty, market: h.market, cat });
+        });
+    });
+    return dayMap;
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('calendarGrid');
+    const title = document.getElementById('calMonthTitle');
+    const label = document.getElementById('calendarMonthLabel');
+    if (!grid) return;
+
+    title.textContent = `${MONTH_NAMES[calendarMonth]} ${calendarYear}`;
+    const today = new Date();
+    const isCurrentMonth = calendarYear === today.getFullYear() && calendarMonth === today.getMonth();
+    label.textContent = isCurrentMonth ? 'Mês atual' : '';
+
+    const dayMap = buildDayMap();
+    const firstDay = new Date(calendarYear, calendarMonth, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+    grid.innerHTML = '';
+    const weekdays = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    weekdays.forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'cal-weekday';
+        el.textContent = d;
+        grid.appendChild(el);
+    });
+
+    // Empty cells before first day
+    for (let i = 0; i < firstDay; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-day empty';
+        grid.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateKey = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const purchases = dayMap[dateKey] || [];
+        const isToday = isCurrentMonth && d === today.getDate();
+
+        const cell = document.createElement('div');
+        cell.className = 'cal-day' + (purchases.length > 0 ? ' has-purchase' : '') + (isToday ? ' today' : '');
+
+        const numEl = document.createElement('span');
+        numEl.className = 'cal-day-num';
+        numEl.textContent = d;
+        cell.appendChild(numEl);
+
+        if (purchases.length > 0) {
+            const dots = document.createElement('div');
+            dots.className = 'cal-day-dots';
+            // Unique cats, max 4 dots
+            const cats = [...new Set(purchases.map(p => getColorClassForCategory(p.cat)))].slice(0, 4);
+            cats.forEach(c => {
+                const dot = document.createElement('span');
+                dot.className = 'cal-dot';
+                dot.style.background = CAT_COLOR_MAP[c] || '#6366f1';
+                dots.appendChild(dot);
+            });
+            cell.appendChild(dots);
+
+            cell.addEventListener('click', () => showDayDetail(dateKey, purchases));
+        }
+
+        grid.appendChild(cell);
+    }
+}
+
+function showDayDetail(dateKey, purchases) {
+    const detail = document.getElementById('calendarDayDetail');
+    const list = document.getElementById('calDetailList');
+    const dateEl = document.getElementById('calDetailDate');
+
+    const [y, m, d] = dateKey.split('-');
+    dateEl.textContent = `${d}/${m}/${y} — ${purchases.length} compra(s)`;
+
+    list.innerHTML = '';
+    const sorted = [...purchases].sort((a, b) => a.cat.localeCompare(b.cat));
+    sorted.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'cal-detail-item';
+        item.innerHTML = `
+            <div>
+                <div class="cal-detail-item-name" title="${p.name}">${p.name}</div>
+                <div class="cal-detail-item-market">${p.market || ''}</div>
+            </div>
+            <div class="cal-detail-item-price">${formatCurrency(p.price)}<span style="font-weight:400;color:var(--text-secondary);font-size:0.72rem"> ×${p.qty}</span></div>
+        `;
+        list.appendChild(item);
+    });
+
+    detail.style.display = 'block';
+    detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ============================================================
+//  MODO FAZER FEIRA
+// ============================================================
+let ffState = {}; // { itemName: 'pending' | 'checked' | 'not-found' }
+let ffActiveCat = 'Todos';
+
+function openFazerFeira() {
+    const overlay = document.getElementById('fazerFeiraOverlay');
+    if (!overlay) return;
+
+    if (Object.keys(shoppingCart).length === 0) {
+        setStatus('⚠️ Sua lista está vazia. Gere uma lista antes de fazer a feira.', true);
+        return;
+    }
+
+    // Init state
+    ffState = {};
+    Object.keys(shoppingCart).forEach(name => { ffState[name] = 'pending'; });
+
+    // Budget display
+    const budget = parseFloat(document.getElementById('cartBudgetInput')?.value) || 0;
+    const budgetEl = document.getElementById('ffBudgetDisplay');
+    if (budgetEl) budgetEl.textContent = budget > 0 ? `Orçamento: ${formatCurrency(budget)}` : '';
+
+    ffActiveCat = 'Todos';
+    renderFFCategoryFilter();
+    renderFFList();
+    updateFFProgress();
+
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFazerFeira() {
+    const overlay = document.getElementById('fazerFeiraOverlay');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function renderFFCategoryFilter() {
+    const container = document.getElementById('ffCategoryFilter');
+    if (!container) return;
+
+    const cats = new Set(['Todos']);
+    Object.keys(shoppingCart).forEach(name => cats.add(resolveCategory(name)));
+
+    container.innerHTML = '';
+    cats.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'ff-cat-chip' + (cat === ffActiveCat ? ' active' : '');
+        btn.textContent = cat;
+        btn.addEventListener('click', () => {
+            ffActiveCat = cat;
+            container.querySelectorAll('.ff-cat-chip').forEach(b => b.classList.toggle('active', b.textContent === cat));
+            renderFFList();
+        });
+        container.appendChild(btn);
+    });
+}
+
+function renderFFList() {
+    const list = document.getElementById('ffList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    // Group by category
+    const grouped = {};
+    Object.keys(shoppingCart).forEach(name => {
+        const cat = resolveCategory(name);
+        if (ffActiveCat !== 'Todos' && cat !== ffActiveCat) return;
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(name);
+    });
+
+    const cats = Object.keys(grouped).sort();
+    cats.forEach(cat => {
+        const header = document.createElement('div');
+        header.className = 'ff-cat-header';
+        header.textContent = cat;
+        list.appendChild(header);
+
+        grouped[cat].sort().forEach(name => {
+            const item = shoppingCart[name];
+            const state = ffState[name] || 'pending';
+            const colorKey = getColorClassForCategory(cat);
+            const color = CAT_COLOR_MAP[colorKey] || '#6366f1';
+
+            const el = document.createElement('div');
+            el.className = `ff-item ${state !== 'pending' ? state : ''}`;
+            el.style.setProperty('--item-col', color);
+            el.dataset.name = name;
+
+            const checkIcon = state === 'checked' ? '<i class="ph ph-check"></i>'
+                            : state === 'not-found' ? '<i class="ph ph-x"></i>' : '';
+
+            el.innerHTML = `
+                <div class="ff-check-circle">${checkIcon}</div>
+                <div class="ff-item-info">
+                    <div class="ff-item-name">${name}</div>
+                    <div class="ff-item-meta">${cat}</div>
+                </div>
+                <div class="ff-item-right">
+                    <div class="ff-item-price">${formatCurrency(item.price)}</div>
+                    <div class="ff-item-qty">Qtd: ${item.qty}</div>
+                    <button class="ff-notfound-btn" data-name="${name}">Não achei</button>
+                </div>
+            `;
+
+            // Click principal = marcar como checked / volta para pending
+            el.addEventListener('click', (e) => {
+                if (e.target.closest('.ff-notfound-btn')) return;
+                const cur = ffState[name];
+                ffState[name] = cur === 'checked' ? 'pending' : 'checked';
+                updateFFProgress();
+                renderFFList();
+            });
+
+            // Botão não encontrei
+            el.querySelector('.ff-notfound-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                ffState[name] = ffState[name] === 'not-found' ? 'pending' : 'not-found';
+                updateFFProgress();
+                renderFFList();
+            });
+
+            list.appendChild(el);
+        });
+    });
+}
+
+function updateFFProgress() {
+    const total = Object.keys(ffState).length;
+    const checked = Object.values(ffState).filter(s => s === 'checked').length;
+    const notFound = Object.values(ffState).filter(s => s === 'not-found').length;
+
+    const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+
+    document.getElementById('ffProgressText').textContent = `${checked} de ${total} itens marcados`;
+    document.getElementById('ffProgressBar').style.width = pct + '%';
+    document.getElementById('ffCheckedCount').textContent = `${checked} marcados`;
+    document.getElementById('ffNotFoundCount').textContent = `${notFound} não enc.`;
+
+    // Running total — soma só dos checked
+    let running = 0;
+    Object.keys(ffState).forEach(name => {
+        if (ffState[name] === 'checked' && shoppingCart[name]) {
+            running += shoppingCart[name].price * shoppingCart[name].qty;
+        }
+    });
+    document.getElementById('ffRunningTotal').textContent = formatCurrency(running);
+}
+
+function finishFazerFeira() {
+    const checked = Object.values(ffState).filter(s => s === 'checked').length;
+    const notFound = Object.values(ffState).filter(s => s === 'not-found').length;
+    const total = Object.keys(ffState).length;
+
+    let running = 0;
+    Object.keys(ffState).forEach(name => {
+        if (ffState[name] === 'checked' && shoppingCart[name]) {
+            running += shoppingCart[name].price * shoppingCart[name].qty;
+        }
+    });
+
+    closeFazerFeira();
+    setStatus(`🎉 Feira finalizada! ${checked}/${total} itens encontrados. Total: ${formatCurrency(running)}${notFound > 0 ? ` (${notFound} não encontrados)` : ''}`);
+}
+
+// Wire up fazer feira events after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    const navFazerFeiraBtn = document.getElementById('navFazerFeiraBtn');
+    if (navFazerFeiraBtn) navFazerFeiraBtn.addEventListener('click', (e) => { e.preventDefault(); openFazerFeira(); });
+
+    const ffCloseBtn = document.getElementById('ffCloseBtn');
+    if (ffCloseBtn) ffCloseBtn.addEventListener('click', closeFazerFeira);
+
+    const ffFinishBtn = document.getElementById('ffFinishBtn');
+    if (ffFinishBtn) ffFinishBtn.addEventListener('click', finishFazerFeira);
+});
