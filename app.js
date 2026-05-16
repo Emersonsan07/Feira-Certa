@@ -1502,14 +1502,14 @@ function renderCategorySpending() {
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth(); // 0-indexed
 
-const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 const CAT_COLOR_MAP = {
-    hortifruti:'#22c55e', acougue:'#ef4444', limpeza:'#3b82f6',
-    higiene:'#d946ef', laticinios:'#eab308', mercearia:'#f97316',
-    bebidas:'#0ea5e9', doces:'#ec4899', padaria:'#f59e0b',
-    utilidades:'#8b5cf6', outros:'#a1a1aa'
+    hortifruti: '#22c55e', acougue: '#ef4444', limpeza: '#3b82f6',
+    higiene: '#d946ef', laticinios: '#eab308', mercearia: '#f97316',
+    bebidas: '#0ea5e9', doces: '#ec4899', padaria: '#f59e0b',
+    utilidades: '#8b5cf6', outros: '#a1a1aa'
 };
 
 function initCalendar() {
@@ -1564,7 +1564,7 @@ function renderCalendar() {
     const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
 
     grid.innerHTML = '';
-    const weekdays = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     weekdays.forEach(d => {
         const el = document.createElement('div');
         el.className = 'cal-weekday';
@@ -1580,7 +1580,7 @@ function renderCalendar() {
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dateKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const purchases = dayMap[dateKey] || [];
         const isToday = isCurrentMonth && d === today.getDate();
 
@@ -1732,7 +1732,7 @@ function renderFFList() {
             el.dataset.name = name;
 
             const checkIcon = state === 'checked' ? '<i class="ph ph-check"></i>'
-                            : state === 'not-found' ? '<i class="ph ph-x"></i>' : '';
+                : state === 'not-found' ? '<i class="ph ph-x"></i>' : '';
 
             el.innerHTML = `
                 <div class="ff-check-circle">${checkIcon}</div>

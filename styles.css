@@ -653,35 +653,50 @@ body {
 }
 
 /* ==========================================================================
-   CART SIDEBAR
+   CART SIDEBAR (Aba Lateral)
    ========================================================================== */
-/* ==========================================================================
-   CART MODAL (CENTRAL POP) - REFERENCE STYLE
-   ========================================================================== */
-.cart-modal-content {
-    max-width: 800px !important;
-    width: 95%;
+#cartModal {
+    justify-content: flex-end; /* Align sidebar to the right */
+    align-items: stretch; /* Stretch vertically to take 100% height */
+}
+
+#cartModal .cart-modal-content {
+    max-width: 480px !important;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
     padding: 0 !important;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     background: #0f0f11;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px 0 0 20px; /* Rounded only on the left side */
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+    margin: 0;
+    
+    /* Sliding drawer transition instead of center scale */
+    transform: translateX(100%);
+    transition: transform var(--transition-smooth) !important;
 }
 
-.cart-header {
-    padding: 1.5rem 2rem;
+/* Override the active class behavior of the modal content to slide in */
+#cartModal.active .cart-modal-content {
+    transform: translateX(0) !important;
+}
+
+#cartModal .cart-header {
+    padding: 1.5rem 3.5rem 1.5rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.cart-header h2 {
+#cartModal .cart-header h2 {
     margin: 0 !important;
-    font-size: 1.6rem !important;
+    font-size: 1.35rem !important;
     font-weight: 700;
     color: #fff;
     display: flex;
@@ -689,15 +704,15 @@ body {
     gap: 0.75rem;
 }
 
-.cart-header h2 i {
-    font-size: 1.8rem;
+#cartModal .cart-header h2 i {
+    font-size: 1.6rem;
 }
 
-.cart-smart-actions {
+#cartModal .cart-smart-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-    padding: 1.5rem 2rem;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
 }
 
 .btn-smart {
@@ -729,12 +744,13 @@ body {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
-.cart-items {
-    padding: 0.5rem 2rem 1.5rem 2rem;
-    max-height: 45vh;
+#cartModal .cart-items {
+    padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+    max-height: none;
+    flex: 1;
     overflow-y: auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 0.75rem;
     scrollbar-width: thin;
 }
@@ -848,8 +864,8 @@ body {
     text-align: center;
 }
 
-.cart-footer {
-    padding: 2rem;
+#cartModal .cart-footer {
+    padding: 1.5rem;
     background: #0f0f11;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -2218,9 +2234,8 @@ body {
         padding: 0.6rem 1rem;
     }
 
-    .cart-sidebar {
-        width: 100vw;
-        right: -100vw;
+    #cartModal .cart-modal-content {
+        border-radius: 0;
         border-left: none;
     }
 
