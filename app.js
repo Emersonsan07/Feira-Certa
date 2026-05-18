@@ -1664,6 +1664,11 @@ function openFazerFeira() {
     if (budgetEl) budgetEl.textContent = budget > 0 ? `Orçamento: ${formatCurrency(budget)}` : '';
 
     ffActiveCat = 'Todos';
+    const ffSearchInput = document.getElementById('ffSearchInput');
+    const ffSearchClearBtn = document.getElementById('ffSearchClearBtn');
+    if (ffSearchInput) ffSearchInput.value = '';
+    if (ffSearchClearBtn) ffSearchClearBtn.style.display = 'none';
+
     renderFFCategoryFilter();
     renderFFList();
     updateFFProgress();
@@ -1704,11 +1709,17 @@ function renderFFList() {
     if (!list) return;
     list.innerHTML = '';
 
+    const searchQuery = document.getElementById('ffSearchInput')?.value.toLowerCase().trim() || '';
+
     // Group by category
     const grouped = {};
     Object.keys(shoppingCart).forEach(name => {
         const cat = resolveCategory(name);
         if (ffActiveCat !== 'Todos' && cat !== ffActiveCat) return;
+        
+        // Filter by search query
+        if (searchQuery && !name.toLowerCase().includes(searchQuery) && !cat.toLowerCase().includes(searchQuery)) return;
+        
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(name);
     });
@@ -1817,4 +1828,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ffFinishBtn = document.getElementById('ffFinishBtn');
     if (ffFinishBtn) ffFinishBtn.addEventListener('click', finishFazerFeira);
+
+    const ffSearchInput = document.getElementById('ffSearchInput');
+    const ffSearchClearBtn = document.getElementById('ffSearchClearBtn');
+    if (ffSearchInput) {
+        ffSearchInput.addEventListener('input', () => {
+            if (ffSearchClearBtn) {
+                ffSearchClearBtn.style.display = ffSearchInput.value ? 'block' : 'none';
+            }
+            renderFFList();
+        });
+    }
+    if (ffSearchClearBtn) {
+        ffSearchClearBtn.addEventListener('click', () => {
+            ffSearchInput.value = '';
+            ffSearchClearBtn.style.display = 'none';
+            renderFFList();
+            ffSearchInput.focus();
+        });
+    }
 });
