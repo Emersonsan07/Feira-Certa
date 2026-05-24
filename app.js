@@ -28,6 +28,7 @@ function getColorClassForCategory(cat) {
 let shoppingCart = {};
 let activeCategory = 'Todas';
 let itemOverrides = JSON.parse(localStorage.getItem('feiraCertaOverrides')) || {};
+let excludedItems = JSON.parse(localStorage.getItem('feiraCertaExcludedItems')) || [];
 
 const productsGrid = document.getElementById('productsGrid');
 const searchInput = document.getElementById('searchInput');
@@ -255,6 +256,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Atualiza hint dos botões de acordo com o dia
     updateQuickActionHints();
+
+    const adjustToBudgetBtn = document.getElementById('adjustToBudgetBtn');
+    if (adjustToBudgetBtn) {
+        adjustToBudgetBtn.addEventListener('click', () => {
+            adjustCartToBudget();
+        });
+    }
+
+    const manageExcludedBtn = document.getElementById('manageExcludedBtn');
+    if (manageExcludedBtn) {
+        manageExcludedBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            renderExcludedItems();
+            document.getElementById('excludedModal').classList.add('active');
+            const configGroup = document.getElementById('configGroup');
+            if (configGroup) configGroup.classList.remove('open');
+        });
+    }
+
+    const closeExcludedModal = document.getElementById('closeExcludedModal');
+    if (closeExcludedModal) {
+        closeExcludedModal.addEventListener('click', () => {
+            document.getElementById('excludedModal').classList.remove('active');
+        });
+    }
+
+    const restoreAllExcludedBtn = document.getElementById('restoreAllExcludedBtn');
+    if (restoreAllExcludedBtn) {
+        restoreAllExcludedBtn.addEventListener('click', restoreAllProducts);
+    }
 });
 
 function openCartAndRun(fn) {
@@ -328,14 +359,32 @@ function processData(data, replace = true) {
         marketData = marketData.concat(data); // Append
     }
 
+    // Carregar compras salvas no localStorage
+    const userPurchases = JSON.parse(localStorage.getItem('feiraCertaUserPurchases')) || [];
+
+    // Unir os dados históricos do CSV e os dados inseridos manualmente pelo usuário
+    const allData = [...marketData];
+    userPurchases.forEach(p => {
+        allData.push({
+            'Produto': p.product,
+            'Fornecedor': p.market,
+            'Preço': (p.price || 0).toString(),
+            'Quantidade': (p.qty || 1).toString(),
+            'Unidade': p.unit || 'UN',
+            'Data': p.date
+        });
+    });
+
     let markets = new Set();
     let dates = [];
 
     // Reprocess entirely 
     groupedProducts = {};
 
-    marketData.forEach(row => {
+    allData.forEach(row => {
         const originalProduct = row['Produto']?.trim();
+        if (!originalProduct) return;
+        if (excludedItems.includes(originalProduct)) return; // Ignorar itens excluídos
         const dateRaw = row['Data']?.trim();
         const market = row['Fornecedor']?.trim();
 
@@ -426,6 +475,7 @@ function processData(data, replace = true) {
     updateFinanceDashboard();
     renderCategorySpending();
     initCalendar();
+    updateExcludedCount();
 }
 
 function resolveCategory(name) {
@@ -592,6 +642,9 @@ function renderProducts(filter = '') {
                     <button class="btn-outline edit-product-btn" data-product="${name}" title="Editar Nome e Categoria">
                         <i class="ph ph-pencil-simple"></i>
                     </button>
+                    <button class="btn-outline delete-product-btn" data-product="${name}" title="Ocultar Produto" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
+                        <i class="ph ph-trash"></i>
+                    </button>
                     <button class="${cartBtnClass} toggle-cart-btn" data-product="${name}" data-price="${latestEntry.price}" title="${cartBtnTitle}">
                         ${cartIcon}
                     </button>
@@ -614,6 +667,14 @@ function renderProducts(filter = '') {
         btn.addEventListener('click', (e) => {
             const prodName = e.currentTarget.getAttribute('data-product');
             openEditModal(prodName);
+        });
+    });
+
+    // Attach Delete Events
+    document.querySelectorAll('.delete-product-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const prodName = e.currentTarget.getAttribute('data-product');
+            excludeProduct(prodName);
         });
     });
 
@@ -956,11 +1017,53 @@ function updateCartUI() {
         badge.style.display = 'none';
         totalEl.textContent = 'R$ 0,00';
         shareBtn.style.display = 'none';
+        
+        const adjustBtn = document.getElementById('adjustToBudgetBtn');
+        if (adjustBtn) adjustBtn.style.display = 'none';
         return;
     }
 
     shareBtn.style.display = 'flex';
 
+    // Calcular orçamento cumulativo por prioridade
+    const budgetInput = document.getElementById('cartBudgetInput');
+    const targetBudget = parseFloat(budgetInput?.value) || 0;
+
+    // Ordenar itens globalmente por prioridade decrescente (Alta -> Média -> Baixa) e alfabético
+    const weight = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
+    const sortedGlobalItems = [...itemsKeys].sort((a, b) => {
+        const prioA = getPriority(a);
+        const prioB = getPriority(b);
+        if (weight[prioB] !== weight[prioA]) {
+            return weight[prioB] - weight[prioA];
+        }
+        return a.localeCompare(b);
+    });
+
+    // Determinar quais itens excedem o orçamento
+    let accumulated = 0;
+    const exceedsBudget = {};
+    let hasExceedingItems = false;
+
+    sortedGlobalItems.forEach(name => {
+        const item = shoppingCart[name];
+        const cost = item.price * item.qty;
+        if (targetBudget > 0 && accumulated + cost > targetBudget) {
+            exceedsBudget[name] = true;
+            hasExceedingItems = true;
+        } else {
+            exceedsBudget[name] = false;
+        }
+        accumulated += cost;
+    });
+
+    // Exibir/ocultar botão de ajuste ao orçamento
+    const adjustBtn = document.getElementById('adjustToBudgetBtn');
+    if (adjustBtn) {
+        adjustBtn.style.display = (targetBudget > 0 && hasExceedingItems) ? 'flex' : 'none';
+    }
+
+    // Agrupar itens por categoria para exibição
     const groupedCart = {};
     itemsKeys.forEach(name => {
         const cat = resolveCategory(name);
@@ -978,14 +1081,22 @@ function updateCartUI() {
         const colorClass = getColorClassForCategory(cat);
         const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#ef4444';
 
-        // Category section header (visual from image)
+        // Category section header
         const header = document.createElement('div');
         header.className = 'cart-category-title';
         header.style.color = categoryColor;
         header.textContent = cat;
         listContainer.appendChild(header);
 
-        groupedCart[cat].sort();
+        // Ordenar itens dentro da categoria por prioridade decrescente, depois alfabético
+        groupedCart[cat].sort((a, b) => {
+            const prioA = getPriority(a);
+            const prioB = getPriority(b);
+            if (weight[prioB] !== weight[prioA]) {
+                return weight[prioB] - weight[prioA];
+            }
+            return a.localeCompare(b);
+        });
 
         groupedCart[cat].forEach(name => {
             const item = shoppingCart[name];
@@ -1002,16 +1113,24 @@ function updateCartUI() {
                 }
             }
 
+            const priority = getPriority(name);
+            const isExceeded = exceedsBudget[name];
+
             const card = document.createElement('div');
-            card.className = 'cart-item-card';
+            card.className = `cart-item-card ${isExceeded ? 'exceeds-budget' : ''}`;
             card.style.setProperty('--item-accent', categoryColor);
 
             card.innerHTML = `
                 <div class="cart-item-details">
                     <div class="cart-item-name" title="${name}">${name}</div>
                     <div class="cart-item-stats">
-                        <span title="Preço Médio Histórico">Média: ${formatCurrency(avgPrice)}</span>
-                        <span class="item-total-val">${formatCurrency(item.price * item.qty)}</span>
+                        <select class="cart-item-priority-select" data-name="${name}">
+                            <option value="Alta" ${priority === 'Alta' ? 'selected' : ''}>🔴 Alta</option>
+                            <option value="Média" ${priority === 'Média' ? 'selected' : ''}>🟡 Média</option>
+                            <option value="Baixa" ${priority === 'Baixa' ? 'selected' : ''}>🟢 Baixa</option>
+                        </select>
+                        <span title="Preço Médio Histórico" style="margin-left: 0.5rem;">Média: ${formatCurrency(avgPrice)}</span>
+                        <span class="item-total-val" style="margin-left: auto;">${formatCurrency(item.price * item.qty)}</span>
                     </div>
                 </div>
                 <div class="cart-qty-controls">
@@ -1019,6 +1138,9 @@ function updateCartUI() {
                     <span class="cart-qty-value">${item.qty}</span>
                     <button class="cart-qty-btn inc-btn" data-name="${name}"><i class="ph ph-plus"></i></button>
                 </div>
+                <button class="cart-remove-item-btn" data-name="${name}" title="Remover da lista">
+                    <i class="ph ph-trash"></i>
+                </button>
             `;
             listContainer.appendChild(card);
         });
@@ -1028,7 +1150,7 @@ function updateCartUI() {
     badge.textContent = totalItems;
     totalEl.textContent = formatCurrency(totalPrice);
 
-    const budgetInput = document.getElementById('cartBudgetInput');
+    // Atualizar barra de progresso do orçamento
     const budgetProgress = document.getElementById('cartBudgetProgress');
     const pctLabel = document.getElementById('budgetPctLabel');
     if (budgetInput && budgetProgress) {
@@ -1056,6 +1178,26 @@ function updateCartUI() {
     });
     document.querySelectorAll('.inc-btn').forEach(btn => {
         btn.addEventListener('click', (e) => updateCartQuantity(e.currentTarget.getAttribute('data-name'), 1));
+    });
+
+    // Ouvintes para o seletor de prioridade rápida no carrinho
+    document.querySelectorAll('.cart-item-priority-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+            const name = e.currentTarget.getAttribute('data-name');
+            const newPriority = e.currentTarget.value;
+            setPriority(name, newPriority);
+            updateCartUI(); // Re-renderiza para recalcular
+        });
+    });
+
+    // Ouvintes para o botão de exclusão rápida no carrinho
+    document.querySelectorAll('.cart-remove-item-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const name = e.currentTarget.getAttribute('data-name');
+            delete shoppingCart[name];
+            updateCartUI();
+            renderProducts(searchInput.value); // atualiza botão da aba produtos
+        });
     });
 }
 
@@ -1281,6 +1423,10 @@ function openEditModal(name) {
     }
     selectCat.value = currentCat;
 
+    const currentPriority = getPriority(name);
+    const selectPriority = document.getElementById('editPriority');
+    if (selectPriority) selectPriority.value = currentPriority;
+
     document.getElementById('editModal').classList.add('active');
 
     document.getElementById('saveEditBtn').onclick = () => saveProductEdit(name, originals);
@@ -1289,11 +1435,13 @@ function openEditModal(name) {
 function saveProductEdit(currentName, originalNames) {
     const customName = document.getElementById('editCustomName').value.trim();
     const customCat = document.getElementById('editCategory').value;
+    const customPriority = document.getElementById('editPriority').value;
 
     originalNames.forEach(orig => {
         if (!itemOverrides[orig]) itemOverrides[orig] = {};
         itemOverrides[orig].customName = customName || orig;
         itemOverrides[orig].customCategory = customCat;
+        itemOverrides[orig].customPriority = customPriority;
     });
 
     localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
@@ -1669,6 +1817,10 @@ function openFazerFeira() {
     if (ffSearchInput) ffSearchInput.value = '';
     if (ffSearchClearBtn) ffSearchClearBtn.style.display = 'none';
 
+    // Inicializar campo do local/mercado
+    const ffMarketInput = document.getElementById('ffMarketInput');
+    if (ffMarketInput) ffMarketInput.value = '';
+
     renderFFCategoryFilter();
     renderFFList();
     updateFFProgress();
@@ -1694,10 +1846,24 @@ function renderFFCategoryFilter() {
     cats.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'ff-cat-chip' + (cat === ffActiveCat ? ' active' : '');
-        btn.textContent = cat;
+        btn.dataset.category = cat;
+
+        let text = cat;
+        if (cat === 'Todos') {
+            const total = Object.keys(shoppingCart).length;
+            const checked = Object.values(ffState).filter(s => s === 'checked').length;
+            text = `Todos (${checked}/${total})`;
+        } else {
+            const itemsInCat = Object.keys(shoppingCart).filter(name => resolveCategory(name) === cat);
+            const total = itemsInCat.length;
+            const checked = itemsInCat.filter(name => ffState[name] === 'checked').length;
+            text = `${cat} (${checked}/${total})`;
+        }
+        btn.textContent = text;
+
         btn.addEventListener('click', () => {
             ffActiveCat = cat;
-            container.querySelectorAll('.ff-cat-chip').forEach(b => b.classList.toggle('active', b.textContent === cat));
+            container.querySelectorAll('.ff-cat-chip').forEach(b => b.classList.toggle('active', b.dataset.category === cat));
             renderFFList();
         });
         container.appendChild(btn);
@@ -1731,7 +1897,18 @@ function renderFFList() {
         header.textContent = cat;
         list.appendChild(header);
 
-        grouped[cat].sort().forEach(name => {
+        // Ordenar itens dentro da categoria: pending (3) -> not-found (2) -> checked (1)
+        const weight = { 'pending': 3, 'not-found': 2, 'checked': 1 };
+        grouped[cat].sort((a, b) => {
+            const stateA = ffState[a] || 'pending';
+            const stateB = ffState[b] || 'pending';
+            if (weight[stateA] !== weight[stateB]) {
+                return weight[stateB] - weight[stateA];
+            }
+            return a.localeCompare(b);
+        });
+
+        grouped[cat].forEach(name => {
             const item = shoppingCart[name];
             const state = ffState[name] || 'pending';
             const colorKey = getColorClassForCategory(cat);
@@ -1748,31 +1925,63 @@ function renderFFList() {
             el.innerHTML = `
                 <div class="ff-check-circle">${checkIcon}</div>
                 <div class="ff-item-info">
-                    <div class="ff-item-name">${name}</div>
+                    <div class="ff-item-name" title="${name}">${name}</div>
                     <div class="ff-item-meta">${cat}</div>
                 </div>
                 <div class="ff-item-right">
-                    <div class="ff-item-price">${formatCurrency(item.price)}</div>
+                    <div class="ff-item-price-wrapper">
+                        <span style="font-size:0.75rem; font-weight:700; color:rgba(45,212,191,0.6)">R$</span>
+                        <input type="number" step="0.01" class="ff-item-price-input" value="${item.price.toFixed(2)}" data-name="${name}">
+                    </div>
                     <div class="ff-item-qty">Qtd: ${item.qty}</div>
                     <button class="ff-notfound-btn" data-name="${name}">Não achei</button>
                 </div>
             `;
 
+            // Click no input de preço - impedir marcar item como comprado
+            const priceInput = el.querySelector('.ff-item-price-input');
+            priceInput.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            priceInput.addEventListener('change', (e) => {
+                const newPrice = parseFloat(e.target.value) || 0;
+                shoppingCart[name].price = newPrice;
+                updateFFProgress();
+            });
+            priceInput.addEventListener('input', (e) => {
+                const newPrice = parseFloat(e.target.value) || 0;
+                shoppingCart[name].price = newPrice;
+                updateFFProgress();
+            });
+
             // Click principal = marcar como checked / volta para pending
             el.addEventListener('click', (e) => {
-                if (e.target.closest('.ff-notfound-btn')) return;
+                if (e.target.closest('.ff-notfound-btn') || e.target.closest('.ff-item-price-input')) return;
+                
                 const cur = ffState[name];
                 ffState[name] = cur === 'checked' ? 'pending' : 'checked';
+                
+                // Feedback Háptico/Vibração
+                if (navigator.vibrate) navigator.vibrate(15);
+
                 updateFFProgress();
                 renderFFList();
+                renderFFCategoryFilter();
             });
 
             // Botão não encontrei
             el.querySelector('.ff-notfound-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
-                ffState[name] = ffState[name] === 'not-found' ? 'pending' : 'not-found';
+                
+                const cur = ffState[name];
+                ffState[name] = cur === 'not-found' ? 'pending' : 'not-found';
+                
+                // Feedback Háptico/Vibração
+                if (navigator.vibrate) navigator.vibrate(15);
+
                 updateFFProgress();
                 renderFFList();
+                renderFFCategoryFilter();
             });
 
             list.appendChild(el);
@@ -1792,7 +2001,7 @@ function updateFFProgress() {
     document.getElementById('ffCheckedCount').textContent = `${checked} marcados`;
     document.getElementById('ffNotFoundCount').textContent = `${notFound} não enc.`;
 
-    // Running total — soma só dos checked
+    // Running total — soma só dos checked com os preços atualizados
     let running = 0;
     Object.keys(ffState).forEach(name => {
         if (ffState[name] === 'checked' && shoppingCart[name]) {
@@ -1807,15 +2016,61 @@ function finishFazerFeira() {
     const notFound = Object.values(ffState).filter(s => s === 'not-found').length;
     const total = Object.keys(ffState).length;
 
+    if (checked === 0) {
+        setStatus("⚠️ Nenhum item foi marcado como comprado. Feira finalizada sem salvar.", true);
+        closeFazerFeira();
+        return;
+    }
+
     let running = 0;
+    const newItemsToSave = [];
+    const rawToday = new Date();
+    const formattedDate = `${String(rawToday.getDate()).padStart(2, '0')}/${String(rawToday.getMonth() + 1).padStart(2, '0')}/${rawToday.getFullYear()}`;
+
+    const marketName = document.getElementById('ffMarketInput')?.value.trim() || 'Supermercado';
+
     Object.keys(ffState).forEach(name => {
         if (ffState[name] === 'checked' && shoppingCart[name]) {
-            running += shoppingCart[name].price * shoppingCart[name].qty;
+            const item = shoppingCart[name];
+            running += item.price * item.qty;
+            
+            let originalName = name;
+            let unit = 'un';
+            if (groupedProducts[name] && groupedProducts[name][0]) {
+                originalName = groupedProducts[name][0].originalName;
+                unit = groupedProducts[name][0].unit || 'un';
+            }
+
+            newItemsToSave.push({
+                product: originalName,
+                market: marketName,
+                price: item.price,
+                qty: item.qty,
+                unit: unit,
+                date: formattedDate
+            });
         }
     });
 
-    closeFazerFeira();
-    setStatus(`🎉 Feira finalizada! ${checked}/${total} itens encontrados. Total: ${formatCurrency(running)}${notFound > 0 ? ` (${notFound} não encontrados)` : ''}`);
+    if (confirm(`🎉 Deseja finalizar a feira e salvar estas ${newItemsToSave.length} compras no histórico de preços?\n\nTotal real: ${formatCurrency(running)} no local "${marketName}"`)) {
+        let userPurchases = JSON.parse(localStorage.getItem('feiraCertaUserPurchases')) || [];
+        userPurchases = userPurchases.concat(newItemsToSave);
+        localStorage.setItem('feiraCertaUserPurchases', JSON.stringify(userPurchases));
+
+        // Limpar o carrinho
+        shoppingCart = {};
+        updateCartUI();
+
+        // Reprocessar dados (incluir compras salvas no painel e estatísticas)
+        processData(marketData, true);
+
+        closeFazerFeira();
+        setStatus(`🎉 Feira finalizada! ${checked} itens salvos no histórico. Total: ${formatCurrency(running)}`);
+    } else {
+        if (confirm("Deseja fechar o modo Fazer Feira sem salvar no histórico?")) {
+            closeFazerFeira();
+        }
+    }
 }
 
 // Wire up fazer feira events after DOM loads
@@ -1848,3 +2103,155 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ============================================================
+//  PRIORITY & BUDGET ADJUSTMENTS & EXCLUSIONS LOGIC
+// ============================================================
+function getPriority(name) {
+    let originalName = name;
+    if (groupedProducts[name] && groupedProducts[name][0]) {
+        originalName = groupedProducts[name][0].originalName;
+    }
+    
+    if (itemOverrides[originalName] && itemOverrides[originalName].customPriority) {
+        return itemOverrides[originalName].customPriority;
+    }
+    return 'Média';
+}
+
+function setPriority(name, priority) {
+    let originalName = name;
+    if (groupedProducts[name] && groupedProducts[name][0]) {
+        originalName = groupedProducts[name][0].originalName;
+    }
+    
+    if (!itemOverrides[originalName]) {
+        itemOverrides[originalName] = {};
+    }
+    itemOverrides[originalName].customPriority = priority;
+    localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
+}
+
+function adjustCartToBudget() {
+    const budgetInput = document.getElementById('cartBudgetInput');
+    const targetBudget = parseFloat(budgetInput?.value) || 0;
+    if (targetBudget <= 0) return;
+
+    const itemsKeys = Object.keys(shoppingCart);
+    const weight = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
+    
+    const sortedGlobalItems = [...itemsKeys].sort((a, b) => {
+        const prioA = getPriority(a);
+        const prioB = getPriority(b);
+        if (weight[prioB] !== weight[prioA]) {
+            return weight[prioB] - weight[prioA];
+        }
+        return a.localeCompare(b);
+    });
+
+    let accumulated = 0;
+    let removedCount = 0;
+
+    sortedGlobalItems.forEach(name => {
+        const item = shoppingCart[name];
+        const cost = item.price * item.qty;
+        if (accumulated + cost > targetBudget) {
+            delete shoppingCart[name];
+            removedCount++;
+        } else {
+            accumulated += cost;
+        }
+    });
+
+    if (removedCount > 0) {
+        updateCartUI();
+        renderProducts(searchInput.value);
+        setStatus(`✂️ Lista ajustada! ${removedCount} item(ns) de menor prioridade removido(s) para caber no orçamento.`);
+    } else {
+        setStatus("Sua lista já cabe no orçamento definido.");
+    }
+}
+
+function excludeProduct(name) {
+    if (confirm(`Deseja ocultar o produto "${name}" da lista de compras e do histórico?`)) {
+        let originalName = name;
+        if (groupedProducts[name] && groupedProducts[name][0]) {
+            originalName = groupedProducts[name][0].originalName;
+        }
+        
+        if (!excludedItems.includes(originalName)) {
+            excludedItems.push(originalName);
+            localStorage.setItem('feiraCertaExcludedItems', JSON.stringify(excludedItems));
+        }
+        
+        if (shoppingCart[name]) {
+            delete shoppingCart[name];
+            updateCartUI();
+        }
+        
+        processData(marketData, true);
+        setStatus(`❌ Produto "${name}" ocultado com sucesso.`);
+    }
+}
+
+function restoreProduct(origName) {
+    excludedItems = excludedItems.filter(item => item !== origName);
+    localStorage.setItem('feiraCertaExcludedItems', JSON.stringify(excludedItems));
+    processData(marketData, true);
+    renderExcludedItems();
+    setStatus(`✅ Produto restaurado com sucesso.`);
+}
+
+function restoreAllProducts() {
+    if (excludedItems.length === 0) return;
+    if (confirm("Deseja restaurar todos os itens ocultados?")) {
+        excludedItems = [];
+        localStorage.setItem('feiraCertaExcludedItems', JSON.stringify([]));
+        processData(marketData, true);
+        renderExcludedItems();
+        setStatus("✅ Todos os produtos foram restaurados.");
+        document.getElementById('excludedModal').classList.remove('active');
+    }
+}
+
+function renderExcludedItems() {
+    const container = document.getElementById('excludedItemsList');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (excludedItems.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0; font-size: 0.9rem;">Nenhum item ocultado.</div>';
+        return;
+    }
+    
+    excludedItems.forEach(origName => {
+        let displayName = origName;
+        if (itemOverrides[origName] && itemOverrides[origName].customName) {
+            displayName = itemOverrides[origName].customName;
+        }
+        
+        const div = document.createElement('div');
+        div.className = 'excluded-item-row';
+        div.innerHTML = `
+            <span style="font-size: 0.9rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px;" title="${displayName}">${displayName}</span>
+            <button class="btn-restore-item" data-name="${origName}" title="Restaurar Item">
+                <i class="ph ph-arrow-counter-clockwise"></i>
+            </button>
+        `;
+        
+        div.querySelector('.btn-restore-item').addEventListener('click', (e) => {
+            const nameToRestore = e.currentTarget.getAttribute('data-name');
+            restoreProduct(nameToRestore);
+        });
+        
+        container.appendChild(div);
+    });
+}
+
+function updateExcludedCount() {
+    const countEl = document.getElementById('excludedCount');
+    if (countEl) {
+        countEl.textContent = excludedItems.length;
+    }
+}
+

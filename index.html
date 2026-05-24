@@ -41,6 +41,7 @@
                     <a href="#" id="importBtn"><i class="ph ph-upload-simple"></i> Carregar CSV</a>
                     <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
                     <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Restaurar Backup</a>
+                    <a href="#" id="manageExcludedBtn"><i class="ph ph-trash-simple"></i> Itens Ocultados (<span id="excludedCount">0</span>)</a>
                     <input type="file" id="backupFileInput" accept=".json" style="display:none;">
                     <input type="file" id="fileInput" accept=".csv" style="display:none;">
                 </div>
@@ -210,6 +211,9 @@
                     </div>
                     <div class="budget-bar-bg"><div class="budget-bar-fill" id="cartBudgetProgress"></div></div>
                     <div class="budget-pct-label" id="budgetPctLabel">0% do orçamento</div>
+                    <button id="adjustToBudgetBtn" class="btn-adjust-budget" style="display: none;">
+                        <i class="ph ph-sliders"></i> Ajustar Lista ao Orçamento
+                    </button>
                 </div>
                 <div class="cart-summary">
                     <div class="total-box">
@@ -259,6 +263,14 @@
                     <option value="Outros">Outros</option>
                 </select>
             </div>
+            <div style="margin-bottom:1.5rem">
+                <label class="form-label">Prioridade no Orçamento</label>
+                <select id="editPriority" class="form-input">
+                    <option value="Alta">🔴 Alta (Essencial)</option>
+                    <option value="Média">🟡 Média (Importante)</option>
+                    <option value="Baixa">🟢 Baixa (Desejável)</option>
+                </select>
+            </div>
             <button id="saveEditBtn" class="btn-primary w-100">
                 <i class="ph ph-floppy-disk"></i> Salvar Mudanças
             </button>
@@ -273,6 +285,23 @@
             <div class="chart-stats-row" id="chartStatsRow"></div>
             <div class="chart-container"><canvas id="priceChart"></canvas></div>
             <div class="modal-history-list" id="modalHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- Excluded Items Modal -->
+    <div class="modal-overlay" id="excludedModal">
+        <div class="modal-content" style="max-width:450px">
+            <button class="close-modal" id="closeExcludedModal"><i class="ph ph-x"></i></button>
+            <h2><i class="ph ph-trash" style="color:var(--danger)"></i> Itens Ocultados</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Estes itens foram ocultados e não aparecem nas sugestões ou na busca de produtos.
+            </p>
+            <div class="excluded-list" id="excludedItemsList" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+                <!-- O conteúdo será gerado dinamicamente -->
+            </div>
+            <button id="restoreAllExcludedBtn" class="btn-primary w-100" style="background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); box-shadow: none;">
+                <i class="ph ph-arrow-counter-clockwise"></i> Restaurar Todos os Itens
+            </button>
         </div>
     </div>
 
@@ -293,11 +322,15 @@
         <div class="ff-progress-bar-bg">
             <div class="ff-progress-bar-fill" id="ffProgressBar"></div>
         </div>
-        <div class="ff-totals-row">
+        <div class="ff-totals-row" style="flex-wrap: wrap; gap: 0.75rem;">
             <span class="ff-total-label">No carrinho:</span>
             <span class="ff-total-value" id="ffRunningTotal">R$ 0,00</span>
             <span class="ff-sep"> / </span>
             <span class="ff-budget-value" id="ffBudgetDisplay"></span>
+            <div class="ff-market-field" style="margin-left: auto; display: flex; align-items: center; gap: 0.4rem;">
+                <span style="font-size: 0.75rem; color: var(--text-secondary);"><i class="ph ph-storefront"></i> Local:</span>
+                <input type="text" id="ffMarketInput" placeholder="Ex: Pão de Açúcar" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 140px; outline: none; transition: var(--transition-fast);">
+            </div>
         </div>
         <div class="ff-search-wrapper">
             <div class="ff-search-bar">
