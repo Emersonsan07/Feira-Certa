@@ -2689,4 +2689,301 @@ body {
 #ffMarketInput:focus {
     border-color: var(--success);
     background: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* ==========================================================================
+   COMPARE VIEW (Aba de Comparativo Mês a Mês)
+   ========================================================================== */
+.compare-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 0.5rem 0 2rem 0;
+}
+
+.compare-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.compare-controls .control-group {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.compare-controls .control-icon-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    padding-top: 1.25rem;
+}
+
+@media (max-width: 768px) {
+    .compare-controls .control-icon-sep {
+        display: none;
+    }
+}
+
+.compare-subtitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.compare-subtitle i {
+    color: #818cf8;
+}
+
+.compare-categories-summary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.compare-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.compare-cat-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.compare-cat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-accent, #6366f1);
+}
+
+.compare-cat-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.compare-cat-card.total-card {
+    background: rgba(99, 102, 241, 0.05);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.compare-cat-card.total-card::before {
+    background: var(--card-accent);
+}
+
+.compare-cat-card .cat-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+}
+
+.compare-cat-card.total-card .cat-name {
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.compare-cat-card .cat-values {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.compare-cat-card .val-month {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.compare-cat-card .val-month strong {
+    color: var(--text-primary);
+}
+
+.compare-cat-card .cat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.compare-cat-card .cat-trend.trend-up {
+    color: var(--danger);
+}
+
+.compare-cat-card .cat-trend.trend-down {
+    color: var(--success);
+}
+
+.compare-cat-card .cat-trend.trend-equal {
+    color: var(--text-secondary);
+}
+
+.compare-details-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 1rem;
+}
+
+.details-header .details-filters {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.details-filters .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.details-filters .filter-field select {
+    min-width: 160px;
+    height: 38px;
+    padding: 0 1rem;
+}
+
+.compare-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+}
+
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.compare-table th {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 0.85rem 1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.compare-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.compare-table tr:hover td {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.badge-price-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-full);
+}
+
+.badge-price-up {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.badge-price-down {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.badge-price-equal {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+}
+
+.badge-price-new {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+}
+
+.badge-price-missing {
+    background: rgba(234, 179, 8, 0.1);
+    color: #fbbf24;
+}
+
+.btn-outline-sm {
+    background: transparent;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.btn-outline-sm:hover {
+    color: var(--text-primary);
+    border-color: var(--border-focus);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.font-mono {
+    font-family: monospace;
 }

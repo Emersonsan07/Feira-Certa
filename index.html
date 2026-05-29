@@ -26,6 +26,9 @@
             <a href="#" class="nav-link" id="navProductsBtn">
                 <i class="ph ph-squares-four"></i><span>Produtos</span>
             </a>
+            <a href="#" class="nav-link" id="navCompareBtn">
+                <i class="ph ph-scales"></i><span>Comparativo</span>
+            </a>
             <a href="#" class="nav-link" id="openCartBtn">
                 <i class="ph ph-shopping-cart-simple"></i><span>Lista</span>
                 <span id="cartBadge" class="badge" style="display:none">0</span>
@@ -173,6 +176,86 @@
                 <div class="section-header"><h2>Histórico de Itens da Feira</h2></div>
                 <div class="category-filters" id="categoryFilters"></div>
                 <div class="products-grid" id="productsGrid"></div>
+            </section>
+        </div>
+
+        <!-- ============ COMPARE VIEW ============ -->
+        <div id="compareView" style="display:none">
+            <section class="compare-section">
+                <div class="section-title" style="margin-bottom: 2rem;">
+                    <i class="ph ph-scales" style="font-size: 1.8rem; color: #818cf8;"></i>
+                    <div style="display: flex; flex-direction: column;">
+                        <h2 style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Comparativo Mês a Mês</h2>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Analise a variação de preços de itens e a evolução de gastos em cada categoria de compras.</span>
+                    </div>
+                </div>
+
+                <!-- Controles de Seleção de Meses -->
+                <div class="compare-controls">
+                    <div class="control-group">
+                        <label for="compareMonthA" class="form-label"><i class="ph ph-calendar" style="color: #60a5fa;"></i> Mês de Referência (Mês A):</label>
+                        <select id="compareMonthA" class="form-input"></select>
+                    </div>
+                    <div class="control-icon-sep">
+                        <i class="ph ph-arrows-left-right"></i>
+                    </div>
+                    <div class="control-group">
+                        <label for="compareMonthB" class="form-label"><i class="ph ph-calendar" style="color: #a78bfa;"></i> Mês de Comparação (Mês B):</label>
+                        <select id="compareMonthB" class="form-input"></select>
+                    </div>
+                </div>
+
+                <!-- Resumo por Categorias -->
+                <div class="compare-categories-summary">
+                    <h3 class="compare-subtitle"><i class="ph ph-chart-pie-slice"></i> Gastos por Categoria</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; margin-top: -0.5rem;">Selecione um card de categoria abaixo para filtrar a tabela de itens correspondente.</p>
+                    <div class="compare-categories-grid" id="compareCategoriesGrid">
+                        <!-- Gerado dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- Detalhes dos Itens -->
+                <div class="compare-details-section">
+                    <div class="details-header">
+                        <h3 class="compare-subtitle" style="margin-bottom: 0;"><i class="ph ph-list-bullets"></i> Comparativo de Preço dos Itens</h3>
+                        <div class="details-filters">
+                            <div class="filter-field">
+                                <label for="compareCategoryFilter" class="form-label" style="margin-bottom: 0.25rem;">Filtrar Categoria</label>
+                                <select id="compareCategoryFilter" class="form-input">
+                                    <option value="Todas">Todas as Categorias</option>
+                                </select>
+                            </div>
+                            <div class="filter-field">
+                                <label for="comparePriceChangeFilter" class="form-label" style="margin-bottom: 0.25rem;">Filtrar Variação</label>
+                                <select id="comparePriceChangeFilter" class="form-input">
+                                    <option value="Todos">Todos os Status</option>
+                                    <option value="Aumentou">Subiu de Preço 🔴</option>
+                                    <option value="Baixou">Baixou de Preço 🟢</option>
+                                    <option value="Manteve">Preço Estável ⚪</option>
+                                    <option value="NaoCompradoA">Não comprado em A</option>
+                                    <option value="NaoCompradoB">Não comprado em B</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="compare-table-wrapper">
+                        <table class="compare-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Categoria</th>
+                                    <th class="text-right" id="thMonthA">Mês A</th>
+                                    <th class="text-right" id="thMonthB">Mês B</th>
+                                    <th class="text-center">Variação Preço Unit.</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="compareTableBody">
+                                <!-- Gerado dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
         </div>
     </main>

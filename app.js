@@ -230,8 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const navDashboardBtn = document.getElementById('navDashboardBtn');
     const navProductsBtn = document.getElementById('navProductsBtn');
+    const navCompareBtn = document.getElementById('navCompareBtn');
     const dashboardView = document.getElementById('dashboardView');
     const productsView = document.getElementById('productsView');
+    const compareView = document.getElementById('compareView');
 
     // Quick action buttons no dashboard
     const quickSmartListBtn = document.getElementById('quickSmartListBtn');
@@ -241,16 +243,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showView(view) {
         const isDash = view === 'dashboard';
+        const isProd = view === 'products';
+        const isComp = view === 'compare';
+
         dashboardView.style.display = isDash ? 'block' : 'none';
-        productsView.style.display = isDash ? 'none' : 'block';
-        if (searchBarWrapper) searchBarWrapper.style.display = isDash ? 'none' : 'block';
+        productsView.style.display = isProd ? 'block' : 'none';
+        compareView.style.display = isComp ? 'block' : 'none';
+
+        if (searchBarWrapper) searchBarWrapper.style.display = isProd ? 'block' : 'none';
+
         navDashboardBtn.classList.toggle('active', isDash);
-        navProductsBtn.classList.toggle('active', !isDash);
+        navProductsBtn.classList.toggle('active', isProd);
+        if (navCompareBtn) navCompareBtn.classList.toggle('active', isComp);
+
+        if (isComp) {
+            updateCompareView();
+        }
     }
 
     if (navDashboardBtn && navProductsBtn) {
         navDashboardBtn.addEventListener('click', (e) => { e.preventDefault(); showView('dashboard'); });
         navProductsBtn.addEventListener('click', (e) => { e.preventDefault(); showView('products'); });
+        if (navCompareBtn) {
+            navCompareBtn.addEventListener('click', (e) => { e.preventDefault(); showView('compare'); });
+        }
         showView('dashboard');
     }
 
@@ -286,6 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (restoreAllExcludedBtn) {
         restoreAllExcludedBtn.addEventListener('click', restoreAllProducts);
     }
+
+    // Ouvintes para os controles de Comparativo
+    const compMonthA = document.getElementById('compareMonthA');
+    const compMonthB = document.getElementById('compareMonthB');
+    const compCatFilter = document.getElementById('compareCategoryFilter');
+    const compPriceFilter = document.getElementById('comparePriceChangeFilter');
+
+    if (compMonthA) compMonthA.addEventListener('change', updateCompareView);
+    if (compMonthB) compMonthB.addEventListener('change', updateCompareView);
+    if (compCatFilter) compCatFilter.addEventListener('change', renderCompareItems);
+    if (compPriceFilter) compPriceFilter.addEventListener('change', renderCompareItems);
 });
 
 function openCartAndRun(fn) {
@@ -476,6 +503,12 @@ function processData(data, replace = true) {
     renderCategorySpending();
     initCalendar();
     updateExcludedCount();
+
+    // Inicializa meses do Comparativo
+    initCompareMonths();
+    if (document.getElementById('compareView') && document.getElementById('compareView').style.display === 'block') {
+        updateCompareView();
+    }
 }
 
 function resolveCategory(name) {
@@ -831,7 +864,7 @@ function generateSmartList() {
             return b.frequency - a.frequency;
         });
 
-    const topItems = productsByFrequency.slice(0, 200);
+    const topItems = productsByFrequency.slice(0, 150);  //Itens da Feria do Mês quantidade
 
     let addedCount = 0;
     topItems.forEach(item => {
@@ -1017,7 +1050,7 @@ function updateCartUI() {
         badge.style.display = 'none';
         totalEl.textContent = 'R$ 0,00';
         shareBtn.style.display = 'none';
-        
+
         const adjustBtn = document.getElementById('adjustToBudgetBtn');
         if (adjustBtn) adjustBtn.style.display = 'none';
         return;
@@ -1204,27 +1237,27 @@ function updateCartUI() {
 function getCategory(name) {
     const n = name.toLowerCase();
 
-    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform)/)) return "Limpeza";
+    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform|multiuso|multi uso|pedra sanit|desengord|tira mancha|vassoura|rodo|pano|flanela|balde|saco|lixeira|omo|ariel|ype)/)) return "Limpeza";
 
-    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene)/)) return "Higiene Pessoal";
+    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene|fio dental|enxaguante|barbear|pre barba|pos barba|laminas|hastes|hidratante|talco|creme pele|seda|pantene|dove|nivea)/)) return "Higiene Pessoal";
 
-    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta)/)) return "Hortifruti - Frutas";
+    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta|kiwi|manga|tangerina|goiaba|ameixa|caju|coco|pêssego|pessego|abacaxi)/)) return "Hortifruti - Frutas";
 
-    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde)/)) return "Hortifruti - Legumes";
+    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde|pepino|beterraba|chuchu|berinjela|quiabo|vagem|rucula|rúcula|espinafre|agrião|agriao|coentro|cebolinha|hortela|hortelã|pimenta|gengibre)/)) return "Hortifruti - Legumes";
 
-    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha)/)) return "Açougue";
+    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha|maminha|picanha|cupim|lagarto|lombo|pernil|costela|moida|moída|bovino|suino|suíno|sardinha|atum)/)) return "Açougue";
 
-    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq )/)) return "Doces & Snacks";
+    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq |balas|pirulito|chiclete|amendoim|pipoca|gelatina|pudim|marshmallow|sobremesa|waffer|wafer|paçoca|pacoca)/)) return "Doces & Snacks";
 
-    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo )/)) return "Laticínios & Frios";
+    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo |peito de peru|salame|provolone|parmesao|parmesão|coalho|ricota|yakult|nata|petit suisse|fermento|frios|laticinio|chesse)/)) return "Laticínios & Frios";
 
-    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel )/)) return "Mercearia Básica";
+    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel |atum|seleta|azeitona|cogumelo|palmito|vinagre|cald|knorr|sazon|miojo|lamen|sop |canela|cravo|baunilha|adoçante|adocante|granola|cereal|mucilon|leite em po|ninho)/)) return "Mercearia Básica";
 
-    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle)/)) return "Bebidas";
+    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle|pepsi|fanta|kuat|antarctica|skol|brahma|heineken|amstel|monster|red bull|energetico|energético|gin|rum|cachaça|licor|whisky|champagne|espumante|bebida|refri|ice)/)) return "Bebidas";
 
-    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa)/)) return "Padaria";
+    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa|croissant|baguete|bisnag|panet|chocott|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|cuca|broa|sonho|panific)/)) return "Padaria";
 
-    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm)/)) return "Utilidades";
+    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher)/)) return "Utilidades";
 
     return "Outros";
 }
@@ -1882,10 +1915,10 @@ function renderFFList() {
     Object.keys(shoppingCart).forEach(name => {
         const cat = resolveCategory(name);
         if (ffActiveCat !== 'Todos' && cat !== ffActiveCat) return;
-        
+
         // Filter by search query
         if (searchQuery && !name.toLowerCase().includes(searchQuery) && !cat.toLowerCase().includes(searchQuery)) return;
-        
+
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(name);
     });
@@ -1957,10 +1990,10 @@ function renderFFList() {
             // Click principal = marcar como checked / volta para pending
             el.addEventListener('click', (e) => {
                 if (e.target.closest('.ff-notfound-btn') || e.target.closest('.ff-item-price-input')) return;
-                
+
                 const cur = ffState[name];
                 ffState[name] = cur === 'checked' ? 'pending' : 'checked';
-                
+
                 // Feedback Háptico/Vibração
                 if (navigator.vibrate) navigator.vibrate(15);
 
@@ -1972,10 +2005,10 @@ function renderFFList() {
             // Botão não encontrei
             el.querySelector('.ff-notfound-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
-                
+
                 const cur = ffState[name];
                 ffState[name] = cur === 'not-found' ? 'pending' : 'not-found';
-                
+
                 // Feedback Háptico/Vibração
                 if (navigator.vibrate) navigator.vibrate(15);
 
@@ -2033,7 +2066,7 @@ function finishFazerFeira() {
         if (ffState[name] === 'checked' && shoppingCart[name]) {
             const item = shoppingCart[name];
             running += item.price * item.qty;
-            
+
             let originalName = name;
             let unit = 'un';
             if (groupedProducts[name] && groupedProducts[name][0]) {
@@ -2112,7 +2145,7 @@ function getPriority(name) {
     if (groupedProducts[name] && groupedProducts[name][0]) {
         originalName = groupedProducts[name][0].originalName;
     }
-    
+
     if (itemOverrides[originalName] && itemOverrides[originalName].customPriority) {
         return itemOverrides[originalName].customPriority;
     }
@@ -2124,7 +2157,7 @@ function setPriority(name, priority) {
     if (groupedProducts[name] && groupedProducts[name][0]) {
         originalName = groupedProducts[name][0].originalName;
     }
-    
+
     if (!itemOverrides[originalName]) {
         itemOverrides[originalName] = {};
     }
@@ -2139,7 +2172,7 @@ function adjustCartToBudget() {
 
     const itemsKeys = Object.keys(shoppingCart);
     const weight = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
-    
+
     const sortedGlobalItems = [...itemsKeys].sort((a, b) => {
         const prioA = getPriority(a);
         const prioB = getPriority(b);
@@ -2178,17 +2211,17 @@ function excludeProduct(name) {
         if (groupedProducts[name] && groupedProducts[name][0]) {
             originalName = groupedProducts[name][0].originalName;
         }
-        
+
         if (!excludedItems.includes(originalName)) {
             excludedItems.push(originalName);
             localStorage.setItem('feiraCertaExcludedItems', JSON.stringify(excludedItems));
         }
-        
+
         if (shoppingCart[name]) {
             delete shoppingCart[name];
             updateCartUI();
         }
-        
+
         processData(marketData, true);
         setStatus(`❌ Produto "${name}" ocultado com sucesso.`);
     }
@@ -2218,18 +2251,18 @@ function renderExcludedItems() {
     const container = document.getElementById('excludedItemsList');
     if (!container) return;
     container.innerHTML = '';
-    
+
     if (excludedItems.length === 0) {
         container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; padding: 1.5rem 0; font-size: 0.9rem;">Nenhum item ocultado.</div>';
         return;
     }
-    
+
     excludedItems.forEach(origName => {
         let displayName = origName;
         if (itemOverrides[origName] && itemOverrides[origName].customName) {
             displayName = itemOverrides[origName].customName;
         }
-        
+
         const div = document.createElement('div');
         div.className = 'excluded-item-row';
         div.innerHTML = `
@@ -2238,12 +2271,12 @@ function renderExcludedItems() {
                 <i class="ph ph-arrow-counter-clockwise"></i>
             </button>
         `;
-        
+
         div.querySelector('.btn-restore-item').addEventListener('click', (e) => {
             const nameToRestore = e.currentTarget.getAttribute('data-name');
             restoreProduct(nameToRestore);
         });
-        
+
         container.appendChild(div);
     });
 }
@@ -2253,5 +2286,391 @@ function updateExcludedCount() {
     if (countEl) {
         countEl.textContent = excludedItems.length;
     }
+}
+
+// ============================================================
+//  COMPARATIVO MÊS A MÊS
+// ============================================================
+
+function getYearMonthKey(dateObj) {
+    if (!dateObj || isNaN(dateObj.getTime())) return null;
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+}
+
+function getAvailableMonths() {
+    const months = new Set();
+    Object.values(groupedProducts).forEach(history => {
+        history.forEach(h => {
+            if (h.datetime && !isNaN(h.datetime.getTime())) {
+                const key = getYearMonthKey(h.datetime);
+                if (key) months.add(key);
+            }
+        });
+    });
+    return Array.from(months).sort();
+}
+
+const MONTH_NAMES_SHORT = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+function formatMonthKey(key) {
+    if (!key) return '';
+    const [year, month] = key.split('-');
+    const mIdx = parseInt(month, 10) - 1;
+    return `${MONTH_NAMES_SHORT[mIdx]} / ${year}`;
+}
+
+function initCompareMonths() {
+    const monthASelect = document.getElementById('compareMonthA');
+    const monthBSelect = document.getElementById('compareMonthB');
+    if (!monthASelect || !monthBSelect) return;
+
+    const months = getAvailableMonths();
+
+    // Salva o valor atual para tentar restaurar após repopular
+    const valA = monthASelect.value;
+    const valB = monthBSelect.value;
+
+    monthASelect.innerHTML = '';
+    monthBSelect.innerHTML = '';
+
+    if (months.length === 0) {
+        monthASelect.innerHTML = '<option value="">Nenhum dado</option>';
+        monthBSelect.innerHTML = '<option value="">Nenhum dado</option>';
+        return;
+    }
+
+    months.forEach(m => {
+        const optionText = formatMonthKey(m);
+        monthASelect.add(new Option(optionText, m));
+        monthBSelect.add(new Option(optionText, m));
+    });
+
+    // Tenta restaurar seleções anteriores
+    if (months.includes(valA)) {
+        monthASelect.value = valA;
+    } else if (months.length >= 2) {
+        monthASelect.value = months[months.length - 2];
+    } else {
+        monthASelect.value = months[0];
+    }
+
+    if (months.includes(valB)) {
+        monthBSelect.value = valB;
+    } else if (months.length >= 1) {
+        monthBSelect.value = months[months.length - 1];
+    } else {
+        monthBSelect.value = months[0];
+    }
+}
+
+function updateCompareView() {
+    const monthASelect = document.getElementById('compareMonthA');
+    const monthBSelect = document.getElementById('compareMonthB');
+    if (!monthASelect || !monthBSelect) return;
+
+    const monthA = monthASelect.value;
+    const monthB = monthBSelect.value;
+
+    const grid = document.getElementById('compareCategoriesGrid');
+    const tbody = document.getElementById('compareTableBody');
+
+    if (!monthA || !monthB) {
+        if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color:var(--text-secondary);">Por favor, selecione dois meses para comparar.</div>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary); padding: 2rem;">Nenhum dado para exibir.</td></tr>';
+        return;
+    }
+
+    // Atualizar títulos das colunas na tabela de itens
+    const thMonthA = document.getElementById('thMonthA');
+    const thMonthB = document.getElementById('thMonthB');
+    if (thMonthA) thMonthA.textContent = formatMonthKey(monthA);
+    if (thMonthB) thMonthB.textContent = formatMonthKey(monthB);
+
+    const categoryExpenses = {};
+    const itemsComparison = [];
+
+    // Obter todas as categorias conhecidas e inicializá-las
+    const cats = new Set();
+    Object.keys(groupedProducts).forEach(name => cats.add(resolveCategory(name)));
+    cats.forEach(c => {
+        categoryExpenses[c] = { totalA: 0, totalB: 0 };
+    });
+
+    Object.keys(groupedProducts).forEach(name => {
+        const history = groupedProducts[name];
+        const category = resolveCategory(name);
+
+        const purchasesA = history.filter(h => h.datetime && getYearMonthKey(h.datetime) === monthA);
+        const purchasesB = history.filter(h => h.datetime && getYearMonthKey(h.datetime) === monthB);
+
+        // Somar para gastos de categorias
+        purchasesA.forEach(h => {
+            if (categoryExpenses[category]) {
+                categoryExpenses[category].totalA += h.price * h.qty;
+            }
+        });
+        purchasesB.forEach(h => {
+            if (categoryExpenses[category]) {
+                categoryExpenses[category].totalB += h.price * h.qty;
+            }
+        });
+
+        // Calcular preços unitários médios
+        let priceA = null;
+        let priceB = null;
+
+        if (purchasesA.length > 0) {
+            const sumPrices = purchasesA.reduce((sum, h) => sum + h.price, 0);
+            priceA = sumPrices / purchasesA.length;
+        }
+
+        if (purchasesB.length > 0) {
+            const sumPrices = purchasesB.reduce((sum, h) => sum + h.price, 0);
+            priceB = sumPrices / purchasesB.length;
+        }
+
+        if (priceA !== null || priceB !== null) {
+            let changeType = 'Manteve';
+            let changePct = 0;
+
+            if (priceA !== null && priceB !== null) {
+                changePct = ((priceB - priceA) / priceA) * 100;
+                if (changePct > 0.01) {
+                    changeType = 'Aumentou';
+                } else if (changePct < -0.01) {
+                    changeType = 'Baixou';
+                } else {
+                    changeType = 'Manteve';
+                    changePct = 0;
+                }
+            } else if (priceA !== null && priceB === null) {
+                changeType = 'NaoCompradoB';
+            } else if (priceA === null && priceB !== null) {
+                changeType = 'NaoCompradoA';
+            }
+
+            itemsComparison.push({
+                name,
+                category,
+                priceA,
+                priceB,
+                changeType,
+                changePct
+            });
+        }
+    });
+
+    renderCompareCategories(categoryExpenses);
+    window.compareItemsData = itemsComparison;
+    renderCompareItems();
+}
+
+function renderCompareCategories(categoryExpenses) {
+    const grid = document.getElementById('compareCategoriesGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    const sortedCats = Object.keys(categoryExpenses).sort((a, b) => {
+        return categoryExpenses[b].totalB - categoryExpenses[a].totalB;
+    });
+
+    const colorMap = {
+        hortifruti: '#22c55e', acougue: '#ef4444', limpeza: '#3b82f6',
+        higiene: '#d946ef', laticinios: '#eab308', mercearia: '#f97316',
+        bebidas: '#0ea5e9', doces: '#ec4899', padaria: '#f59e0b',
+        utilidades: '#8b5cf6', outros: '#a1a1aa'
+    };
+
+    let totalGeralA = 0;
+    let totalGeralB = 0;
+
+    sortedCats.forEach(cat => {
+        const { totalA, totalB } = categoryExpenses[cat];
+        totalGeralA += totalA;
+        totalGeralB += totalB;
+
+        if (totalA === 0 && totalB === 0) return;
+
+        const diff = totalB - totalA;
+        const diffPct = totalA > 0 ? (diff / totalA) * 100 : 0;
+
+        const colorKey = getColorClassForCategory(cat);
+        const color = colorMap[colorKey] || '#6366f1';
+
+        const card = document.createElement('div');
+        card.className = 'compare-cat-card';
+        card.style.setProperty('--card-accent', color);
+
+        let diffText = '';
+        let diffClass = '';
+        if (diff > 0.01) {
+            diffText = `+${formatCurrency(diff)} (+${diffPct.toFixed(0)}%)`;
+            diffClass = 'trend-up';
+        } else if (diff < -0.01) {
+            diffText = `${formatCurrency(diff)} (${diffPct.toFixed(0)}%)`;
+            diffClass = 'trend-down';
+        } else {
+            diffText = `Sem variação`;
+            diffClass = 'trend-equal';
+        }
+
+        card.innerHTML = `
+            <div class="cat-name">${cat}</div>
+            <div class="cat-values">
+                <div class="val-month"><span>Mês A:</span> <strong>${formatCurrency(totalA)}</strong></div>
+                <div class="val-month"><span>Mês B:</span> <strong>${formatCurrency(totalB)}</strong></div>
+            </div>
+            <div class="cat-trend ${diffClass}">
+                <i class="ph ${diff > 0.01 ? 'ph-trend-up' : diff < -0.01 ? 'ph-trend-down' : 'ph-equals'}"></i>
+                <span>${diffText}</span>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            const catFilter = document.getElementById('compareCategoryFilter');
+            if (catFilter) {
+                catFilter.value = cat;
+                renderCompareItems();
+
+                const tableSection = document.querySelector('.compare-details-section');
+                if (tableSection) {
+                    tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+
+        grid.appendChild(card);
+    });
+
+    if (totalGeralA > 0 || totalGeralB > 0) {
+        const diffGeral = totalGeralB - totalGeralA;
+        const diffGeralPct = totalGeralA > 0 ? (diffGeral / totalGeralA) * 100 : 0;
+
+        let diffGeralText = '';
+        let diffGeralClass = '';
+        if (diffGeral > 0.01) {
+            diffGeralText = `+${formatCurrency(diffGeral)} (+${diffGeralPct.toFixed(1)}%)`;
+            diffGeralClass = 'trend-up';
+        } else if (diffGeral < -0.01) {
+            diffGeralText = `${formatCurrency(diffGeral)} (${diffGeralPct.toFixed(1)}%)`;
+            diffGeralClass = 'trend-down';
+        } else {
+            diffGeralText = `Sem variação`;
+            diffGeralClass = 'trend-equal';
+        }
+
+        const totalCard = document.createElement('div');
+        totalCard.className = 'compare-cat-card total-card';
+        totalCard.style.setProperty('--card-accent', 'linear-gradient(135deg, #60a5fa, #a78bfa)');
+        totalCard.innerHTML = `
+            <div class="cat-name">TOTAL GERAL</div>
+            <div class="cat-values">
+                <div class="val-month"><span>Mês A:</span> <strong>${formatCurrency(totalGeralA)}</strong></div>
+                <div class="val-month"><span>Mês B:</span> <strong>${formatCurrency(totalGeralB)}</strong></div>
+            </div>
+            <div class="cat-trend ${diffGeralClass}">
+                <i class="ph ${diffGeral > 0.01 ? 'ph-trend-up' : diffGeral < -0.01 ? 'ph-trend-down' : 'ph-equals'}"></i>
+                <span>${diffGeralText}</span>
+            </div>
+        `;
+
+        totalCard.addEventListener('click', () => {
+            const catFilter = document.getElementById('compareCategoryFilter');
+            if (catFilter) {
+                catFilter.value = 'Todas';
+                renderCompareItems();
+            }
+        });
+
+        grid.insertBefore(totalCard, grid.firstChild);
+    }
+
+    const catFilter = document.getElementById('compareCategoryFilter');
+    if (catFilter) {
+        const activeVal = catFilter.value;
+        catFilter.innerHTML = '<option value="Todas">Todas as Categorias</option>';
+        sortedCats.forEach(cat => {
+            const { totalA, totalB } = categoryExpenses[cat];
+            if (totalA > 0 || totalB > 0) {
+                catFilter.add(new Option(cat, cat));
+            }
+        });
+        if (Array.from(catFilter.options).some(opt => opt.value === activeVal)) {
+            catFilter.value = activeVal;
+        } else {
+            catFilter.value = 'Todas';
+        }
+    }
+}
+
+function renderCompareItems() {
+    const tbody = document.getElementById('compareTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    const categoryFilter = document.getElementById('compareCategoryFilter')?.value || 'Todas';
+    const priceChangeFilter = document.getElementById('comparePriceChangeFilter')?.value || 'Todos';
+
+    let filtered = window.compareItemsData || [];
+
+    if (categoryFilter !== 'Todas') {
+        filtered = filtered.filter(item => item.category === categoryFilter);
+    }
+
+    if (priceChangeFilter !== 'Todos') {
+        filtered = filtered.filter(item => item.changeType === priceChangeFilter);
+    }
+
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color:var(--text-secondary);">Nenhum item corresponde aos filtros selecionados.</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(item => {
+        const tr = document.createElement('tr');
+
+        let varBadge = '';
+        if (item.changeType === 'Aumentou') {
+            varBadge = `<span class="badge-price-change badge-price-up"><i class="ph ph-arrow-up"></i> +${item.changePct.toFixed(1)}%</span>`;
+        } else if (item.changeType === 'Baixou') {
+            varBadge = `<span class="badge-price-change badge-price-down"><i class="ph ph-arrow-down"></i> ${item.changePct.toFixed(1)}%</span>`;
+        } else if (item.changeType === 'Manteve') {
+            varBadge = `<span class="badge-price-change badge-price-equal"><i class="ph ph-equals"></i> 0%</span>`;
+        } else if (item.changeType === 'NaoCompradoB') {
+            varBadge = `<span class="badge-price-change badge-price-missing" title="Não comprado no Mês B">Não comprado B</span>`;
+        } else if (item.changeType === 'NaoCompradoA') {
+            varBadge = `<span class="badge-price-change badge-price-new" title="Novo item no Mês B">Novo em B</span>`;
+        }
+
+        const priceAText = item.priceA !== null ? formatCurrency(item.priceA) : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
+        const priceBText = item.priceB !== null ? formatCurrency(item.priceB) : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
+
+        const colorClass = getColorClassForCategory(item.category);
+
+        tr.innerHTML = `
+            <td style="font-weight: 500;">${item.name}</td>
+            <td><span class="category-pill color-${colorClass}">${item.category}</span></td>
+            <td class="text-right font-mono">${priceAText}</td>
+            <td class="text-right font-mono" style="font-weight:700;">${priceBText}</td>
+            <td class="text-center">${varBadge}</td>
+            <td class="text-center">
+                <button class="btn-outline-sm view-item-history" data-name="${item.name}" title="Ver Histórico Completo">
+                    <i class="ph ph-chart-line-up"></i>
+                </button>
+            </td>
+        `;
+
+        tr.querySelector('.view-item-history').addEventListener('click', (e) => {
+            const name = e.currentTarget.getAttribute('data-name');
+            openModal(name);
+        });
+
+        tbody.appendChild(tr);
+    });
 }
 
