@@ -2986,4 +2986,40 @@ body {
 
 .font-mono {
     font-family: monospace;
+}
+
+/* Botão de Alternar Visão de Comprados no Modo Fazer Feira */
+.ff-toggle-checked-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: var(--transition-bounce);
+    outline: none;
+}
+
+.ff-toggle-checked-btn:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    transform: scale(1.05);
+}
+
+.ff-toggle-checked-btn.active {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Ocultação dinâmica e instantânea dos comprados sem layout shift */
+.ff-list.hide-checked .ff-item.checked {
+    display: none !important;
 }

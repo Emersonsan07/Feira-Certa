@@ -415,12 +415,15 @@
                 <input type="text" id="ffMarketInput" placeholder="Ex: Pão de Açúcar" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 140px; outline: none; transition: var(--transition-fast);">
             </div>
         </div>
-        <div class="ff-search-wrapper">
-            <div class="ff-search-bar">
+        <div class="ff-search-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="ff-search-bar" style="flex: 1;">
                 <i class="ph ph-magnifying-glass"></i>
                 <input type="text" id="ffSearchInput" placeholder="Pesquisar item da feira...">
                 <button class="ff-search-clear" id="ffSearchClearBtn" style="display: none;"><i class="ph ph-x-circle"></i></button>
             </div>
+            <button id="ffToggleCheckedBtn" class="ff-toggle-checked-btn" title="Ocultar itens comprados">
+                <i class="ph ph-eye"></i>
+            </button>
         </div>
         <div class="ff-category-filter" id="ffCategoryFilter"></div>
         <div class="ff-list" id="ffList"></div>

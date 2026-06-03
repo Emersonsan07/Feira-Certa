@@ -378,6 +378,100 @@ function loadCSVFile(filename) {
         });
 }
 
+function toTitleCase(str) {
+    if (!str) return '';
+    return str.toLowerCase().replace(/(?:^|\s|-|\/)\S/g, function(m) { return m.toUpperCase(); });
+}
+
+function getSimplifiedName(name) {
+    if (!name) return '';
+    const n = name.toUpperCase().trim();
+
+    // Regras específicas de padronização para agrupar itens duplicados/similares
+    if (n.includes('PAO FRANCES') || n.includes('PÃO FRANCÊS')) return 'Pão Francês';
+    if (n.includes('MUSS') || n.includes('MUSSARELA') || n.includes('QJO MUS')) return 'Queijo Mussarela';
+    if (n.includes('PRESUNTO') || n.includes('PRES SADIA') || n.includes('PRES NOBRE')) return 'Presunto';
+    if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORTAD')) return 'Mortadela';
+    
+    if (n.includes('LTE ') || n.includes('LEITE ')) {
+        if (n.includes('PÓ') || n.includes(' EM PO') || n.includes(' EM PÓ')) return 'Leite em Pó';
+        if (n.includes('COND')) return 'Leite Condensado';
+        return 'Leite Líquido';
+    }
+    if (n.includes('CR LEITE') || n.includes('CR LEIT') || n.includes('CREME LEITE') || n.includes('CREME DE LEITE')) return 'Creme de Leite';
+    if (n.includes('L COND') || n.includes('LEIT COND')) return 'Leite Condensado';
+    
+    if (n.includes('COCA COLA') || n.includes('COCA-COLA')) {
+        if (n.includes('S/AC') || n.includes('ZERO') || n.includes('S/ AC')) return 'Coca-Cola Sem Açúcar';
+        return 'Coca-Cola';
+    }
+    
+    if (n.includes('BANANA')) {
+        if (n.includes('PRATA')) return 'Banana Prata';
+        if (n.includes('NANICA')) return 'Banana Nanica';
+        return 'Banana';
+    }
+    if (n.includes('MAMAO') || n.includes('MAMÃO')) {
+        if (n.includes('PAPAYA') || n.includes('PAPAIA')) return 'Mamão Papaya';
+        if (n.includes('FORMOSA')) return 'Mamão Formosa';
+        return 'Mamão';
+    }
+    if (n.includes('CEBOLA')) {
+        if (n.includes('ROXA')) return 'Cebola Roxa';
+        return 'Cebola';
+    }
+    if (n.includes('TOMATE')) {
+        if (n.includes('ROMA') || n.includes('ITALIANO') || n.includes('RASTEIRO')) return 'Tomate Italiano / Rasteiro';
+        return 'Tomate';
+    }
+    if (n.includes('CENOURA')) return 'Cenoura';
+    if (n.includes('BATATA')) {
+        if (n.includes('DOCE')) return 'Batata Doce';
+        if (n.includes('PALHA')) return 'Batata Palha';
+        return 'Batata';
+    }
+    if (n.includes('OVOS') || n.includes('OVO ')) return 'Ovos';
+    if (n.includes('DET ') || n.includes('DETERGENTE') || n.includes('DET.YP')) return 'Detergente Líquido';
+    if (n.includes('SAB LUX') || n.includes('SABONETE') || n.includes('SBT ') || n.includes('ST LUX') || n.includes('SAB BARRA')) return 'Sabonete';
+    if (n.includes('SACOLA')) return 'Sacola Plástica';
+    if (n.includes('PAPRICA') || n.includes('PÁPRICA')) return 'Páprica Defumada';
+    if (n.includes('TAPIOCA') || n.includes('GOMA BEIJUBOM')) return 'Tapioca';
+    if (n.includes('BISC ') || n.includes('BISCOITO') || n.includes('BOLACHA') || n.includes('CLUB SOCIAL')) return 'Biscoito';
+    if (n.includes('MAC ') || n.includes('MACARRAO') || n.includes('MACARRÃO') || n.includes('ESPAG') || n.includes('PENNE') || n.includes('LASANHA')) return 'Macarrão / Massas';
+    if (n.includes('EXT TOM') || n.includes('EXTR TOM') || n.includes('EXTRATO TOM') || n.includes('MOLHO TOMATE') || n.includes('MOLHO DE TOMATE') || n.includes('PASSATA') || n.includes('MOLHO QUERO') || n.includes('EXT QUERO')) return 'Extrato / Molho de Tomate';
+    if (n.includes('MARG ') || n.includes('MARGARINA') || n.includes('MANTEIGA') || n.includes('QUALY')) return 'Margarina / Manteiga';
+    if (n.includes('ARR ') || n.includes('ARROZ')) return 'Arroz';
+    if (n.includes('CAF ') || n.includes('CAFE') || n.includes('CAFÉ')) return 'Café';
+    if (n.includes('SALS ') || n.includes('SALSICHA')) return 'Salsicha';
+    if (n.includes('TEXAS BURGUER') || n.includes('HAMB ') || n.includes('HAMBURGUER') || n.includes('BURGUER')) return 'Hambúrguer';
+    if (n.includes('FILE PEITO') || n.includes('FILÉ PEITO') || n.includes('F PEITO') || n.includes('FILEZINHO') || n.includes('SASSAM') || n.includes('FGO BELLO') || n.includes('M PEITO')) return 'Peito de Frango (Filé/Sassami)';
+    if (n.includes('COENTRO') || n.includes('SALSA ') || n.includes('CHEIRO VERDE') || n.includes('CHEIRO-VERDE')) return 'Cheiro Verde / Temperos';
+    if (n.includes('REPOLHO')) return 'Repolho';
+    if (n.includes('ALFACE')) return 'Alface';
+    if (n.includes('COUVE')) return 'Couve';
+    if (n.includes('BROCOLIS') || n.includes('BRÓCOLIS')) return 'Brócolis';
+    if (n.includes('SUCO') || n.includes('DEL VALLE') || n.includes('TAMPICO')) return 'Suco';
+    if (n.includes('IOG ') || n.includes('IOGURTE') || n.includes('IOG LIQ') || n.includes('IOG MOLICO') || n.includes('IOG NESTLE') || n.includes('IOG ITAM')) return 'Iogurte';
+    if (n.includes('GUARANA') || n.includes('SPRITE') || n.includes('REFRIGERANTE')) return 'Refrigerante';
+    if (n.includes('FAROFA')) return 'Farofa';
+    if (n.includes('AGUA MIN') || n.includes('AGUA S/G') || n.includes('AG AQUARELA')) return 'Água Mineral';
+    if (n.includes('AGUA SANIT') || n.includes('ÁGUA SANIT') || n.includes('QBOA')) return 'Água Sanitária';
+    if (n.includes('AMAC ') || n.includes('AMACIANTE') || n.includes('COMFORT') || n.includes('DOWNY')) return 'Amaciante de Roupas';
+    if (n.includes('ABS ') || n.includes('ABSORVENTE') || n.includes('PROT DIAR') || n.includes('CAREFREE')) return 'Absorvente Higiênico';
+    if (n.includes('TOAL PIQUITUCHO') || n.includes('TOA COTTON') || n.includes('TOALHA UMEDECIDA')) return 'Toalha Umedecida';
+    if (n.includes('FILME PVC') || n.includes('FILM WYDA')) return 'Filme PVC';
+    if (n.includes('SC HERM') || n.includes('SACO HERM')) return 'Saco Hermético';
+    if (n.includes('DESI ') || n.includes('DESINFETANTE') || n.includes('LYSOFORM') || n.includes('LIMP QBOA')) return 'Desinfetante';
+    if (n.includes('FILTRO BRIGITTA') || n.includes('FILTRO BRAS') || n.includes('FILTRO 3 COR')) return 'Filtro de Café';
+    if (n.includes('FERMENTO')) return 'Fermento';
+    if (n.includes('LIXEIRA')) return 'Lixeira';
+    if (n.includes('SHAMPOO') || n.includes('CONDICIONADOR') || n.includes('SH+CO') || n.includes('CR ELSEVE') || n.includes('MASC OX')) return 'Shampoo / Condicionador';
+    if (n.includes('ESPONJA') || n.includes('ESP ')) return 'Esponja de Limpeza';
+    if (n.includes('SACO LIXO')) return 'Saco de Lixo';
+
+    return toTitleCase(name);
+}
+
 function processData(data, replace = true) {
     if (replace) {
         marketData = data;
@@ -391,15 +485,31 @@ function processData(data, replace = true) {
 
     // Unir os dados históricos do CSV e os dados inseridos manualmente pelo usuário
     const allData = [...marketData];
+    
+    // Evitar duplicar compras locais que já estejam refletidas nos dados do CSV
+    const existingSignatures = new Set(marketData.map(d => {
+        const prod = d['Produto']?.trim() || '';
+        const mkt = d['Fornecedor']?.trim() || '';
+        const date = d['Data']?.trim() || '';
+        const qty = d['Quantidade']?.toString().replace(/\s/g, '').replace(',', '.') || '1';
+        const price = d['Valor Unitário (R$)']?.toString().replace(/\s/g, '').replace(',', '.') || '0';
+        return `${prod}_${mkt}_${date}_${qty}_${price}`;
+    }));
+
     userPurchases.forEach(p => {
-        allData.push({
-            'Produto': p.product,
-            'Fornecedor': p.market,
-            'Preço': (p.price || 0).toString(),
-            'Quantidade': (p.qty || 1).toString(),
-            'Unidade': p.unit || 'UN',
-            'Data': p.date
-        });
+        const qtyStr = (p.qty || 1).toString();
+        const priceStr = (p.price || 0).toString();
+        const sig = `${p.product}_${p.market}_${p.date}_${qtyStr}_${priceStr}`;
+        if (!existingSignatures.has(sig)) {
+            allData.push({
+                'Produto': p.product,
+                'Fornecedor': p.market,
+                'Preço': priceStr,
+                'Quantidade': qtyStr,
+                'Unidade': p.unit || 'UN',
+                'Data': p.date
+            });
+        }
     });
 
     let markets = new Set();
@@ -426,9 +536,12 @@ function processData(data, replace = true) {
             if (itemOverrides[originalProduct].customCategory) {
                 customCat = itemOverrides[originalProduct].customCategory;
             }
+        } else {
+            // Apply automatic simplification if no custom override exists
+            product = getSimplifiedName(originalProduct);
         }
 
-        const unitKey = Object.keys(row).find(k => k.toLowerCase().includes('unit'));
+        const unitKey = Object.keys(row).find(k => k.toLowerCase().includes('unit') || k.toLowerCase().includes('preço') || k.toLowerCase().includes('preco'));
         let rawPriceStr = (unitKey ? row[unitKey] : "0").toString();
 
         rawPriceStr = rawPriceStr.replace(/\s/g, '').replace(',', '.');
@@ -1799,10 +1912,24 @@ function showDayDetail(dateKey, purchases) {
     const dateEl = document.getElementById('calDetailDate');
 
     const [y, m, d] = dateKey.split('-');
-    dateEl.textContent = `${d}/${m}/${y} — ${purchases.length} compra(s)`;
+
+    // Agrupar compras pelo nome do produto + mercado + preço para somar a quantidade e evitar repetições
+    const groupedPurchases = {};
+    purchases.forEach(p => {
+        const key = `${p.name}_${p.market || ''}_${p.price}`;
+        if (!groupedPurchases[key]) {
+            groupedPurchases[key] = { ...p };
+        } else {
+            groupedPurchases[key].qty += p.qty;
+        }
+    });
+
+    const uniquePurchases = Object.values(groupedPurchases);
+
+    dateEl.textContent = `${d}/${m}/${y} — ${uniquePurchases.length} item(ns) distinto(s)`;
 
     list.innerHTML = '';
-    const sorted = [...purchases].sort((a, b) => a.cat.localeCompare(b.cat));
+    const sorted = uniquePurchases.sort((a, b) => a.cat.localeCompare(b.cat) || a.name.localeCompare(b.name));
     sorted.forEach(p => {
         const item = document.createElement('div');
         item.className = 'cal-detail-item';
@@ -1825,6 +1952,7 @@ function showDayDetail(dateKey, purchases) {
 // ============================================================
 let ffState = {}; // { itemName: 'pending' | 'checked' | 'not-found' }
 let ffActiveCat = 'Todos';
+let ffHideChecked = false;
 
 function openFazerFeira() {
     const overlay = document.getElementById('fazerFeiraOverlay');
@@ -1845,6 +1973,21 @@ function openFazerFeira() {
     if (budgetEl) budgetEl.textContent = budget > 0 ? `Orçamento: ${formatCurrency(budget)}` : '';
 
     ffActiveCat = 'Todos';
+    ffHideChecked = false;
+
+    // Reset visibility toggle button
+    const toggleBtn = document.getElementById('ffToggleCheckedBtn');
+    if (toggleBtn) {
+        toggleBtn.innerHTML = '<i class="ph ph-eye"></i>';
+        toggleBtn.classList.remove('active');
+        toggleBtn.title = "Ocultar itens comprados";
+    }
+
+    const listEl = document.getElementById('ffList');
+    if (listEl) {
+        listEl.classList.remove('hide-checked');
+    }
+
     const ffSearchInput = document.getElementById('ffSearchInput');
     const ffSearchClearBtn = document.getElementById('ffSearchClearBtn');
     if (ffSearchInput) ffSearchInput.value = '';
@@ -1903,10 +2046,34 @@ function renderFFCategoryFilter() {
     });
 }
 
+function updateFFCategoryBadges() {
+    const container = document.getElementById('ffCategoryFilter');
+    if (!container) return;
+
+    container.querySelectorAll('.ff-cat-chip').forEach(btn => {
+        const cat = btn.dataset.category;
+        let text = cat;
+        if (cat === 'Todos') {
+            const total = Object.keys(shoppingCart).length;
+            const checked = Object.values(ffState).filter(s => s === 'checked').length;
+            text = `Todos (${checked}/${total})`;
+        } else {
+            const itemsInCat = Object.keys(shoppingCart).filter(name => resolveCategory(name) === cat);
+            const total = itemsInCat.length;
+            const checked = itemsInCat.filter(name => ffState[name] === 'checked').length;
+            text = `${cat} (${checked}/${total})`;
+        }
+        btn.textContent = text;
+    });
+}
+
 function renderFFList() {
     const list = document.getElementById('ffList');
     if (!list) return;
     list.innerHTML = '';
+
+    // Apply the current state of hide-checked to the list element
+    list.classList.toggle('hide-checked', ffHideChecked);
 
     const searchQuery = document.getElementById('ffSearchInput')?.value.toLowerCase().trim() || '';
 
@@ -1930,16 +2097,8 @@ function renderFFList() {
         header.textContent = cat;
         list.appendChild(header);
 
-        // Ordenar itens dentro da categoria: pending (3) -> not-found (2) -> checked (1)
-        const weight = { 'pending': 3, 'not-found': 2, 'checked': 1 };
-        grouped[cat].sort((a, b) => {
-            const stateA = ffState[a] || 'pending';
-            const stateB = ffState[b] || 'pending';
-            if (weight[stateA] !== weight[stateB]) {
-                return weight[stateB] - weight[stateA];
-            }
-            return a.localeCompare(b);
-        });
+        // Ordenar itens por ordem alfabética para manter a lista estável ao marcar itens
+        grouped[cat].sort((a, b) => a.localeCompare(b));
 
         grouped[cat].forEach(name => {
             const item = shoppingCart[name];
@@ -1987,34 +2146,48 @@ function renderFFList() {
                 updateFFProgress();
             });
 
-            // Click principal = marcar como checked / volta para pending
+            // Click principal = marcar como checked / volta para pending (em-lugar)
             el.addEventListener('click', (e) => {
                 if (e.target.closest('.ff-notfound-btn') || e.target.closest('.ff-item-price-input')) return;
 
                 const cur = ffState[name];
-                ffState[name] = cur === 'checked' ? 'pending' : 'checked';
+                const nextState = cur === 'checked' ? 'pending' : 'checked';
+                ffState[name] = nextState;
+
+                // Atualizar classes e ícones diretamente na DOM para evitar layout shifts
+                el.className = `ff-item ${nextState !== 'pending' ? nextState : ''}`;
+                const checkCircle = el.querySelector('.ff-check-circle');
+                if (checkCircle) {
+                    checkCircle.innerHTML = nextState === 'checked' ? '<i class="ph ph-check"></i>' : '';
+                }
 
                 // Feedback Háptico/Vibração
                 if (navigator.vibrate) navigator.vibrate(15);
 
                 updateFFProgress();
-                renderFFList();
-                renderFFCategoryFilter();
+                updateFFCategoryBadges();
             });
 
-            // Botão não encontrei
+            // Botão não encontrei (em-lugar)
             el.querySelector('.ff-notfound-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
 
                 const cur = ffState[name];
-                ffState[name] = cur === 'not-found' ? 'pending' : 'not-found';
+                const nextState = cur === 'not-found' ? 'pending' : 'not-found';
+                ffState[name] = nextState;
+
+                // Atualizar classes e ícones diretamente na DOM para evitar layout shifts
+                el.className = `ff-item ${nextState !== 'pending' ? nextState : ''}`;
+                const checkCircle = el.querySelector('.ff-check-circle');
+                if (checkCircle) {
+                    checkCircle.innerHTML = nextState === 'not-found' ? '<i class="ph ph-x"></i>' : '';
+                }
 
                 // Feedback Háptico/Vibração
                 if (navigator.vibrate) navigator.vibrate(15);
 
                 updateFFProgress();
-                renderFFList();
-                renderFFCategoryFilter();
+                updateFFCategoryBadges();
             });
 
             list.appendChild(el);
@@ -2116,6 +2289,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ffFinishBtn = document.getElementById('ffFinishBtn');
     if (ffFinishBtn) ffFinishBtn.addEventListener('click', finishFazerFeira);
+
+    const ffToggleCheckedBtn = document.getElementById('ffToggleCheckedBtn');
+    if (ffToggleCheckedBtn) {
+        ffToggleCheckedBtn.addEventListener('click', () => {
+            ffHideChecked = !ffHideChecked;
+            const ffListEl = document.getElementById('ffList');
+            if (ffListEl) {
+                ffListEl.classList.toggle('hide-checked', ffHideChecked);
+            }
+            ffToggleCheckedBtn.classList.toggle('active', ffHideChecked);
+            ffToggleCheckedBtn.innerHTML = ffHideChecked ? '<i class="ph ph-eye-slash"></i>' : '<i class="ph ph-eye"></i>';
+            ffToggleCheckedBtn.title = ffHideChecked ? "Mostrar itens comprados" : "Ocultar itens comprados";
+        });
+    }
 
     const ffSearchInput = document.getElementById('ffSearchInput');
     const ffSearchClearBtn = document.getElementById('ffSearchClearBtn');
