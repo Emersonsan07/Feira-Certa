@@ -1,446 +1,492 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feira Certa - Gestão Inteligente de Compras</title>
     <meta name="description" content="Acompanhe preços, gere listas inteligentes e economize na sua feira mensal.">
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-<div class="app-container">
+    <div class="app-container">
 
-    <!-- Top Navigation -->
-    <nav class="top-navbar" id="navbar">
-        <div class="logo">
-            <i class="ph ph-basket"></i>
-            <h1>Feira Certa</h1>
-        </div>
-        <div class="nav-menu">
-            <a href="#" class="nav-link active" id="navDashboardBtn">
-                <i class="ph ph-chart-pie-slice"></i><span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-link" id="navProductsBtn">
-                <i class="ph ph-squares-four"></i><span>Produtos</span>
-            </a>
-            <a href="#" class="nav-link" id="navCompareBtn">
-                <i class="ph ph-scales"></i><span>Comparativo</span>
-            </a>
-            <a href="#" class="nav-link" id="openCartBtn">
-                <i class="ph ph-shopping-cart-simple"></i><span>Lista</span>
-                <span id="cartBadge" class="badge" style="display:none">0</span>
-            </a>
-            <a href="#" class="nav-link" id="navFazerFeiraBtn">
-                <i class="ph ph-storefront"></i><span>Feira</span>
-            </a>
-            <div class="config-wrapper">
-                <a href="#" id="mobileConfigBtn" class="nav-link nav-icon" title="Configurações">
-                    <i class="ph ph-gear"></i><span>Config</span>
+        <!-- Top Navigation -->
+        <nav class="top-navbar" id="navbar">
+            <div class="logo">
+                <i class="ph ph-basket"></i>
+                <h1>Feira Certa</h1>
+            </div>
+            <div class="nav-menu">
+                <a href="#" class="nav-link active" id="navDashboardBtn">
+                    <i class="ph ph-chart-pie-slice"></i><span>Dashboard</span>
                 </a>
-                <div class="config-dropdown" id="configGroup">
-                    <a href="#" id="importBtn"><i class="ph ph-upload-simple"></i> Carregar CSV</a>
-                    <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
-                    <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Restaurar Backup</a>
-                    <a href="#" id="manageExcludedBtn"><i class="ph ph-trash-simple"></i> Itens Ocultados (<span id="excludedCount">0</span>)</a>
-                    <input type="file" id="backupFileInput" accept=".json" style="display:none;">
-                    <input type="file" id="fileInput" accept=".csv" style="display:none;">
+                <a href="#" class="nav-link" id="navProductsBtn">
+                    <i class="ph ph-squares-four"></i><span>Produtos</span>
+                </a>
+                <a href="#" class="nav-link" id="navCompareBtn">
+                    <i class="ph ph-scales"></i><span>Comparativo</span>
+                </a>
+                <a href="#" class="nav-link" id="openCartBtn">
+                    <i class="ph ph-shopping-cart-simple"></i><span>Lista</span>
+                    <span id="cartBadge" class="badge" style="display:none">0</span>
+                </a>
+                <a href="#" class="nav-link" id="navFazerFeiraBtn">
+                    <i class="ph ph-storefront"></i><span>Feira</span>
+                </a>
+                <div class="config-wrapper">
+                    <a href="#" id="mobileConfigBtn" class="nav-link nav-icon" title="Configurações">
+                        <i class="ph ph-gear"></i><span>Config</span>
+                    </a>
+                    <div class="config-dropdown" id="configGroup">
+                        <a href="#" id="importBtn"><i class="ph ph-upload-simple"></i> Carregar CSV</a>
+                        <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
+                        <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Restaurar Backup</a>
+                        <a href="#" id="manageExcludedBtn"><i class="ph ph-trash-simple"></i> Itens Ocultados (<span
+                                id="excludedCount">0</span>)</a>
+                        <input type="file" id="backupFileInput" accept=".json" style="display:none;">
+                        <input type="file" id="fileInput" accept=".csv" style="display:none;">
+                    </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
+        <!-- Main Content -->
+        <main class="main-content">
 
-        <!-- Search Bar (somente view produtos) -->
-        <div class="search-bar-wrapper" id="searchBarWrapper" style="display:none;">
-            <div class="search-bar">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder="Pesquisar produto (ex: Arroz, Cerveja)...">
+            <!-- Search Bar (somente view produtos) -->
+            <div class="search-bar-wrapper" id="searchBarWrapper" style="display:none;">
+                <div class="search-bar">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Pesquisar produto (ex: Arroz, Cerveja)...">
+                </div>
             </div>
-        </div>
 
-        <!-- Status Message -->
-        <div class="status-message" id="statusMessage">
-            Carregando dados... Use o menu Configurações para carregar seu arquivo CSV.
-        </div>
+            <!-- Status Message -->
+            <div class="status-message" id="statusMessage">
+                Carregando dados... Use o menu Configurações para carregar seu arquivo CSV.
+            </div>
 
-        <!-- ============ DASHBOARD VIEW ============ -->
-        <div id="dashboardView">
+            <!-- ============ DASHBOARD VIEW ============ -->
+            <div id="dashboardView">
 
-            <!-- Stats Row -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));color:#818cf8">
-                        <i class="ph ph-package"></i></div>
-                    <div class="stat-info"><h3>Produtos Rastreados</h3><p id="totalProducts">0</p></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(5,150,105,.15));color:#34d399">
-                        <i class="ph ph-storefront"></i></div>
-                    <div class="stat-info"><h3>Mercados</h3><p id="totalMarkets">0</p></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.15));color:#fbbf24">
-                        <i class="ph ph-calendar-blank"></i></div>
-                    <div class="stat-info"><h3>Última Compra</h3><p id="lastDate" style="font-size:1.1rem">--/--/----</p></div>
-                </div>
-                <div class="stat-card" id="statMonthTotal" style="display:none">
-                    <div class="stat-icon" style="background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(220,38,38,.15));color:#f87171">
-                        <i class="ph ph-currency-circle-dollar"></i></div>
-                    <div class="stat-info"><h3>Gasto no Mês Atual</h3><p id="currentMonthTotal" style="font-size:1.15rem;color:#f87171">R$ 0,00</p></div>
-                </div>
-            </section>
-
-            <!-- Quick Actions -->
-            <section class="quick-actions-section" id="quickActionsSection" style="display:none">
-                <div class="section-title">
-                    <i class="ph ph-lightning"></i>
-                    <h2>Ações Rápidas</h2>
-                    <span class="section-subtitle" id="quickActionsSubtitle"></span>
-                </div>
-                <div class="quick-actions-grid">
-                    <button class="quick-action-card primary" id="quickSmartListBtn">
-                        <div class="qa-icon"><i class="ph ph-magic-wand"></i></div>
-                        <div class="qa-text">
-                            <strong>Feira do Mês</strong>
-                            <span id="smartListHint">Gera lista completa baseada no histórico</span>
+                <!-- Stats Row -->
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"
+                            style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));color:#818cf8">
+                            <i class="ph ph-package"></i>
                         </div>
-                        <i class="ph ph-arrow-right qa-arrow"></i>
-                    </button>
-                    <button class="quick-action-card secondary" id="quickExpiringBtn">
-                        <div class="qa-icon"><i class="ph ph-clock-countdown"></i></div>
-                        <div class="qa-text">
-                            <strong>Reposição Semanal</strong>
-                            <span id="expiringHint">Itens que devem estar acabando</span>
+                        <div class="stat-info">
+                            <h3>Produtos Rastreados</h3>
+                            <p id="totalProducts">0</p>
                         </div>
-                        <i class="ph ph-arrow-right qa-arrow"></i>
-                    </button>
-                </div>
-            </section>
-
-            <!-- Finance Dashboard -->
-            <section class="finance-section" style="display:none" id="financeSection">
-                <div class="finance-card">
-                    <h3><i class="ph ph-trend-up"></i> Evolução de Gastos Mensais</h3>
-                    <div style="height:220px;width:100%;position:relative">
-                        <canvas id="financeChart"></canvas>
                     </div>
-                </div>
-                <div class="finance-card">
-                    <h3><i class="ph ph-warning-circle"></i> Vilões da Inflação</h3>
-                    <div class="inflation-list" id="inflationList"></div>
-                </div>
-            </section>
-
-            <!-- Calendário de Compras -->
-            <section class="calendar-section" id="calendarSection" style="display:none">
-                <div class="section-title">
-                    <i class="ph ph-calendar-dots"></i>
-                    <h2>Calendário de Compras</h2>
-                    <span class="section-subtitle" id="calendarMonthLabel"></span>
-                </div>
-                <div class="calendar-nav">
-                    <button class="cal-nav-btn" id="calPrevBtn"><i class="ph ph-caret-left"></i></button>
-                    <span class="cal-month-title" id="calMonthTitle"></span>
-                    <button class="cal-nav-btn" id="calNextBtn"><i class="ph ph-caret-right"></i></button>
-                </div>
-                <div class="calendar-grid" id="calendarGrid"></div>
-                <div class="calendar-day-detail" id="calendarDayDetail" style="display:none">
-                    <div class="cal-detail-header">
-                        <span id="calDetailDate"></span>
-                        <button class="cal-close-detail" id="calCloseDetail"><i class="ph ph-x"></i></button>
+                    <div class="stat-card">
+                        <div class="stat-icon"
+                            style="background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(5,150,105,.15));color:#34d399">
+                            <i class="ph ph-storefront"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Mercados</h3>
+                            <p id="totalMarkets">0</p>
+                        </div>
                     </div>
-                    <div class="cal-detail-list" id="calDetailList"></div>
-                </div>
-            </section>
-
-            <!-- Category Spending Breakdown -->
-            <section class="category-spending-section" id="categorySpendingSection" style="display:none">
-                <div class="section-title">
-                    <i class="ph ph-chart-donut"></i>
-                    <h2>Gasto por Categoria</h2>
-                    <span class="section-subtitle">Últimos 5 meses</span>
-                </div>
-                <div class="category-spending-grid" id="categorySpendingGrid"></div>
-            </section>
-
-        </div>
-
-        <!-- ============ PRODUCTS VIEW ============ -->
-        <div id="productsView" style="display:none">
-            <section class="products-section">
-                <div class="section-header"><h2>Histórico de Itens da Feira</h2></div>
-                <div class="category-filters" id="categoryFilters"></div>
-                <div class="products-grid" id="productsGrid"></div>
-            </section>
-        </div>
-
-        <!-- ============ COMPARE VIEW ============ -->
-        <div id="compareView" style="display:none">
-            <section class="compare-section">
-                <div class="section-title" style="margin-bottom: 2rem;">
-                    <i class="ph ph-scales" style="font-size: 1.8rem; color: #818cf8;"></i>
-                    <div style="display: flex; flex-direction: column;">
-                        <h2 style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Comparativo Mês a Mês</h2>
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Analise a variação de preços de itens e a evolução de gastos em cada categoria de compras.</span>
+                    <div class="stat-card">
+                        <div class="stat-icon"
+                            style="background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(234,179,8,.15));color:#fbbf24">
+                            <i class="ph ph-calendar-blank"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Última Compra</h3>
+                            <p id="lastDate" style="font-size:1.1rem">--/--/----</p>
+                        </div>
                     </div>
-                </div>
+                    <div class="stat-card" id="statMonthTotal" style="display:none">
+                        <div class="stat-icon"
+                            style="background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(220,38,38,.15));color:#f87171">
+                            <i class="ph ph-currency-circle-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gasto no Mês Atual</h3>
+                            <p id="currentMonthTotal" style="font-size:1.15rem;color:#f87171">R$ 0,00</p>
+                        </div>
+                    </div>
+                </section>
 
-                <!-- Controles de Seleção de Meses -->
-                <div class="compare-controls">
-                    <div class="control-group">
-                        <label for="compareMonthA" class="form-label"><i class="ph ph-calendar" style="color: #60a5fa;"></i> Mês de Referência (Mês A):</label>
-                        <select id="compareMonthA" class="form-input"></select>
+                <!-- Quick Actions -->
+                <section class="quick-actions-section" id="quickActionsSection" style="display:none">
+                    <div class="section-title">
+                        <i class="ph ph-lightning"></i>
+                        <h2>Ações Rápidas</h2>
+                        <span class="section-subtitle" id="quickActionsSubtitle"></span>
                     </div>
-                    <div class="control-icon-sep">
-                        <i class="ph ph-arrows-left-right"></i>
-                    </div>
-                    <div class="control-group">
-                        <label for="compareMonthB" class="form-label"><i class="ph ph-calendar" style="color: #a78bfa;"></i> Mês de Comparação (Mês B):</label>
-                        <select id="compareMonthB" class="form-input"></select>
-                    </div>
-                </div>
-
-                <!-- Resumo por Categorias -->
-                <div class="compare-categories-summary">
-                    <h3 class="compare-subtitle"><i class="ph ph-chart-pie-slice"></i> Gastos por Categoria</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; margin-top: -0.5rem;">Selecione um card de categoria abaixo para filtrar a tabela de itens correspondente.</p>
-                    <div class="compare-categories-grid" id="compareCategoriesGrid">
-                        <!-- Gerado dinamicamente -->
-                    </div>
-                </div>
-
-                <!-- Detalhes dos Itens -->
-                <div class="compare-details-section">
-                    <div class="details-header">
-                        <h3 class="compare-subtitle" style="margin-bottom: 0;"><i class="ph ph-list-bullets"></i> Comparativo de Preço dos Itens</h3>
-                        <div class="details-filters">
-                            <div class="filter-field">
-                                <label for="compareCategoryFilter" class="form-label" style="margin-bottom: 0.25rem;">Filtrar Categoria</label>
-                                <select id="compareCategoryFilter" class="form-input">
-                                    <option value="Todas">Todas as Categorias</option>
-                                </select>
+                    <div class="quick-actions-grid">
+                        <button class="quick-action-card primary" id="quickSmartListBtn">
+                            <div class="qa-icon"><i class="ph ph-magic-wand"></i></div>
+                            <div class="qa-text">
+                                <strong>Feira do Mês</strong>
+                                <span id="smartListHint">Gera lista completa baseada no histórico</span>
                             </div>
-                            <div class="filter-field">
-                                <label for="comparePriceChangeFilter" class="form-label" style="margin-bottom: 0.25rem;">Filtrar Variação</label>
-                                <select id="comparePriceChangeFilter" class="form-input">
-                                    <option value="Todos">Todos os Status</option>
-                                    <option value="Aumentou">Subiu de Preço 🔴</option>
-                                    <option value="Baixou">Baixou de Preço 🟢</option>
-                                    <option value="Manteve">Preço Estável ⚪</option>
-                                    <option value="NaoCompradoA">Não comprado em A</option>
-                                    <option value="NaoCompradoB">Não comprado em B</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="compare-table-wrapper">
-                        <table class="compare-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Categoria</th>
-                                    <th class="text-right" id="thMonthA">Mês A</th>
-                                    <th class="text-right" id="thMonthB">Mês B</th>
-                                    <th class="text-center">Variação Preço Unit.</th>
-                                    <th class="text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="compareTableBody">
-                                <!-- Gerado dinamicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- Cart Modal -->
-    <div class="modal-overlay" id="cartModal">
-        <div class="modal-content cart-modal-content">
-            <button class="close-modal" id="closeCartBtn"><i class="ph ph-x"></i></button>
-            <div class="cart-header">
-                <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
-                <div class="cart-period-badge" id="cartPeriodBadge"></div>
-            </div>
-            <div class="cart-smart-actions">
-                <button id="smartListBtn" class="btn-smart">
-                    <i class="ph ph-magic-wand"></i> Feira do Mês
-                </button>
-                <button id="expiringListBtn" class="btn-smart secondary">
-                    <i class="ph ph-clock-countdown"></i> Reposição Semanal
-                </button>
-            </div>
-            <div class="cart-items" id="cartItemsList">
-                <div class="empty-cart-msg">
-                    <i class="ph ph-basket" style="font-size:2.5rem;opacity:.3"></i>
-                    <p>Sua lista está vazia.</p>
-                    <p style="font-size:.8rem">Use os botões acima ou adicione produtos na aba Produtos.</p>
-                </div>
-            </div>
-            <div class="cart-footer">
-                <div class="budget-section">
-                    <div class="budget-info">
-                        <span><i class="ph ph-target"></i> Orçamento Alvo</span>
-                        <div style="display:flex;align-items:center;gap:.5rem">
-                            <span style="font-size:.8rem;color:var(--text-secondary)">R$</span>
-                            <input type="number" id="cartBudgetInput" value="500" class="budget-input">
-                        </div>
-                    </div>
-                    <div class="budget-bar-bg"><div class="budget-bar-fill" id="cartBudgetProgress"></div></div>
-                    <div class="budget-pct-label" id="budgetPctLabel">0% do orçamento</div>
-                    <button id="adjustToBudgetBtn" class="btn-adjust-budget" style="display: none;">
-                        <i class="ph ph-sliders"></i> Ajustar Lista ao Orçamento
-                    </button>
-                </div>
-                <div class="cart-summary">
-                    <div class="total-box">
-                        <span>Total Estimado</span>
-                        <h3 id="cartTotalValue">R$ 0,00</h3>
-                    </div>
-                    <div class="footer-actions">
-                        <button class="btn-share" id="shareWhatsAppBtn" style="display:none">
-                            <i class="ph ph-whatsapp-logo"></i> Compartilhar
+                            <i class="ph ph-arrow-right qa-arrow"></i>
                         </button>
-                        <button class="btn-clear" id="clearCartBtn" title="Limpar">
-                            <i class="ph ph-trash"></i>
+                        <button class="quick-action-card secondary" id="quickExpiringBtn">
+                            <div class="qa-icon"><i class="ph ph-clock-countdown"></i></div>
+                            <div class="qa-text">
+                                <strong>Reposição Semanal</strong>
+                                <span id="expiringHint">Itens que devem estar acabando</span>
+                            </div>
+                            <i class="ph ph-arrow-right qa-arrow"></i>
                         </button>
                     </div>
+                </section>
+
+                <!-- Finance Dashboard -->
+                <section class="finance-section" style="display:none" id="financeSection">
+                    <div class="finance-card">
+                        <h3><i class="ph ph-trend-up"></i> Evolução de Gastos Mensais</h3>
+                        <div style="height:220px;width:100%;position:relative">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="finance-card">
+                        <h3><i class="ph ph-warning-circle"></i> Vilões da Inflação</h3>
+                        <div class="inflation-list" id="inflationList"></div>
+                    </div>
+                </section>
+
+                <!-- Calendário de Compras -->
+                <section class="calendar-section" id="calendarSection" style="display:none">
+                    <div class="section-title">
+                        <i class="ph ph-calendar-dots"></i>
+                        <h2>Calendário de Compras</h2>
+                        <span class="section-subtitle" id="calendarMonthLabel"></span>
+                    </div>
+                    <div class="calendar-nav">
+                        <button class="cal-nav-btn" id="calPrevBtn"><i class="ph ph-caret-left"></i></button>
+                        <span class="cal-month-title" id="calMonthTitle"></span>
+                        <button class="cal-nav-btn" id="calNextBtn"><i class="ph ph-caret-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                    <div class="calendar-day-detail" id="calendarDayDetail" style="display:none">
+                        <div class="cal-detail-header">
+                            <span id="calDetailDate"></span>
+                            <button class="cal-close-detail" id="calCloseDetail"><i class="ph ph-x"></i></button>
+                        </div>
+                        <div class="cal-detail-list" id="calDetailList"></div>
+                    </div>
+                </section>
+
+                <!-- Category Spending Breakdown -->
+                <section class="category-spending-section" id="categorySpendingSection" style="display:none">
+                    <div class="section-title">
+                        <i class="ph ph-chart-donut"></i>
+                        <h2>Gasto por Categoria</h2>
+                        <span class="section-subtitle">Últimos 5 meses</span>
+                    </div>
+                    <div class="category-spending-grid" id="categorySpendingGrid"></div>
+                </section>
+
+            </div>
+
+            <!-- ============ PRODUCTS VIEW ============ -->
+            <div id="productsView" style="display:none">
+                <section class="products-section">
+                    <div class="section-header">
+                        <h2>Histórico de Itens da Feira</h2>
+                    </div>
+                    <div class="category-filters" id="categoryFilters"></div>
+                    <div class="products-grid" id="productsGrid"></div>
+                </section>
+            </div>
+
+            <!-- ============ COMPARE VIEW ============ -->
+            <div id="compareView" style="display:none">
+                <section class="compare-section">
+                    <div class="section-title" style="margin-bottom: 2rem;">
+                        <i class="ph ph-scales" style="font-size: 1.8rem; color: #818cf8;"></i>
+                        <div style="display: flex; flex-direction: column;">
+                            <h2
+                                style="font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                                Comparativo Mês a Mês</h2>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Analise
+                                a variação de preços de itens e a evolução de gastos em cada categoria de
+                                compras.</span>
+                        </div>
+                    </div>
+
+                    <!-- Controles de Seleção de Meses -->
+                    <div class="compare-controls">
+                        <div class="control-group">
+                            <label for="compareMonthA" class="form-label"><i class="ph ph-calendar"
+                                    style="color: #60a5fa;"></i> Mês de Referência (Mês A):</label>
+                            <select id="compareMonthA" class="form-input"></select>
+                        </div>
+                        <div class="control-icon-sep">
+                            <i class="ph ph-arrows-left-right"></i>
+                        </div>
+                        <div class="control-group">
+                            <label for="compareMonthB" class="form-label"><i class="ph ph-calendar"
+                                    style="color: #a78bfa;"></i> Mês de Comparação (Mês B):</label>
+                            <select id="compareMonthB" class="form-input"></select>
+                        </div>
+                    </div>
+
+                    <!-- Resumo por Categorias -->
+                    <div class="compare-categories-summary">
+                        <h3 class="compare-subtitle"><i class="ph ph-chart-pie-slice"></i> Gastos por Categoria</h3>
+                        <p
+                            style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; margin-top: -0.5rem;">
+                            Selecione um card de categoria abaixo para filtrar a tabela de itens correspondente.</p>
+                        <div class="compare-categories-grid" id="compareCategoriesGrid">
+                            <!-- Gerado dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Detalhes dos Itens -->
+                    <div class="compare-details-section">
+                        <div class="details-header">
+                            <h3 class="compare-subtitle" style="margin-bottom: 0;"><i class="ph ph-list-bullets"></i>
+                                Comparativo de Preço dos Itens</h3>
+                            <div class="details-filters">
+                                <div class="filter-field">
+                                    <label for="compareCategoryFilter" class="form-label"
+                                        style="margin-bottom: 0.25rem;">Filtrar Categoria</label>
+                                    <select id="compareCategoryFilter" class="form-input">
+                                        <option value="Todas">Todas as Categorias</option>
+                                    </select>
+                                </div>
+                                <div class="filter-field">
+                                    <label for="comparePriceChangeFilter" class="form-label"
+                                        style="margin-bottom: 0.25rem;">Filtrar Variação</label>
+                                    <select id="comparePriceChangeFilter" class="form-input">
+                                        <option value="Todos">Todos os Status</option>
+                                        <option value="Aumentou">Subiu de Preço 🔴</option>
+                                        <option value="Baixou">Baixou de Preço 🟢</option>
+                                        <option value="Manteve">Preço Estável ⚪</option>
+                                        <option value="NaoCompradoA">Não comprado em A</option>
+                                        <option value="NaoCompradoB">Não comprado em B</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="compare-table-wrapper">
+                            <table class="compare-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Categoria</th>
+                                        <th class="text-right" id="thMonthA">Mês A</th>
+                                        <th class="text-right" id="thMonthB">Mês B</th>
+                                        <th class="text-center">Variação Preço Unit.</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="compareTableBody">
+                                    <!-- Gerado dinamicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Cart Modal -->
+        <div class="modal-overlay" id="cartModal">
+            <div class="modal-content cart-modal-content">
+                <button class="close-modal" id="closeCartBtn"><i class="ph ph-x"></i></button>
+                <div class="cart-header">
+                    <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
+                    <div class="cart-period-badge" id="cartPeriodBadge"></div>
+                </div>
+                <div class="cart-smart-actions">
+                    <button id="smartListBtn" class="btn-smart">
+                        <i class="ph ph-magic-wand"></i> Feira do Mês
+                    </button>
+                    <button id="expiringListBtn" class="btn-smart secondary">
+                        <i class="ph ph-clock-countdown"></i> Reposição Semanal
+                    </button>
+                </div>
+                <div class="cart-items" id="cartItemsList">
+                    <div class="empty-cart-msg">
+                        <i class="ph ph-basket" style="font-size:2.5rem;opacity:.3"></i>
+                        <p>Sua lista está vazia.</p>
+                        <p style="font-size:.8rem">Use os botões acima ou adicione produtos na aba Produtos.</p>
+                    </div>
+                </div>
+                <div class="cart-footer">
+                    <div class="budget-section">
+                        <div class="budget-info">
+                            <span><i class="ph ph-target"></i> Orçamento Alvo</span>
+                            <div style="display:flex;align-items:center;gap:.5rem">
+                                <span style="font-size:.8rem;color:var(--text-secondary)">R$</span>
+                                <input type="number" id="cartBudgetInput" value="500" class="budget-input">
+                            </div>
+                        </div>
+                        <div class="budget-bar-bg">
+                            <div class="budget-bar-fill" id="cartBudgetProgress"></div>
+                        </div>
+                        <div class="budget-pct-label" id="budgetPctLabel">0% do orçamento</div>
+                        <button id="adjustToBudgetBtn" class="btn-adjust-budget" style="display: none;">
+                            <i class="ph ph-sliders"></i> Ajustar Lista ao Orçamento
+                        </button>
+                    </div>
+                    <div class="cart-summary">
+                        <div class="total-box">
+                            <span>Total Estimado</span>
+                            <h3 id="cartTotalValue">R$ 0,00</h3>
+                        </div>
+                        <div class="footer-actions">
+                            <button class="btn-share" id="shareWhatsAppBtn" style="display:none">
+                                <i class="ph ph-whatsapp-logo"></i> Compartilhar
+                            </button>
+                            <button class="btn-clear" id="clearCartBtn" title="Limpar">
+                                <i class="ph ph-trash"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Modal -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal-content" style="max-width:450px">
-            <button class="close-modal" id="closeEditModal"><i class="ph ph-x"></i></button>
-            <h2><i class="ph ph-pencil-simple" style="color:#60a5fa"></i> Editar Item</h2>
-            <div style="margin-bottom:1rem">
-                <label class="form-label">Nome Original (Nota Fiscal)</label>
-                <input type="text" id="editOriginalName" disabled class="form-input disabled">
+        <!-- Edit Modal -->
+        <div class="modal-overlay" id="editModal">
+            <div class="modal-content" style="max-width:450px">
+                <button class="close-modal" id="closeEditModal"><i class="ph ph-x"></i></button>
+                <h2><i class="ph ph-pencil-simple" style="color:#60a5fa"></i> Editar Item</h2>
+                <div style="margin-bottom:1rem">
+                    <label class="form-label">Nome Original (Nota Fiscal)</label>
+                    <input type="text" id="editOriginalName" disabled class="form-input disabled">
+                </div>
+                <div style="margin-bottom:1rem">
+                    <label class="form-label">Nome Personalizado</label>
+                    <input type="text" id="editCustomName" placeholder="Ex: Maçã Fuji" class="form-input">
+                </div>
+                <div style="margin-bottom:1.5rem">
+                    <label class="form-label">Categoria</label>
+                    <select id="editCategory" class="form-input">
+                        <option value="Limpeza">Limpeza</option>
+                        <option value="Higiene Pessoal">Higiene Pessoal</option>
+                        <option value="Hortifruti - Frutas">Hortifruti - Frutas</option>
+                        <option value="Hortifruti - Legumes">Hortifruti - Legumes</option>
+                        <option value="Açougue">Açougue</option>
+                        <option value="Laticínios & Frios">Laticínios & Frios</option>
+                        <option value="Mercearia Básica">Mercearia Básica</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Doces & Snacks">Doces & Snacks</option>
+                        <option value="Padaria">Padaria</option>
+                        <option value="Utilidades">Utilidades</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:1.5rem">
+                    <label class="form-label">Prioridade no Orçamento</label>
+                    <select id="editPriority" class="form-input">
+                        <option value="Alta">🔴 Alta (Essencial)</option>
+                        <option value="Média">🟡 Média (Importante)</option>
+                        <option value="Baixa">🟢 Baixa (Desejável)</option>
+                    </select>
+                </div>
+                <button id="saveEditBtn" class="btn-primary w-100">
+                    <i class="ph ph-floppy-disk"></i> Salvar Mudanças
+                </button>
             </div>
-            <div style="margin-bottom:1rem">
-                <label class="form-label">Nome Personalizado</label>
-                <input type="text" id="editCustomName" placeholder="Ex: Maçã Fuji" class="form-input">
-            </div>
-            <div style="margin-bottom:1.5rem">
-                <label class="form-label">Categoria</label>
-                <select id="editCategory" class="form-input">
-                    <option value="Limpeza">Limpeza</option>
-                    <option value="Higiene Pessoal">Higiene Pessoal</option>
-                    <option value="Hortifruti - Frutas">Hortifruti - Frutas</option>
-                    <option value="Hortifruti - Legumes">Hortifruti - Legumes</option>
-                    <option value="Açougue">Açougue</option>
-                    <option value="Laticínios & Frios">Laticínios & Frios</option>
-                    <option value="Mercearia Básica">Mercearia Básica</option>
-                    <option value="Bebidas">Bebidas</option>
-                    <option value="Doces & Snacks">Doces & Snacks</option>
-                    <option value="Padaria">Padaria</option>
-                    <option value="Utilidades">Utilidades</option>
-                    <option value="Outros">Outros</option>
-                </select>
-            </div>
-            <div style="margin-bottom:1.5rem">
-                <label class="form-label">Prioridade no Orçamento</label>
-                <select id="editPriority" class="form-input">
-                    <option value="Alta">🔴 Alta (Essencial)</option>
-                    <option value="Média">🟡 Média (Importante)</option>
-                    <option value="Baixa">🟢 Baixa (Desejável)</option>
-                </select>
-            </div>
-            <button id="saveEditBtn" class="btn-primary w-100">
-                <i class="ph ph-floppy-disk"></i> Salvar Mudanças
-            </button>
         </div>
-    </div>
 
-    <!-- Chart Modal -->
-    <div class="modal-overlay" id="chartModal">
-        <div class="modal-content">
-            <button class="close-modal" id="closeModal"><i class="ph ph-x"></i></button>
-            <h2 id="modalTitle">Histórico de Preço</h2>
-            <div class="chart-stats-row" id="chartStatsRow"></div>
-            <div class="chart-container"><canvas id="priceChart"></canvas></div>
-            <div class="modal-history-list" id="modalHistoryList"></div>
-        </div>
-    </div>
-
-    <!-- Excluded Items Modal -->
-    <div class="modal-overlay" id="excludedModal">
-        <div class="modal-content" style="max-width:450px">
-            <button class="close-modal" id="closeExcludedModal"><i class="ph ph-x"></i></button>
-            <h2><i class="ph ph-trash" style="color:var(--danger)"></i> Itens Ocultados</h2>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                Estes itens foram ocultados e não aparecem nas sugestões ou na busca de produtos.
-            </p>
-            <div class="excluded-list" id="excludedItemsList" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
-                <!-- O conteúdo será gerado dinamicamente -->
-            </div>
-            <button id="restoreAllExcludedBtn" class="btn-primary w-100" style="background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); box-shadow: none;">
-                <i class="ph ph-arrow-counter-clockwise"></i> Restaurar Todos os Itens
-            </button>
-        </div>
-    </div>
-
-    <!-- FAB -->
-    <button id="backToTopBtn" class="fab-btn" title="Voltar ao Topo">
-        <i class="ph ph-arrow-up"></i>
-    </button>
-
-    <!-- ===== MODO FAZER FEIRA ===== -->
-    <div class="fazer-feira-overlay" id="fazerFeiraOverlay">
-        <div class="ff-header">
-            <div class="ff-header-info">
-                <h2><i class="ph ph-storefront"></i> Fazendo a Feira</h2>
-                <span class="ff-progress-text" id="ffProgressText">0 de 0 itens</span>
-            </div>
-            <button class="ff-close-btn" id="ffCloseBtn"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="ff-progress-bar-bg">
-            <div class="ff-progress-bar-fill" id="ffProgressBar"></div>
-        </div>
-        <div class="ff-totals-row" style="flex-wrap: wrap; gap: 0.75rem;">
-            <span class="ff-total-label">No carrinho:</span>
-            <span class="ff-total-value" id="ffRunningTotal">R$ 0,00</span>
-            <span class="ff-sep"> / </span>
-            <span class="ff-budget-value" id="ffBudgetDisplay"></span>
-            <div class="ff-market-field" style="margin-left: auto; display: flex; align-items: center; gap: 0.4rem;">
-                <span style="font-size: 0.75rem; color: var(--text-secondary);"><i class="ph ph-storefront"></i> Local:</span>
-                <input type="text" id="ffMarketInput" placeholder="Ex: Pão de Açúcar" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 140px; outline: none; transition: var(--transition-fast);">
+        <!-- Chart Modal -->
+        <div class="modal-overlay" id="chartModal">
+            <div class="modal-content">
+                <button class="close-modal" id="closeModal"><i class="ph ph-x"></i></button>
+                <h2 id="modalTitle">Histórico de Preço</h2>
+                <div class="chart-stats-row" id="chartStatsRow"></div>
+                <div class="chart-container"><canvas id="priceChart"></canvas></div>
+                <div class="modal-history-list" id="modalHistoryList"></div>
             </div>
         </div>
-        <div class="ff-search-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">
-            <div class="ff-search-bar" style="flex: 1;">
-                <i class="ph ph-magnifying-glass"></i>
-                <input type="text" id="ffSearchInput" placeholder="Pesquisar item da feira...">
-                <button class="ff-search-clear" id="ffSearchClearBtn" style="display: none;"><i class="ph ph-x-circle"></i></button>
-            </div>
-            <button id="ffToggleCheckedBtn" class="ff-toggle-checked-btn" title="Ocultar itens comprados">
-                <i class="ph ph-eye"></i>
-            </button>
-        </div>
-        <div class="ff-category-filter" id="ffCategoryFilter"></div>
-        <div class="ff-list" id="ffList"></div>
-        <div class="ff-footer">
-            <div class="ff-footer-stats">
-                <span class="ff-stat-chip notfound" id="ffNotFoundCount">0 não enc.</span>
-                <span class="ff-stat-chip checked" id="ffCheckedCount">0 marcados</span>
-            </div>
-            <button class="ff-finish-btn" id="ffFinishBtn">
-                <i class="ph ph-check-circle"></i> Finalizar Feira
-            </button>
-        </div>
-    </div>
 
-</div><!-- .app-container -->
+        <!-- Excluded Items Modal -->
+        <div class="modal-overlay" id="excludedModal">
+            <div class="modal-content" style="max-width:450px">
+                <button class="close-modal" id="closeExcludedModal"><i class="ph ph-x"></i></button>
+                <h2><i class="ph ph-trash" style="color:var(--danger)"></i> Itens Ocultados</h2>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Estes itens foram ocultados e não aparecem nas sugestões ou na busca de produtos.
+                </p>
+                <div class="excluded-list" id="excludedItemsList"
+                    style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem; padding-right: 0.5rem;">
+                    <!-- O conteúdo será gerado dinamicamente -->
+                </div>
+                <button id="restoreAllExcludedBtn" class="btn-primary w-100"
+                    style="background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); box-shadow: none;">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Restaurar Todos os Itens
+                </button>
+            </div>
+        </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="app.js"></script>
+        <!-- FAB -->
+        <button id="backToTopBtn" class="fab-btn" title="Voltar ao Topo">
+            <i class="ph ph-arrow-up"></i>
+        </button>
+
+        <!-- ===== MODO FAZER FEIRA ===== -->
+        <div class="fazer-feira-overlay" id="fazerFeiraOverlay">
+            <div class="ff-header">
+                <div class="ff-header-info">
+                    <h2><i class="ph ph-storefront"></i> Fazendo a Feira</h2>
+                    <span class="ff-progress-text" id="ffProgressText">0 de 0 itens</span>
+                </div>
+                <button class="ff-close-btn" id="ffCloseBtn"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="ff-progress-bar-bg">
+                <div class="ff-progress-bar-fill" id="ffProgressBar"></div>
+            </div>
+            <div class="ff-totals-row" style="flex-wrap: wrap; gap: 0.75rem;">
+                <span class="ff-total-label">No carrinho:</span>
+                <span class="ff-total-value" id="ffRunningTotal">R$ 0,00</span>
+                <span class="ff-sep"> / </span>
+                <span class="ff-budget-value" id="ffBudgetDisplay"></span>
+                <div class="ff-market-field"
+                    style="margin-left: auto; display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);"><i class="ph ph-storefront"></i>
+                        Local:</span>
+                    <input type="text" id="ffMarketInput" placeholder="Ex: Pão de Açúcar"
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 140px; outline: none; transition: var(--transition-fast);">
+                </div>
+            </div>
+            <div class="ff-search-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">
+                <div class="ff-search-bar" style="flex: 1;">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="ffSearchInput" placeholder="Pesquisar item da feira...">
+                    <button class="ff-search-clear" id="ffSearchClearBtn" style="display: none;"><i
+                            class="ph ph-x-circle"></i></button>
+                </div>
+                <button id="ffToggleCheckedBtn" class="ff-toggle-checked-btn" title="Ocultar itens comprados">
+                    <i class="ph ph-eye"></i>
+                </button>
+            </div>
+            <div class="ff-category-filter" id="ffCategoryFilter"></div>
+            <div class="ff-list" id="ffList"></div>
+            <div class="ff-footer">
+                <div class="ff-footer-stats">
+                    <span class="ff-stat-chip notfound" id="ffNotFoundCount">0 não enc.</span>
+                    <span class="ff-stat-chip checked" id="ffCheckedCount">0 marcados</span>
+                </div>
+                <button class="ff-finish-btn" id="ffFinishBtn">
+                    <i class="ph ph-check-circle"></i> Finalizar Feira
+                </button>
+            </div>
+        </div>
+
+    </div><!-- .app-container -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="app.js"></script>
 </body>
+
 </html>
