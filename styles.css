@@ -84,10 +84,10 @@ body {
 
 .main-content {
     flex: 1;
-    padding: 2.5rem 3rem;
+    padding: 2rem 2.5rem;
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+    gap: 2rem;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
@@ -102,7 +102,7 @@ body {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-subtle);
-    padding: 1rem 3rem;
+    padding: 1rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -3022,4 +3022,885 @@ body {
 /* Ocultação dinâmica e instantânea dos comprados sem layout shift */
 .ff-list.hide-checked .ff-item.checked {
     display: none !important;
-}
+}
+
+/* ==========================================================================
+   PLANEJAMENTO MENSAL - VIEW
+   ========================================================================== */
+#plannerView {
+    display: none;
+    animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Reposição Automática --- */
+.replenishment-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+}
+
+.replenishment-section .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.replenishment-section .section-title i {
+    font-size: 1.6rem;
+    color: #f59e0b;
+    filter: drop-shadow(0 0 8px rgba(245,158,11,0.4));
+}
+
+.replenishment-section .section-title h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg,#f59e0b,#ef4444);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.replenishment-section .section-title p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0;
+    margin-left: auto;
+}
+
+.replenishment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.replen-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition-bounce);
+    cursor: pointer;
+}
+
+.replen-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    border-color: rgba(245,158,11,0.3);
+    box-shadow: 0 8px 24px rgba(245,158,11,0.12);
+}
+
+.replen-card::before {
+    content:'';
+    position: absolute;
+    top:0; left:0;
+    width:3px; height:100%;
+    border-radius:4px 0 0 4px;
+}
+
+.replen-card.urgency-atrasado::before { background: #ef4444; }
+.replen-card.urgency-nahora::before  { background: #f97316; }
+.replen-card.urgency-embreve::before { background: #eab308; }
+
+.replen-card-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.replen-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.replen-urgency-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-full);
+}
+
+.badge-atrasado { background: rgba(239,68,68,0.15); color:#f87171; }
+.badge-nahora   { background: rgba(249,115,22,0.15); color:#fb923c; }
+.badge-embreve  { background: rgba(234,179,8,0.15);  color:#fbbf24; }
+
+.replen-price {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-left: auto;
+}
+
+.replen-add-btn {
+    margin-top: 0.5rem;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: #fbbf24;
+    border-radius: var(--radius-sm);
+    padding: 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: var(--transition-fast);
+    width: 100%;
+}
+
+.replen-add-btn:hover {
+    background: rgba(245,158,11,0.2);
+    color: #f59e0b;
+    transform: scale(1.02);
+}
+
+.replen-add-btn.added {
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(16,185,129,0.3);
+    color: #34d399;
+}
+
+.replen-empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.replen-empty i {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+/* --- Planejamento Mensal / Semanas --- */
+.planner-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+}
+
+.planner-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.planner-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.planner-title-group i {
+    font-size: 1.6rem;
+    color: #60a5fa;
+    filter: drop-shadow(0 0 8px rgba(96,165,250,0.4));
+}
+
+.planner-title-group h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg,#60a5fa,#a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+.planner-title-group span {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.btn-generate-plan {
+    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.35rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-bounce);
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+}
+
+.btn-generate-plan:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(99,102,241,0.5);
+}
+
+.weeks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.week-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition-bounce);
+}
+
+.week-card:hover {
+    border-color: rgba(99,102,241,0.3);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+    transform: translateY(-3px);
+}
+
+.week-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.week-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #a78bfa;
+}
+
+.week-date-range {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.week-total-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: rgba(99,102,241,0.15);
+    color: #818cf8;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+}
+
+.week-items-list {
+    padding: 0.75rem 0;
+    max-height: 260px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-subtle) transparent;
+}
+
+.week-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 1.25rem;
+    transition: background 0.15s;
+}
+
+.week-item-row:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.week-item-check {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border-subtle);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    transition: var(--transition-fast);
+    color: transparent;
+}
+
+.week-item-check.done {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.week-item-name {
+    font-size: 0.87rem;
+    color: var(--text-primary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.week-item-name.done-text {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.week-item-price {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.week-card-footer {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.btn-week-add-all {
+    flex: 1;
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: #818cf8;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: var(--transition-fast);
+}
+
+.btn-week-add-all:hover {
+    background: rgba(99,102,241,0.2);
+    color: #a78bfa;
+    transform: scale(1.02);
+}
+
+.planner-empty {
+    text-align: center;
+    padding: 3.5rem 1rem;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.planner-empty i {
+    font-size: 3rem;
+    opacity: 0.2;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%,100% { transform: scale(1); opacity: 0.2; }
+    50% { transform: scale(1.08); opacity: 0.35; }
+}
+
+/* ==========================================================================
+   ESTOQUE DOMÉSTICO - MODAL
+   ========================================================================== */
+#estoqueModal .modal-content {
+    max-width: 680px;
+    width: 96vw;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 2rem;
+    scrollbar-width: thin;
+}
+
+.estoque-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.estoque-header-row h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.estoque-header-row h2 i {
+    color: #22c55e;
+    font-size: 1.5rem;
+}
+
+.btn-add-estoque {
+    background: linear-gradient(135deg,#10b981,#059669);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-bounce);
+    box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+}
+
+.btn-add-estoque:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+}
+
+/* Formulário de adição */
+.estoque-form {
+    display: none;
+    background: var(--bg-elevated);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.3s ease;
+}
+
+.estoque-form.open {
+    display: block;
+}
+
+.estoque-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+@media(max-width:480px) {
+    .estoque-form-grid { grid-template-columns: 1fr; }
+}
+
+.estoque-form-grid .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.estoque-form-grid .form-group.full-width {
+    grid-column: 1/-1;
+}
+
+.form-label-sm {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.form-input-sm {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.88rem;
+    font-family: var(--font-sans);
+    transition: var(--transition-fast);
+    outline: none;
+    width: 100%;
+}
+
+.form-input-sm:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+
+.btn-save-estoque {
+    background: linear-gradient(135deg,#10b981,#059669);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: var(--transition-bounce);
+}
+
+.btn-save-estoque:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16,185,129,0.4);
+}
+
+/* Alertas de validade */
+.estoque-alerts {
+    margin-bottom: 1.25rem;
+}
+
+.estoque-alert-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.estoque-alert-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.estoque-alert-row.alert-vencido {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.25);
+    color: #f87171;
+}
+
+.estoque-alert-row.alert-vence-hoje {
+    background: rgba(249,115,22,0.1);
+    border: 1px solid rgba(249,115,22,0.25);
+    color: #fb923c;
+}
+
+.estoque-alert-row.alert-vence-semana {
+    background: rgba(234,179,8,0.1);
+    border: 1px solid rgba(234,179,8,0.25);
+    color: #fbbf24;
+}
+
+.estoque-alert-row.alert-baixo {
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: #818cf8;
+}
+
+.estoque-alert-row i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Lista de itens do estoque */
+.estoque-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.estoque-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    transition: var(--transition-fast);
+}
+
+.estoque-item-row:hover {
+    border-color: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.02);
+}
+
+.estoque-item-row.estoque-vencido {
+    border-left: 3px solid #ef4444;
+    background: rgba(239,68,68,0.04);
+}
+
+.estoque-item-row.estoque-vence-breve {
+    border-left: 3px solid #eab308;
+    background: rgba(234,179,8,0.04);
+}
+
+.estoque-item-row.estoque-baixo {
+    border-left: 3px solid #6366f1;
+    background: rgba(99,102,241,0.04);
+}
+
+.estoque-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+}
+
+.estoque-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.estoque-item-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.estoque-item-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.15rem;
+}
+
+.estoque-item-qty {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 80px;
+}
+
+.estoque-qty-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.estoque-qty-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.estoque-qty-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 24px;
+    text-align: center;
+}
+
+.estoque-status-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+}
+
+.estoque-badge-ok      { background: rgba(16,185,129,0.12); color: #34d399; }
+.estoque-badge-baixo   { background: rgba(99,102,241,0.12); color: #818cf8; }
+.estoque-badge-vence   { background: rgba(234,179,8,0.12);  color: #fbbf24; }
+.estoque-badge-vencido { background: rgba(239,68,68,0.12);  color: #f87171; }
+
+.btn-del-estoque {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.btn-del-estoque:hover {
+    color: #ef4444;
+    background: rgba(239,68,68,0.1);
+}
+
+.estoque-empty {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.estoque-empty i {
+    font-size: 2.5rem;
+    opacity: 0.2;
+}
+
+/* Botão de acesso ao Estoque na navbar */
+.estoque-nav-badge {
+    background: linear-gradient(135deg,#ef4444,#f43f5e);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.1rem 0.35rem;
+    border-radius: var(--radius-full);
+    position: relative;
+    top: -8px;
+    left: -4px;
+    animation: blink-badge 1.5s ease-in-out infinite;
+}
+
+@keyframes blink-badge {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Cartão de estoque no dashboard (alerta rápido) */
+.estoque-dashboard-alert {
+    background: linear-gradient(135deg,rgba(239,68,68,0.08),rgba(249,115,22,0.06));
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: var(--radius-md);
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: var(--transition-bounce);
+    margin-top: 0.5rem;
+}
+
+.estoque-dashboard-alert:hover {
+    border-color: rgba(239,68,68,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239,68,68,0.12);
+}
+
+.estoque-dashboard-alert i {
+    font-size: 1.8rem;
+    color: #f87171;
+}
+
+.estoque-dashboard-alert-text h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f87171;
+}
+
+.estoque-dashboard-alert-text p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.1rem;
+}
+
+.estoque-dashboard-alert .alert-count {
+    margin-left: auto;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f87171;
+}
+
+/* Planner nav button highlight */
+#navPlannerBtn.active {
+    background: rgba(96,165,250,0.1);
+    color: #60a5fa;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN & USABILITY
+   ========================================================================== */
+@media (max-width: 992px) {
+    .main-content {
+        padding: 1.5rem 2rem;
+        gap: 2rem;
+    }
+    .top-navbar {
+        padding: 1rem 2rem;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .top-navbar {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+    }
+    .nav-menu {
+        width: 100%;
+        justify-content: space-around;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+    }
+    .nav-menu::-webkit-scrollbar { display: none; }
+    .nav-link span {
+        display: none;
+    }
+    .nav-link {
+        padding: 0.5rem 0.75rem;
+    }
+    .main-content {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+    .top-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    .search-bar {
+        max-width: 100%;
+    }
+    .replenishment-grid {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    }
+    .weeks-grid {
+        grid-template-columns: 1fr;
+    }
+    .estoque-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .product-actions {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .chart-stats-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+

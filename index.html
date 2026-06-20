@@ -39,6 +39,13 @@
                 <a href="#" class="nav-link" id="navFazerFeiraBtn">
                     <i class="ph ph-storefront"></i><span>Feira</span>
                 </a>
+                <a href="#" class="nav-link" id="navPlannerBtn">
+                    <i class="ph ph-calendar-check"></i><span>Planejar</span>
+                </a>
+                <a href="#" class="nav-link" id="navEstoqueBtn" title="Controle de Estoque">
+                    <i class="ph ph-warehouse"></i><span>Estoque</span>
+                    <span id="estoqueBadge" class="estoque-nav-badge" style="display:none">!</span>
+                </a>
                 <div class="config-wrapper">
                     <a href="#" id="mobileConfigBtn" class="nav-link nav-icon" title="Configurações">
                         <i class="ph ph-gear"></i><span>Config</span>
@@ -192,6 +199,17 @@
                     <div class="category-spending-grid" id="categorySpendingGrid"></div>
                 </section>
 
+                <!-- Alerta de Estoque no Dashboard -->
+                <div id="estoqueDashAlert" style="display:none">
+                    <div class="estoque-dashboard-alert" id="estoqueDashAlertCard">
+                        <i class="ph ph-warning-octagon"></i>
+                        <div class="estoque-dashboard-alert-text">
+                            <h4>Alertas de Estoque</h4>
+                            <p id="estoqueDashAlertDesc">Produtos precisam de atenção</p>
+                        </div>
+                        <span class="alert-count" id="estoqueDashAlertCount">0</span>
+                    </div>
+                </div>
             </div>
 
             <!-- ============ PRODUCTS VIEW ============ -->
@@ -295,6 +313,51 @@
                     </div>
                 </section>
             </div>
+            <!-- ============ PLANNER VIEW ============ -->
+            <div id="plannerView">
+
+                <!-- Reposição Automática Semanal -->
+                <section class="replenishment-section">
+                    <div class="section-title">
+                        <i class="ph ph-arrow-clockwise"></i>
+                        <div>
+                            <h2>Reposição Automática Semanal</h2>
+                        </div>
+                        <p id="replenDateHint">Sugestões baseadas no seu histórico de consumo</p>
+                    </div>
+                    <div class="replenishment-grid" id="replenishmentGrid">
+                        <div class="replen-empty">
+                            <i class="ph ph-clock-countdown"></i>
+                            <span>Carregue seu CSV para ver sugestões de reposição semanal.</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Planejamento Mensal com Divisão Semanal -->
+                <section class="planner-section">
+                    <div class="planner-header-row">
+                        <div class="planner-title-group">
+                            <i class="ph ph-calendar-check"></i>
+                            <div>
+                                <h2>Planejamento Mensal</h2>
+                                <span id="plannerMonthLabel">Organize sua feira em semanas</span>
+                            </div>
+                        </div>
+                        <button class="btn-generate-plan" id="generatePlanBtn">
+                            <i class="ph ph-magic-wand"></i> Gerar Plano do Mês
+                        </button>
+                    </div>
+                    <div class="weeks-grid" id="weeksGrid">
+                        <div class="planner-empty">
+                            <i class="ph ph-calendar-blank"></i>
+                            <span>Clique em <strong>"Gerar Plano do Mês"</strong> para criar um planejamento semanal
+                                automático baseado no seu histórico.</span>
+                        </div>
+                    </div>
+                </section>
+
+            </div><!-- #plannerView -->
+
         </main>
 
         <!-- Cart Modal -->
@@ -426,6 +489,75 @@
                     style="background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border-subtle); box-shadow: none;">
                     <i class="ph ph-arrow-counter-clockwise"></i> Restaurar Todos os Itens
                 </button>
+            </div>
+        </div>
+
+        <!-- Estoque Modal -->
+        <div class="modal-overlay" id="estoqueModal">
+            <div class="modal-content">
+                <button class="close-modal" id="closeEstoqueModal"><i class="ph ph-x"></i></button>
+                <div class="estoque-header-row">
+                    <h2><i class="ph ph-warehouse"></i> Estoque Doméstico</h2>
+                    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn-add-estoque" id="reporEstoqueNotaBtn" style="background: linear-gradient(135deg,#f59e0b,#d97706); box-shadow: 0 4px 12px rgba(245,158,11,0.3);" title="Repor estoque com os itens da última nota fiscal importada">
+                            <i class="ph ph-receipt"></i> Repor da Nota
+                        </button>
+                        <button class="btn-add-estoque" id="toggleEstoqueFormBtn">
+                            <i class="ph ph-plus"></i> Adicionar Item
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Formulário de novo item -->
+                <div class="estoque-form" id="estoqueForm">
+                    <div class="estoque-form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label-sm">Nome do Produto *</label>
+                            <input type="text" id="estoqueItemName" class="form-input-sm"
+                                placeholder="Ex: Arroz, Leite, Detergente..." list="estoqueProductSuggest">
+                            <datalist id="estoqueProductSuggest"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-sm">Quantidade em Casa</label>
+                            <input type="number" id="estoqueItemQty" class="form-input-sm" value="1" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-sm">Unidade</label>
+                            <select id="estoqueItemUnit" class="form-input-sm">
+                                <option value="un">un (unidades)</option>
+                                <option value="kg">kg</option>
+                                <option value="g">g</option>
+                                <option value="L">L (litros)</option>
+                                <option value="ml">ml</option>
+                                <option value="cx">cx (caixa)</option>
+                                <option value="pct">pct (pacote)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-sm">Validade (opcional)</label>
+                            <input type="date" id="estoqueItemExpiry" class="form-input-sm">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-sm">Qtd. mínima (alerta)</label>
+                            <input type="number" id="estoqueItemMinQty" class="form-input-sm" value="1" min="0"
+                                step="0.5">
+                        </div>
+                    </div>
+                    <button class="btn-save-estoque" id="saveEstoqueItemBtn">
+                        <i class="ph ph-floppy-disk"></i> Salvar no Estoque
+                    </button>
+                </div>
+
+                <!-- Alertas rápidos -->
+                <div class="estoque-alerts" id="estoqueAlertsContainer"></div>
+
+                <!-- Lista de itens -->
+                <div class="estoque-list" id="estoqueList">
+                    <div class="estoque-empty">
+                        <i class="ph ph-warehouse"></i>
+                        <span>Seu estoque está vazio. Adicione itens para monitorar!</span>
+                    </div>
+                </div>
             </div>
         </div>
 

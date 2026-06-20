@@ -60,6 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 complete: function (results) {
                     const isFirstLoad = marketData.length === 0;
                     processData(results.data, isFirstLoad);
+                    if (typeof replenishEstoqueFromLatestInvoice === 'function') {
+                        replenishEstoqueFromLatestInvoice(results.data);
+                    }
                     setStatus(`✅ Arquivo "${file.name}" carregado com sucesso.`);
                     fileInput.value = '';
                 }
@@ -1350,27 +1353,27 @@ function updateCartUI() {
 function getCategory(name) {
     const n = name.toLowerCase();
 
-    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform|multiuso|multi uso|pedra sanit|desengord|tira mancha|vassoura|rodo|pano|flanela|balde|saco|lixeira|omo|ariel|ype)/)) return "Limpeza";
+    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform|multiuso|multi uso|pedra sanit|desengord|tira mancha|vassoura|rodo|pano|flanela|balde|saco|lixeira|omo|ariel|ype|brilhante|tixan|vanish|cloro|naftalina|desodorizador|lustra|cera)/)) return "Limpeza";
 
-    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene|fio dental|enxaguante|barbear|pre barba|pos barba|laminas|hastes|hidratante|talco|creme pele|seda|pantene|dove|nivea)/)) return "Higiene Pessoal";
+    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene|fio dental|enxaguante|barbear|pre barba|pos barba|laminas|hastes|hidratante|talco|creme pele|seda|pantene|dove|nivea|colgate|sensodyne|close up|oral b|listerine|palmolive|protex|bozzano|gillette|always|intimus|sempre livre|pampers|huggies|cremer|cotonete)/)) return "Higiene Pessoal";
 
-    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta|kiwi|manga|tangerina|goiaba|ameixa|caju|coco|pêssego|pessego|abacaxi)/)) return "Hortifruti - Frutas";
+    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta|kiwi|manga|tangerina|goiaba|ameixa|caju|coco|pêssego|pessego|abacaxi|tanger|ponkan|tâmara|tamara|figo|amora|cereja|framboesa|mirtilo|physalis|roma|romã|nectarina|pitaia|carambola|jaca|caqui|graviola|cupuaçu|cupuacu|marolo)/)) return "Hortifruti - Frutas";
 
-    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde|pepino|beterraba|chuchu|berinjela|quiabo|vagem|rucula|rúcula|espinafre|agrião|agriao|coentro|cebolinha|hortela|hortelã|pimenta|gengibre)/)) return "Hortifruti - Legumes";
+    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde|pepino|beterraba|chuchu|berinjela|quiabo|vagem|rucula|rúcula|espinafre|agrião|agriao|coentro|cebolinha|hortela|hortelã|pimenta|gengibre|acelga|alcachofra|alcaparra|alecrim|alho-poro|alho-poró|aspargo|basilico|manjericao|manjericão|couve-flor|couve-de-bruxelas|endivia|endívia|ervilha|funcho|jiló|jilo|maxixe|mostarda|nabo|palmito|rabanete|salvia|sálvia|tomilho)/)) return "Hortifruti - Legumes";
 
-    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha|maminha|picanha|cupim|lagarto|lombo|pernil|costela|moida|moída|bovino|suino|suíno|sardinha|atum)/)) return "Açougue";
+    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha|maminha|picanha|cupim|lagarto|lombo|pernil|costela|moida|moída|bovino|suino|suíno|sardinha|atum|pescoço|sobrecoxa|moela|coração|coracao|asa|gizzard|drumet|sassami|tulipa|paleta|coxão|coxao|chã|cha|músculo|musculo|rabada|mocotó|mocoto|toscana|calabresa|tender|panceta|pancetta|toucinho|codorna|pato|marreco|coelho|javali|carneiro|ovelha|bode|cordeiro|cabrito|pescada|merluza|bacalhau|camarão|camarao|lagosta|lula|polvo|marisco|mexilhão|mexilhao|ostra|caranguejo|siri)/)) return "Açougue";
 
-    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq |balas|pirulito|chiclete|amendoim|pipoca|gelatina|pudim|marshmallow|sobremesa|waffer|wafer|paçoca|pacoca)/)) return "Doces & Snacks";
+    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq |balas|pirulito|chiclete|amendoim|pipoca|gelatina|pudim|marshmallow|sobremesa|waffer|wafer|paçoca|pacoca|snack|fini|jujuba|torrone|pé de moleque|pe de moleque|rapadura|cocada|doce de leite|nutella|ovomaltine|toddy|nescau|achocolatado|cacau|cookies|rosquinha|tortuguita|kit kat|lacta|nestle|nestlé|garoto|hersheys|milka|trento|club social|pit stop|passatempo|negresco|oreo|bono|trakinas)/)) return "Doces & Snacks";
 
-    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo |peito de peru|salame|provolone|parmesao|parmesão|coalho|ricota|yakult|nata|petit suisse|fermento|frios|laticinio|chesse)/)) return "Laticínios & Frios";
+    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo |peito de peru|salame|provolone|parmesao|parmesão|coalho|ricota|yakult|nata|petit suisse|frios|laticinio|chesse|gorgonzola|cheddar|prato|minas|padrão|padrao|frescal|cottage|brie|camembert|mussarela de búfala|mussarela de bufala|cream cheese|leite de coco|leite de amêndoas|leite de amendoas|leite de soja|leite desnatado|leite integral|leite semi|bebida láctea|bebida lactea|chancliche|mascarpone)/)) return "Laticínios & Frios";
 
-    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel |atum|seleta|azeitona|cogumelo|palmito|vinagre|cald|knorr|sazon|miojo|lamen|sop |canela|cravo|baunilha|adoçante|adocante|granola|cereal|mucilon|leite em po|ninho)/)) return "Mercearia Básica";
+    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel |atum|seleta|azeitona|cogumelo|palmito|vinagre|cald|knorr|sazon|miojo|lamen|sop |canela|cravo|baunilha|adoçante|adocante|granola|cereal|mucilon|leite em po|ninho|trigo|fubá|fuba|polvilho|doce|azedo|lentilha|grão de bico|grao de bico|canjica|gergelim|linhaça|linhaca|chia|sagu|fermento|pó químico|po quimico|bicarbonato|gelatina|creme cebola|sopa|caldo galinha|caldo carne|caldo legumes|extrato tomate|molho tomate|polpa tomate|passata|molho pimenta|molho ingles|molho inglês|molho de alho|azeite de oliva|óleo de soja|oleo soja|óleo de girassol|oleo girassol|óleo de milho|oleo milho|óleo de canola|oleo canola|óleo de algodão|oleo algodao|banha|sal refinado|sal grosso|sal marinho|sal rosa|açúcar refinado|acucar refinado|açúcar cristal|acucar cristal|açúcar demerara|acucar demerara|açúcar mascavo|acucar mascavo|açúcar light|açúcar coco|adoçante líquido|adoçante em pó|café em pó|cafe po|café solúvel|cafe soluvel|café em grãos|cafe graos|cápsula café|capsula cafe|chá mate|cha mate|chá preto|cha preto|chá verde|cha verde|chá camomila|cha camomila|chá erva doce|cha erva doce)/)) return "Mercearia Básica";
 
     if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle|pepsi|fanta|kuat|antarctica|skol|brahma|heineken|amstel|monster|red bull|energetico|energético|gin|rum|cachaça|licor|whisky|champagne|espumante|bebida|refri|ice)/)) return "Bebidas";
 
-    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa|croissant|baguete|bisnag|panet|chocott|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|cuca|broa|sonho|panific)/)) return "Padaria";
+    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa|croissant|baguete|bisnag|panet|chocott|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|cuca|broa|sonho|panific|pão francês|pao frances|pão de hambúrguer|pao hamburguer|pão de cachorro quente|pao cachorro quente|pão sírio|pao sirio|pão australiano|pao australiano|pão integral|pao integral|pão multigrãos|pao multigraos|pão centeio|pao centeio|colomba pascal|donuts|carolina|bomba chocolate|mil folhas|quindim|pudim padaria|torta doce|torta salgada|quiche|empada|empadão|pastel|folhado|pão de batata|pao batata|enroladinho|esfiha fechada|esfiha aberta)/)) return "Padaria";
 
-    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher)/)) return "Utilidades";
+    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher|copo descartável|copo descartavel|prato descartável|prato descartavel|talher descartável|talher descartavel|guardanapo de papel|papel alumínio|papel aluminio|papel manteiga|filme de pvc|filme plástico|filme plastico|saco hermético|saco hermetico|saco zip|saco para congelamento|saco para assar|saco assar|acendedor|espeto de madeira|espeto madeira|espeto de bambu|espeto bambu|grelha descartável|grelha descartavel|prendedor de roupas|prendedor roupas|varal|cabide plástico|cabide plastico|pilha aa|pilha aaa|pilha de lítio|pilha de litio|bateria 9v|lâmpada led|lampada led|lâmpada fluorescente|lampada fluorescente|vela de cera|vela votiva|vela flutuante|vela perfumada|repelente elétrico|repelente eletrico)/)) return "Utilidades";
 
     return "Outros";
 }
@@ -2859,5 +2862,631 @@ function renderCompareItems() {
 
         tbody.appendChild(tr);
     });
+}
+
+// ============================================================
+//  NAVEGAÇÃO — PLANNER VIEW
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const navPlannerBtn = document.getElementById('navPlannerBtn');
+    if (navPlannerBtn) {
+        navPlannerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPlannerView();
+        });
+    }
+
+    const generatePlanBtn = document.getElementById('generatePlanBtn');
+    if (generatePlanBtn) generatePlanBtn.addEventListener('click', generateMonthlyPlan);
+
+    const navEstoqueBtn = document.getElementById('navEstoqueBtn');
+    if (navEstoqueBtn) navEstoqueBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        openEstoqueModal();
+    });
+
+    const closeEstoqueModal = document.getElementById('closeEstoqueModal');
+    if (closeEstoqueModal) closeEstoqueModal.addEventListener('click', () => {
+        document.getElementById('estoqueModal').classList.remove('active');
+    });
+
+    // Fechar clicando fora
+    const estoqueModal = document.getElementById('estoqueModal');
+    if (estoqueModal) estoqueModal.addEventListener('click', (e) => {
+        if (e.target === estoqueModal) estoqueModal.classList.remove('active');
+    });
+
+    const toggleEstoqueFormBtn = document.getElementById('toggleEstoqueFormBtn');
+    if (toggleEstoqueFormBtn) toggleEstoqueFormBtn.addEventListener('click', () => {
+        document.getElementById('estoqueForm').classList.toggle('open');
+    });
+
+    const saveEstoqueItemBtn = document.getElementById('saveEstoqueItemBtn');
+    if (saveEstoqueItemBtn) saveEstoqueItemBtn.addEventListener('click', saveEstoqueItem);
+
+    const alertCard = document.getElementById('estoqueDashAlertCard');
+    if (alertCard) alertCard.addEventListener('click', openEstoqueModal);
+
+    const reporEstoqueNotaBtn = document.getElementById('reporEstoqueNotaBtn');
+    if (reporEstoqueNotaBtn) {
+        reporEstoqueNotaBtn.addEventListener('click', () => {
+            replenishEstoqueFromLatestInvoice();
+        });
+    }
+
+    // Inicializar alertas de estoque ao carregar
+    updateEstoqueDashAlert();
+});
+
+function showPlannerView() {
+    ['dashboardView','productsView','compareView','plannerView'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === 'plannerView') ? 'block' : 'none';
+    });
+    const sbw = document.getElementById('searchBarWrapper');
+    if (sbw) sbw.style.display = 'none';
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    const btn = document.getElementById('navPlannerBtn');
+    if (btn) btn.classList.add('active');
+    renderReplenishmentPanel();
+}
+
+// ============================================================
+//  FUNCIONALIDADE 1 — REPOSIÇÃO AUTOMÁTICA SEMANAL
+// ============================================================
+function renderReplenishmentPanel() {
+    const grid = document.getElementById('replenishmentGrid');
+    const hint = document.getElementById('replenDateHint');
+    if (!grid) return;
+
+    if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
+        grid.innerHTML = '<div class="replen-empty"><i class="ph ph-clock-countdown"></i><span>Carregue seu CSV para ver sugestões.</span></div>';
+        return;
+    }
+
+    const todayMs  = Date.now();
+    const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
+    const candidates = [];
+
+    Object.keys(groupedProducts).forEach(name => {
+        const history = groupedProducts[name];
+        const valid = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
+        if (valid.length < 2) return;
+
+        const recent = valid.filter(h => h.datetime.getTime() >= cutoffMs);
+        const forCycle = recent.length >= 2 ? recent : valid;
+        const sorted = [...forCycle].sort((a, b) => a.datetime - b.datetime);
+
+        const byDay = {};
+        sorted.forEach(h => {
+            const k = h.datetime.toISOString().slice(0, 10);
+            if (!byDay[k]) byDay[k] = { ms: h.datetime.getTime(), qty: 0 };
+            byDay[k].qty += h.qty;
+        });
+        const days = Object.keys(byDay).sort();
+        if (days.length < 2) return;
+
+        let diffMs = 0, units = 0;
+        for (let i = 1; i < days.length; i++) {
+            diffMs += byDay[days[i]].ms - byDay[days[i - 1]].ms;
+            units  += byDay[days[i - 1]].qty;
+        }
+        if (units <= 0) return;
+
+        const cyclePerUnit = diffMs / units;
+        const allSorted = [...valid].sort((a, b) => b.datetime - a.datetime);
+        const lastMs = allSorted[0].datetime.getTime();
+        const lastDayKey = allSorted[0].datetime.toISOString().slice(0, 10);
+        let lastQty = 0;
+        valid.forEach(h => { if (h.datetime.toISOString().slice(0, 10) === lastDayKey) lastQty += h.qty; });
+        if (lastQty <= 0) lastQty = 1;
+
+        const urgency = (todayMs - lastMs) / (lastQty * cyclePerUnit);
+        if (urgency >= 0.7 && urgency <= 3.5) {
+            let label, cls;
+            if (urgency >= 2.0) { label = '🔴 Atrasado'; cls = 'urgency-atrasado'; }
+            else if (urgency >= 1.0) { label = '🟠 Na hora';  cls = 'urgency-nahora'; }
+            else { label = '🟡 Em breve'; cls = 'urgency-embreve'; }
+
+            const avgQty = forCycle.reduce((s, h) => s + h.qty, 0) / forCycle.length;
+            candidates.push({
+                name, urgency, label, cls,
+                qty: Math.max(1, Math.round(avgQty)),
+                price: allSorted[0].price,
+                cycleDays: Math.round(cyclePerUnit / (24 * 60 * 60 * 1000))
+            });
+        }
+    });
+
+    candidates.sort((a, b) => b.urgency - a.urgency);
+
+    const now = new Date();
+    if (hint) hint.textContent = `Semana de ${now.toLocaleDateString('pt-BR')} — ${candidates.length} item(ns) a repor`;
+
+    if (candidates.length === 0) {
+        grid.innerHTML = '<div class="replen-empty"><i class="ph ph-check-circle"></i><span>Tudo em dia! Nenhum item precisa de reposição agora.</span></div>';
+        return;
+    }
+
+    grid.innerHTML = '';
+    candidates.slice(0, 24).forEach(item => {
+        const inCart = !!shoppingCart[item.name];
+        const badgeCls = item.cls.replace('urgency-', '');
+        const card = document.createElement('div');
+        card.className = `replen-card ${item.cls}`;
+        card.innerHTML = `
+            <div class="replen-card-name" title="${item.name}">${item.name}</div>
+            <div class="replen-card-meta">
+                <span class="replen-urgency-badge badge-${badgeCls}">${item.label}</span>
+                <span class="replen-price">${formatCurrency(item.price)}</span>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-secondary)">Ciclo ~${item.cycleDays}d · Qtd sugerida: ${item.qty}</div>
+            <button class="replen-add-btn ${inCart ? 'added' : ''}" data-name="${item.name}" data-price="${item.price}" data-qty="${item.qty}">
+                <i class="ph ${inCart ? 'ph-check' : 'ph-shopping-cart-simple'}"></i>
+                ${inCart ? 'Na lista' : 'Adicionar à Lista'}
+            </button>
+        `;
+        card.querySelector('.replen-add-btn').addEventListener('click', () => {
+            if (!shoppingCart[item.name]) {
+                shoppingCart[item.name] = { price: item.price, qty: item.qty };
+            } else {
+                delete shoppingCart[item.name];
+            }
+            updateCartUI();
+            renderReplenishmentPanel();
+        });
+        grid.appendChild(card);
+    });
+}
+
+// ============================================================
+//  FUNCIONALIDADE 2 — CONTROLE DE ESTOQUE DOMÉSTICO
+// ============================================================
+let estoqueItems = JSON.parse(localStorage.getItem('feiraCertaEstoque')) || [];
+
+function saveEstoque() {
+    localStorage.setItem('feiraCertaEstoque', JSON.stringify(estoqueItems));
+}
+
+function openEstoqueModal() {
+    // Preencher sugestões com produtos já conhecidos
+    const dl = document.getElementById('estoqueProductSuggest');
+    if (dl && groupedProducts) {
+        dl.innerHTML = '';
+        Object.keys(groupedProducts).slice(0, 120).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            dl.appendChild(opt);
+        });
+    }
+    renderEstoqueList();
+    document.getElementById('estoqueModal').classList.add('active');
+}
+
+function saveEstoqueItem() {
+    const name   = (document.getElementById('estoqueItemName').value || '').trim();
+    if (!name) { setStatus('⚠️ Informe o nome do produto.', true); return; }
+    const qty    = parseFloat(document.getElementById('estoqueItemQty').value)    || 1;
+    const unit   = document.getElementById('estoqueItemUnit').value;
+    const expiry = document.getElementById('estoqueItemExpiry').value || null;
+    const minQty = parseFloat(document.getElementById('estoqueItemMinQty').value) || 1;
+
+    const existing = estoqueItems.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
+    if (existing >= 0) {
+        estoqueItems[existing] = { ...estoqueItems[existing], qty, unit, expiry, minQty };
+    } else {
+        estoqueItems.push({ id: Date.now(), name, qty, unit, expiry, minQty });
+    }
+    saveEstoque();
+
+    document.getElementById('estoqueItemName').value   = '';
+    document.getElementById('estoqueItemQty').value    = '1';
+    document.getElementById('estoqueItemExpiry').value = '';
+    document.getElementById('estoqueItemMinQty').value = '1';
+    document.getElementById('estoqueForm').classList.remove('open');
+
+    renderEstoqueList();
+    updateEstoqueDashAlert();
+    setStatus(`✅ "${name}" salvo no estoque doméstico.`);
+}
+
+function getEstoqueStatus(item) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (item.expiry) {
+        const exp = new Date(item.expiry + 'T00:00:00');
+        const diff = Math.round((exp - today) / (24 * 60 * 60 * 1000));
+        if (diff < 0)   return { cls: 'estoque-vencido',     badge: 'estoque-badge-vencido', label: `Vencido há ${-diff}d` };
+        if (diff === 0) return { cls: 'estoque-vence-breve', badge: 'estoque-badge-vence',   label: 'Vence HOJE' };
+        if (diff <= 7)  return { cls: 'estoque-vence-breve', badge: 'estoque-badge-vence',   label: `Vence em ${diff}d` };
+    }
+    if (item.qty <= item.minQty) return { cls: 'estoque-baixo', badge: 'estoque-badge-baixo', label: 'Estoque baixo' };
+    return { cls: '', badge: 'estoque-badge-ok', label: 'OK' };
+}
+
+function renderEstoqueList() {
+    const container = document.getElementById('estoqueList');
+    const alertsEl  = document.getElementById('estoqueAlertsContainer');
+    if (!container) return;
+
+    // --- Alertas rápidos ---
+    if (alertsEl) {
+        alertsEl.innerHTML = '';
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const vencidos  = estoqueItems.filter(i => i.expiry && new Date(i.expiry + 'T00:00:00') < today);
+        const venceHoje = estoqueItems.filter(i => { if (!i.expiry) return false; const d = new Date(i.expiry + 'T00:00:00'); return d.getTime() === today.getTime(); });
+        const venceSem  = estoqueItems.filter(i => { if (!i.expiry) return false; const diff = Math.round((new Date(i.expiry + 'T00:00:00') - today) / 864e5); return diff > 0 && diff <= 7; });
+        const baixos    = estoqueItems.filter(i => i.qty <= i.minQty && !vencidos.includes(i) && !venceHoje.includes(i));
+
+        function mkAlert(cls, icon, text) {
+            const d = document.createElement('div');
+            d.className = `estoque-alert-row ${cls}`;
+            d.innerHTML = `<i class="ph ${icon}"></i><span>${text}</span>`;
+            alertsEl.appendChild(d);
+        }
+        if (alertsEl.children.length === 0 && vencidos.length + venceHoje.length + venceSem.length + baixos.length > 0) {
+            const title = document.createElement('div');
+            title.className = 'estoque-alert-title';
+            title.textContent = '⚠️ Alertas Ativos';
+            alertsEl.appendChild(title);
+        }
+        if (vencidos.length)  mkAlert('alert-vencido',      'ph-warning-circle', `Vencido(s): ${vencidos.map(i => i.name).join(', ')}`);
+        if (venceHoje.length) mkAlert('alert-vence-hoje',   'ph-clock',          `Vence hoje: ${venceHoje.map(i => i.name).join(', ')}`);
+        if (venceSem.length)  mkAlert('alert-vence-semana', 'ph-calendar',       `Vence essa semana: ${venceSem.map(i => i.name).join(', ')}`);
+        if (baixos.length)    mkAlert('alert-baixo',         'ph-tray',           `Estoque baixo: ${baixos.map(i => i.name).join(', ')}`);
+    }
+
+    if (estoqueItems.length === 0) {
+        container.innerHTML = '<div class="estoque-empty"><i class="ph ph-warehouse"></i><span>Estoque vazio. Adicione itens!</span></div>';
+        return;
+    }
+
+    const order = { 'estoque-vencido': 0, 'estoque-vence-breve': 1, 'estoque-baixo': 2, '': 3 };
+    const sorted = [...estoqueItems].sort((a, b) => {
+        const oa = order[getEstoqueStatus(a).cls] ?? 3;
+        const ob = order[getEstoqueStatus(b).cls] ?? 3;
+        return oa !== ob ? oa - ob : a.name.localeCompare(b.name);
+    });
+
+    container.innerHTML = '';
+    sorted.forEach(item => {
+        const st = getEstoqueStatus(item);
+        const catIcon = getCategoryIconHtml(resolveCategory(item.name));
+        const row = document.createElement('div');
+        row.className = `estoque-item-row ${st.cls}`;
+        row.innerHTML = `
+            <div class="estoque-item-icon">${catIcon}</div>
+            <div class="estoque-item-info">
+                <div class="estoque-item-name">${item.name}</div>
+                <div class="estoque-item-meta">
+                    <span>${item.unit}</span>
+                    ${item.expiry ? `<span>Val: ${new Date(item.expiry + 'T00:00:00').toLocaleDateString('pt-BR')}</span>` : ''}
+                    <span>Mín: ${item.minQty}</span>
+                </div>
+            </div>
+            <span class="estoque-status-badge ${st.badge}">${st.label}</span>
+            <div class="estoque-item-qty">
+                <button class="estoque-qty-btn" data-id="${item.id}" data-delta="-1"><i class="ph ph-minus"></i></button>
+                <span class="estoque-qty-val">${item.qty}</span>
+                <button class="estoque-qty-btn" data-id="${item.id}" data-delta="1"><i class="ph ph-plus"></i></button>
+            </div>
+            <button class="btn-del-estoque" data-id="${item.id}" title="Remover"><i class="ph ph-trash"></i></button>
+        `;
+        row.querySelectorAll('.estoque-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id    = parseInt(btn.getAttribute('data-id'));
+                const delta = parseInt(btn.getAttribute('data-delta'));
+                changeEstoqueQty(id, delta);
+            });
+        });
+        row.querySelector('.btn-del-estoque').addEventListener('click', () => {
+            removeEstoqueItem(parseInt(item.id));
+        });
+        container.appendChild(row);
+    });
+}
+
+function getCategoryIconHtml(cat) {
+    const c = (cat || '').toLowerCase();
+    if (c.includes('hortifruti')) return '<i class="ph ph-leaf" style="color:#22c55e"></i>';
+    if (c.includes('açougue'))   return '<i class="ph ph-fork-knife" style="color:#ef4444"></i>';
+    if (c.includes('limpeza'))   return '<i class="ph ph-sparkle" style="color:#3b82f6"></i>';
+    if (c.includes('laticínio')) return '<i class="ph ph-drop" style="color:#eab308"></i>';
+    if (c.includes('bebida'))    return '<i class="ph ph-cup" style="color:#0ea5e9"></i>';
+    if (c.includes('padaria'))   return '<i class="ph ph-bread" style="color:#f59e0b"></i>';
+    if (c.includes('higiene'))   return '<i class="ph ph-heart" style="color:#d946ef"></i>';
+    return '<i class="ph ph-package" style="color:#a1a1aa"></i>';
+}
+
+function changeEstoqueQty(id, delta) {
+    const idx = estoqueItems.findIndex(i => i.id === id);
+    if (idx < 0) return;
+    estoqueItems[idx].qty = Math.max(0, parseFloat((estoqueItems[idx].qty + delta).toFixed(1)));
+    saveEstoque();
+    renderEstoqueList();
+    updateEstoqueDashAlert();
+}
+
+function removeEstoqueItem(id) {
+    estoqueItems = estoqueItems.filter(i => i.id !== id);
+    saveEstoque();
+    renderEstoqueList();
+    updateEstoqueDashAlert();
+}
+
+function updateEstoqueDashAlert() {
+    const alertCount = estoqueItems.filter(item => getEstoqueStatus(item).cls !== '').length;
+    const dashDiv  = document.getElementById('estoqueDashAlert');
+    const badge    = document.getElementById('estoqueBadge');
+    const countEl  = document.getElementById('estoqueDashAlertCount');
+    const descEl   = document.getElementById('estoqueDashAlertDesc');
+
+    if (dashDiv)  dashDiv.style.display  = alertCount > 0 ? 'block' : 'none';
+    if (badge)    badge.style.display    = alertCount > 0 ? 'inline' : 'none';
+    if (countEl)  countEl.textContent    = alertCount;
+    if (descEl)   descEl.textContent     = `${alertCount} produto(s) precisam de atenção no estoque`;
+}
+
+// ============================================================
+//  FUNCIONALIDADE 3 — PLANEJAMENTO MENSAL COM DIVISÃO SEMANAL
+// ============================================================
+let weekChecks     = JSON.parse(localStorage.getItem('feiraCertaWeekChecks')) || {};
+let monthlyPlanCache = null;
+
+function generateMonthlyPlan() {
+    if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
+        setStatus('⚠️ Carregue o CSV primeiro.', true); return;
+    }
+
+    const now   = new Date();
+    const year  = now.getFullYear();
+    const month = now.getMonth();
+    const label = MONTH_NAMES[month] + ' / ' + year;
+    const plannerLabel = document.getElementById('plannerMonthLabel');
+    if (plannerLabel) plannerLabel.textContent = `Plano para ${label}`;
+
+    const todayMs  = now.getTime();
+    const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
+
+    const items = [];
+    Object.keys(groupedProducts).forEach(name => {
+        const history = groupedProducts[name];
+        const valid = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
+        if (valid.length < 1) return;
+
+        const recent  = valid.filter(h => h.datetime.getTime() >= cutoffMs);
+        const forCalc = recent.length >= 1 ? recent : valid;
+
+        const qtyByMonth = {};
+        forCalc.forEach(h => {
+            const mk = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
+            if (!qtyByMonth[mk]) qtyByMonth[mk] = 0;
+            qtyByMonth[mk] += h.qty;
+        });
+        const months   = Object.keys(qtyByMonth).length;
+        const totalQty = Object.values(qtyByMonth).reduce((s, v) => s + v, 0);
+        const avgMonthlyQty = Math.max(1, Math.round(totalQty / months));
+
+        let totalDay = 0;
+        forCalc.forEach(h => totalDay += h.datetime.getDate());
+        const avgDay = totalDay / forCalc.length;
+
+        const sortedByDate = [...valid].sort((a, b) => b.datetime - a.datetime);
+        items.push({ name, avgDay, avgMonthlyQty, price: sortedByDate[0].price, months });
+    });
+
+    // Ordenar por frequência (mais comprado primeiro)
+    items.sort((a, b) => b.months - a.months);
+    const topItems = items.slice(0, 120);
+
+    // Distribuir em 4 semanas pelo dia médio de compra
+    const weeks = [
+        { label: 'Semana 1', range: '1–7',   items: [] },
+        { label: 'Semana 2', range: '8–14',  items: [] },
+        { label: 'Semana 3', range: '15–21', items: [] },
+        { label: 'Semana 4', range: '22–31', items: [] },
+    ];
+
+    topItems.forEach(item => {
+        const d = item.avgDay;
+        let wIdx = 0;
+        if (d >= 8  && d < 15)  wIdx = 1;
+        else if (d >= 15 && d < 22) wIdx = 2;
+        else if (d >= 22)        wIdx = 3;
+        weeks[wIdx].items.push(item);
+    });
+
+    monthlyPlanCache = { weeks, year, month };
+    renderWeeksGrid();
+    setStatus(`📅 Plano de ${label} gerado com ${topItems.length} itens em 4 semanas!`);
+}
+
+function renderWeeksGrid() {
+    const grid = document.getElementById('weeksGrid');
+    if (!grid || !monthlyPlanCache) return;
+
+    const { weeks, year, month } = monthlyPlanCache;
+    grid.innerHTML = '';
+
+    weeks.forEach((week, wIdx) => {
+        if (week.items.length === 0) return;
+
+        const wk = `${year}-${month + 1}-W${wIdx + 1}`;
+        if (!weekChecks[wk]) weekChecks[wk] = {};
+
+        const totalEst = week.items.reduce((s, i) => s + i.price * i.avgMonthlyQty, 0);
+        const doneCount = week.items.filter(i => weekChecks[wk][i.name]).length;
+
+        const card = document.createElement('div');
+        card.className = 'week-card';
+        card.innerHTML = `
+            <div class="week-card-header">
+                <div>
+                    <div class="week-title">${week.label} <span style="font-size:0.72rem;color:var(--text-secondary);font-weight:400">(${doneCount}/${week.items.length} ✓)</span></div>
+                    <div class="week-date-range">Dias ${week.range}</div>
+                </div>
+                <span class="week-total-badge">~${formatCurrency(totalEst)}</span>
+            </div>
+            <div class="week-items-list" id="weekList_${wIdx}"></div>
+            <div class="week-card-footer">
+                <button class="btn-week-add-all" data-widx="${wIdx}">
+                    <i class="ph ph-shopping-cart-simple"></i> Adicionar tudo à lista
+                </button>
+            </div>
+        `;
+
+        const listEl = card.querySelector(`#weekList_${wIdx}`);
+        week.items.forEach(item => {
+            const checked = !!weekChecks[wk][item.name];
+            const row = document.createElement('div');
+            row.className = 'week-item-row';
+            row.innerHTML = `
+                <div class="week-item-check ${checked ? 'done' : ''}" data-wk="${wk}" data-name="${item.name}">
+                    ${checked ? '<i class="ph ph-check"></i>' : ''}
+                </div>
+                <span class="week-item-name ${checked ? 'done-text' : ''}" title="${item.name}">${item.name}</span>
+                <span class="week-item-price">${formatCurrency(item.price)}</span>
+            `;
+            row.querySelector('.week-item-check').addEventListener('click', (e) => {
+                const wkk = e.currentTarget.getAttribute('data-wk');
+                const nm  = e.currentTarget.getAttribute('data-name');
+                weekChecks[wkk][nm] = !weekChecks[wkk][nm];
+                localStorage.setItem('feiraCertaWeekChecks', JSON.stringify(weekChecks));
+                renderWeeksGrid();
+            });
+            listEl.appendChild(row);
+        });
+
+        card.querySelector('.btn-week-add-all').addEventListener('click', () => {
+            let added = 0;
+            week.items.forEach(item => {
+                if (!shoppingCart[item.name]) {
+                    shoppingCart[item.name] = { price: item.price, qty: item.avgMonthlyQty };
+                    added++;
+                }
+            });
+            updateCartUI();
+            setStatus(`🛒 ${added} itens da ${week.label} adicionados à lista!`);
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+function getLatestInvoiceItems(dataList = null) {
+    const entries = [];
+    if (dataList) {
+        dataList.forEach(row => {
+            const originalProduct = row['Produto']?.trim();
+            if (!originalProduct) return;
+            if (excludedItems.includes(originalProduct)) return;
+
+            const dateRaw = row['Data']?.trim();
+            const dt = parseDate(dateRaw);
+            if (!dt || isNaN(dt.getTime())) return;
+
+            let qtyRaw = row['Quantidade'] ? row['Quantidade'].toString().replace(/\s/g, '').replace(',', '.') : "1";
+            let parsedQty = parseFloat(qtyRaw);
+            if (isNaN(parsedQty) || parsedQty <= 0) parsedQty = 1;
+
+            const unit = row['Unidade'] || 'UN';
+
+            let product = originalProduct;
+            if (itemOverrides[originalProduct] && itemOverrides[originalProduct].customName) {
+                product = itemOverrides[originalProduct].customName;
+            } else {
+                product = getSimplifiedName(originalProduct);
+            }
+
+            entries.push({
+                product,
+                date: dateRaw,
+                datetime: dt,
+                qty: parsedQty,
+                unit: unit.toLowerCase()
+            });
+        });
+    } else {
+        Object.keys(groupedProducts).forEach(product => {
+            groupedProducts[product].forEach(h => {
+                if (h.datetime && !isNaN(h.datetime.getTime())) {
+                    entries.push({
+                        product,
+                        date: h.date,
+                        datetime: h.datetime,
+                        qty: h.qty,
+                        unit: (h.unit || 'un').toLowerCase()
+                    });
+                }
+            });
+        });
+    }
+
+    if (entries.length === 0) return [];
+
+    let latestMs = 0;
+    entries.forEach(e => {
+        if (e.datetime.getTime() > latestMs) {
+            latestMs = e.datetime.getTime();
+        }
+    });
+
+    if (latestMs === 0) return [];
+
+    const latestDateObj = new Date(latestMs);
+    const latestDateStr = latestDateObj.toISOString().slice(0, 10);
+
+    const latestEntries = entries.filter(e => {
+        return e.datetime.toISOString().slice(0, 10) === latestDateStr;
+    });
+
+    return latestEntries;
+}
+
+function replenishEstoqueFromLatestInvoice(dataList = null) {
+    const itemsToReplenish = getLatestInvoiceItems(dataList);
+    if (itemsToReplenish.length === 0) {
+        setStatus("⚠️ Nenhuma compra encontrada para repor.", true);
+        return;
+    }
+
+    const grouped = {};
+    itemsToReplenish.forEach(item => {
+        if (!grouped[item.product]) {
+            grouped[item.product] = { qty: 0, unit: item.unit };
+        }
+        grouped[item.product].qty += item.qty;
+    });
+
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    Object.keys(grouped).forEach(name => {
+        const info = grouped[name];
+        const existingIdx = estoqueItems.findIndex(i => i.name.toLowerCase() === name.toLowerCase());
+        if (existingIdx >= 0) {
+            estoqueItems[existingIdx].qty = parseFloat((estoqueItems[existingIdx].qty + info.qty).toFixed(1));
+            if (info.unit && info.unit !== 'un') {
+                estoqueItems[existingIdx].unit = info.unit;
+            }
+            updatedCount++;
+        } else {
+            estoqueItems.push({
+                id: Date.now() + Math.random(),
+                name: name,
+                qty: info.qty,
+                unit: info.unit || 'un',
+                expiry: null,
+                minQty: 1
+            });
+            addedCount++;
+        }
+    });
+
+    saveEstoque();
+    renderEstoqueList();
+    updateEstoqueDashAlert();
+
+    const dateStr = itemsToReplenish[0].date;
+    setStatus(`📦 Estoque doméstico reabastecido com a nota de ${dateStr} (${addedCount} novos, ${updatedCount} atualizados).`);
 }
 
