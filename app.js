@@ -332,14 +332,14 @@ function updateQuickActionHints() {
     const periodBadge = document.getElementById('cartPeriodBadge');
     let period, hint;
     if (day <= 10) {
-        period = 'Início do mês';
-        hint = 'Lista completa para começo do mês';
+        period = 'Primeira semana';
+        hint = 'Lista completa para a feira mensal';
     } else if (day >= 21) {
-        period = 'Fim do mês';
-        hint = 'Preparação para o próximo mês';
+        period = 'Última semana';
+        hint = 'Lista completa para a feira mensal';
     } else {
         period = 'Meio do mês';
-        hint = 'Itens ainda não comprados este mês';
+        hint = 'Itens pendentes da feira mensal';
     }
     if (hintEl) hintEl.textContent = hint;
     if (subtitleEl) subtitleEl.textContent = period;
@@ -875,6 +875,17 @@ function generateSparklineSVG(history, colorName) {
     `;
 }
 
+// Categorias consideradas perecíveis (compra semanal)
+const PERISHABLE_CATEGORIES = [
+    'Hortifruti - Frutas', 'Hortifruti - Legumes', 'Laticínios & Frios', 'Padaria'
+];
+
+// Verifica se um produto é perecível (compra semanal)
+function isPerishable(name) {
+    const cat = resolveCategory(name);
+    return PERISHABLE_CATEGORIES.some(p => cat.includes(p.split(' ')[0]));
+}
+
 function generateSmartList() {
     if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
         setStatus("Nenhum dado carregado para gerar a lista inteligente.", true);
@@ -884,103 +895,86 @@ function generateSmartList() {
     const today = new Date();
     const todayMs = today.getTime();
     const dayOfMonth = today.getDate();
-
-    // Corte temporal: ignorar compras mais antigas que DATA_CUTOFF_MONTHS para cálculo de frequência
     const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
 
-    // Detectar período do mês:
-    // Início: dias 1–10 → sugerir lista completa para o mês que começa
-    // Final:  dias 21+  → sugerir lista completa para o próximo mês
-    // Meio:   dias 11–20 → lista parcial (itens essenciais ainda não comprados este mês)
     let periodoLabel;
     let compradoEsseMes = false;
     if (dayOfMonth <= 10) {
-        periodoLabel = 'início do mês';
+        periodoLabel = 'primeira semana';
     } else if (dayOfMonth >= 21) {
-        periodoLabel = 'fim do mês (preparação para o próximo)';
+        periodoLabel = 'última semana';
     } else {
         periodoLabel = 'meio do mês';
-        compradoEsseMes = true; // neste caso filtramos itens JÁ comprados este mês
+        compradoEsseMes = true;
     }
 
     const currentMonthKey = `${today.getFullYear()}-${today.getMonth()}`;
 
-    const productsByFrequency = Object.keys(groupedProducts)
+    const scoredProducts = Object.keys(groupedProducts)
         .map(name => {
             const history = groupedProducts[name];
-
-            // Histórico com datas válidas (completo — para saber quando foi comprado)
             const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
             if (validHistory.length < 1) return null;
 
             const sortedHistory = [...validHistory].sort((a, b) => b.datetime - a.datetime);
-            const msSinceLastPurchase = todayMs - sortedHistory[0].datetime.getTime();
+            const msSinceLast = todayMs - sortedHistory[0].datetime.getTime();
 
-            // Ignorar itens comprados nos últimos 3 dias (acabou de ser comprado)
-            if (msSinceLastPurchase < (3 * 24 * 60 * 60 * 1000)) return null;
+            // Ignorar comprado nos últimos 3 dias
+            if (msSinceLast < (3 * 24 * 60 * 60 * 1000)) return null;
+
+            // Perecíveis (frutas, legumes, frios, padaria) são geridos pela Reposição Semanal;
+            // excluí-los da Feira do Mês evita duplicação
+            if (isPerishable(name)) return null;
 
             // No meio do mês: pular itens já comprados este mês
             if (compradoEsseMes) {
-                const compradoNoMes = validHistory.some(h => {
+                const jaComprado = validHistory.some(h => {
                     const mk = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
                     return mk === currentMonthKey;
                 });
-                if (compradoNoMes) return null;
+                if (jaComprado) return null;
             }
 
-            // Usar apenas histórico recente (dentro do cutoff) para calcular frequência e quantidade
             const recentHistory = validHistory.filter(h => h.datetime.getTime() >= cutoffMs);
-            // Se não há histórico recente mas tem histórico antigo, usa o antigo (produto voltou)
             const histForCalc = recentHistory.length >= 1 ? recentHistory : validHistory;
 
-            // Detectar em qual período do mês o item costuma ser comprado
-            // Calcular o dia médio de compra (1–31)
-            let totalDayOfMonth = 0;
-            histForCalc.forEach(h => { totalDayOfMonth += h.datetime.getDate(); });
-            const avgBuyDayOfMonth = totalDayOfMonth / histForCalc.length;
+            // A feira mensal é feita na primeira ou última semana de cada mês.
+            // Portanto, não filtramos os itens pelo dia médio de compra, garantindo que
+            // a lista completa da feira mensal seja gerada seja qual for a semana escolhida.
 
-            // Para início/fim do mês: incluir itens cujo dia médio de compra corresponde ao período
-            // Para meio do mês: já filtrado acima
-            if (!compradoEsseMes) {
-                if (dayOfMonth <= 10) {
-                    // Queremos itens tipicamente comprados entre dia 1 e 15
-                    if (avgBuyDayOfMonth > 17) return null;
-                } else if (dayOfMonth >= 21) {
-                    // Queremos itens tipicamente comprados entre dia 15 e 31
-                    if (avgBuyDayOfMonth < 13) return null;
-                }
-            }
-
-            // Agrupar por mês para calcular quantidade mensal média
-            const qtyByMonth = {};
+            // Calcular quantidade e gasto mensais médios
+            const byMonth = {};
             histForCalc.forEach(h => {
-                const monthKey = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
-                if (!qtyByMonth[monthKey]) qtyByMonth[monthKey] = 0;
-                qtyByMonth[monthKey] += h.qty;
+                const mk = `${h.datetime.getFullYear()}-${h.datetime.getMonth()}`;
+                if (!byMonth[mk]) byMonth[mk] = { qty: 0, spend: 0 };
+                byMonth[mk].qty += h.qty;
+                byMonth[mk].spend += h.price * h.qty;
             });
 
-            const monthsCount = Object.keys(qtyByMonth).length;
-            let totalMonthlyQty = 0;
-            Object.values(qtyByMonth).forEach(qty => totalMonthlyQty += qty);
-            const avgMonthlyQty = totalMonthlyQty / monthsCount;
+            const months = Object.values(byMonth);
+            const monthsCount = months.length;
+            const avgMonthlyQty = months.reduce((s, m) => s + m.qty, 0) / monthsCount;
+            const avgMonthlySpend = months.reduce((s, m) => s + m.spend, 0) / monthsCount;
             const recommendedQty = Math.max(1, Math.round(avgMonthlyQty));
 
+            // Score = meses presentes × gasto mensal médio
+            // Itens caros e recorrentes ficam no topo
+            const score = monthsCount * avgMonthlySpend;
+
             return {
-                name: name,
+                name,
+                score,
+                monthsCount,
                 frequency: histForCalc.length,
-                monthsCount: monthsCount,
-                recommendedQty: recommendedQty,
+                recommendedQty,
                 latestPrice: sortedHistory[0].price,
-                avgBuyDayOfMonth: avgBuyDayOfMonth
+                avgMonthlySpend
             };
         })
-        .filter(item => item !== null)
-        .sort((a, b) => {
-            if (b.monthsCount !== a.monthsCount) return b.monthsCount - a.monthsCount;
-            return b.frequency - a.frequency;
-        });
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score);
 
-    const topItems = productsByFrequency.slice(0, 150);  //Itens da Feria do Mês quantidade
+    const topItems = scoredProducts.slice(0, 150);
 
     let addedCount = 0;
     topItems.forEach(item => {
@@ -994,7 +988,7 @@ function generateSmartList() {
     renderProducts(searchInput.value);
 
     if (addedCount > 0) {
-        setStatus(`🛒 Feira do ${periodoLabel}: ${topItems.length} produtos sugeridos pelo histórico!`);
+        setStatus(`🛒 Feira do ${periodoLabel}: ${topItems.length} itens priorizados por recorrência e valor!`);
     } else {
         setStatus("Todos os itens sugeridos já estão na sua lista.");
     }
@@ -1007,54 +1001,55 @@ function generateExpiringList() {
     }
 
     const todayMs = new Date().getTime();
-
-    // Corte temporal: para o ciclo de consumo só contar compras recentes
     const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
 
-    let expiringCandidates = [];
+    // Separar candidatos: perecíveis (prioridade máxima) e demais itens com ciclo curto
+    let perishaveis = [];
+    let outrosCandidatos = [];
 
     Object.keys(groupedProducts).forEach(name => {
         const history = groupedProducts[name];
-
-        // Histórico com datas válidas
         const validHistory = history.filter(h => h.datetime && !isNaN(h.datetime.getTime()));
-        if (validHistory.length < 2) return;
+        if (validHistory.length < 1) return;
 
-        // Para cálculo do ciclo: usar apenas dados dentro do cutoff
-        const recentHistory = validHistory.filter(h => h.datetime.getTime() >= cutoffMs);
-        // Precisa de ao menos 2 pontos recentes para calcular o ciclo confiável
-        // Se não houver, usar todo o histórico como fallback
-        const histForCycle = recentHistory.length >= 2 ? recentHistory : validHistory;
-
-        const sortedForCycle = [...histForCycle].sort((a, b) => a.datetime - b.datetime);
-
-        // Agrupar por dia para evitar duplicatas de itens na mesma nota
-        const byDay = {};
-        sortedForCycle.forEach(h => {
-            const dayKey = h.datetime.toISOString().slice(0, 10);
-            if (!byDay[dayKey]) byDay[dayKey] = { ms: h.datetime.getTime(), qty: 0 };
-            byDay[dayKey].qty += h.qty;
-        });
-
-        const dayKeys = Object.keys(byDay).sort();
-        if (dayKeys.length < 2) return;
-
-        // Calcular ciclo médio de consumo (ms por unidade)
-        let totalDiffMs = 0;
-        let totalUnitsConsumed = 0;
-        for (let i = 1; i < dayKeys.length; i++) {
-            totalDiffMs += (byDay[dayKeys[i]].ms - byDay[dayKeys[i - 1]].ms);
-            totalUnitsConsumed += byDay[dayKeys[i - 1]].qty;
-        }
-        if (totalUnitsConsumed <= 0) return;
-
-        const avgCycleMsPerUnit = totalDiffMs / totalUnitsConsumed;
-
-        // Calcular urgência com base na última compra REAL (pode ser mais antiga que o cutoff)
         const allSorted = [...validHistory].sort((a, b) => b.datetime - a.datetime);
         const lastEntry = allSorted[0];
-        const lastPurchaseMs = lastEntry.datetime.getTime();
-        const msSinceLastPurchase = todayMs - lastPurchaseMs;
+        const msSinceLast = todayMs - lastEntry.datetime.getTime();
+
+        // Ignorar se comprado há menos de 2 dias
+        if (msSinceLast < (2 * 24 * 60 * 60 * 1000)) return;
+
+        const isPerish = isPerishable(name);
+
+        // --- Cálculo do ciclo de consumo ---
+        const recentHistory = validHistory.filter(h => h.datetime.getTime() >= cutoffMs);
+        const histForCycle = recentHistory.length >= 2 ? recentHistory : validHistory;
+        const sortedForCycle = [...histForCycle].sort((a, b) => a.datetime - b.datetime);
+
+        // Agrupar por dia
+        const byDay = {};
+        sortedForCycle.forEach(h => {
+            const dk = h.datetime.toISOString().slice(0, 10);
+            if (!byDay[dk]) byDay[dk] = { ms: h.datetime.getTime(), qty: 0 };
+            byDay[dk].qty += h.qty;
+        });
+        const dayKeys = Object.keys(byDay).sort();
+
+        // Para perecíveis com apenas 1 ocorrência, usar ciclo fixo de 7 dias
+        let avgCycleMsPerUnit;
+        if (dayKeys.length >= 2) {
+            let diffMs = 0, units = 0;
+            for (let i = 1; i < dayKeys.length; i++) {
+                diffMs += byDay[dayKeys[i]].ms - byDay[dayKeys[i - 1]].ms;
+                units += byDay[dayKeys[i - 1]].qty;
+            }
+            avgCycleMsPerUnit = units > 0 ? diffMs / units : 7 * 24 * 60 * 60 * 1000;
+        } else if (isPerish) {
+            // Perecível com 1 compra: assume ciclo de 7 dias
+            avgCycleMsPerUnit = 7 * 24 * 60 * 60 * 1000;
+        } else {
+            return; // Não-perecível sem histórico suficiente: pular
+        }
 
         // Quantidade da última compra (agrupada pelo dia)
         const lastDayKey = lastEntry.datetime.toISOString().slice(0, 10);
@@ -1064,41 +1059,58 @@ function generateExpiringList() {
         });
         if (lastQty <= 0) lastQty = 1;
 
-        const expectedLifeTimeMs = lastQty * avgCycleMsPerUnit;
-        if (expectedLifeTimeMs <= 0) return;
+        const expectedLifeMs = lastQty * avgCycleMsPerUnit;
+        if (expectedLifeMs <= 0) return;
 
-        const urgencyScore = msSinceLastPurchase / expectedLifeTimeMs;
+        const urgencyScore = msSinceLast / expectedLifeMs;
 
-        // Score entre 0.7 (quase na hora) e 3.5 (deveria ter comprado há tempo)
-        // Abaixo de 0.7 = tem estoque ainda; acima de 3.5 = provavelmente parou de usar
-        if (urgencyScore >= 0.7 && urgencyScore <= 3.5) {
-            // Quantidade recomendada: média das compras recentes por vez
-            let totalRecentQty = 0;
-            sortedForCycle.forEach(h => totalRecentQty += h.qty);
-            const avgRecentQty = totalRecentQty / sortedForCycle.length;
-            const recommendedQty = Math.max(1, Math.round(avgRecentQty));
+        // Perecíveis: incluir a partir de 0.5 (já estão quase no fim)
+        // Não-perecíveis: só incluir entre 0.7 e 3.5
+        const minScore = isPerish ? 0.5 : 0.7;
+        const maxScore = isPerish ? 5.0 : 3.5;
+        if (urgencyScore < minScore || urgencyScore > maxScore) return;
 
-            // Rótulo de urgência para informar o usuário
-            let urgencyLabel = '';
-            if (urgencyScore >= 2.0) urgencyLabel = '🔴 Atrasado';
-            else if (urgencyScore >= 1.0) urgencyLabel = '🟠 Na hora';
-            else urgencyLabel = '🟡 Em breve';
+        // Quantidade mínima recomendada para reposição semanal
+        // Perecíveis: 1 unidade (quantidade mínima)
+        // Demais: média histórica
+        let recommendedQty;
+        if (isPerish) {
+            recommendedQty = 1;
+        } else {
+            const totalRecentQty = sortedForCycle.reduce((s, h) => s + h.qty, 0);
+            recommendedQty = Math.max(1, Math.round(totalRecentQty / sortedForCycle.length));
+        }
 
-            expiringCandidates.push({
-                name: name,
-                urgency: urgencyScore,
-                urgencyLabel: urgencyLabel,
-                recommendedQty: recommendedQty,
-                latestPrice: lastEntry.price,
-                cycleAvgDays: Math.round(avgCycleMsPerUnit / (24 * 60 * 60 * 1000))
-            });
+        let urgencyLabel;
+        if (urgencyScore >= 2.0) urgencyLabel = '🔴 Atrasado';
+        else if (urgencyScore >= 1.0) urgencyLabel = '🟠 Na hora';
+        else urgencyLabel = '🟡 Em breve';
+
+        const candidate = {
+            name,
+            urgency: urgencyScore,
+            urgencyLabel,
+            recommendedQty,
+            latestPrice: lastEntry.price,
+            isPerish,
+            cycleAvgDays: Math.round(avgCycleMsPerUnit / (24 * 60 * 60 * 1000))
+        };
+
+        if (isPerish) {
+            perishaveis.push(candidate);
+        } else {
+            outrosCandidatos.push(candidate);
         }
     });
 
-    expiringCandidates.sort((a, b) => b.urgency - a.urgency);
+    // Ordenar: perecíveis por urgência, depois demais por urgência
+    perishaveis.sort((a, b) => b.urgency - a.urgency);
+    outrosCandidatos.sort((a, b) => b.urgency - a.urgency);
 
-    // Limitar a 20 itens para reposição semanal
-    const topItems = expiringCandidates.slice(0, 20);
+    // Perecíveis têm prioridade: até 15 itens perecíveis + 5 outros
+    const topPerish = perishaveis.slice(0, 15);
+    const topOutros = outrosCandidatos.slice(0, 5);
+    const topItems = [...topPerish, ...topOutros];
 
     let addedCount = 0;
     topItems.forEach(item => {
@@ -1112,14 +1124,16 @@ function generateExpiringList() {
     renderProducts(searchInput.value);
 
     if (addedCount > 0) {
-        const atrasados = expiringCandidates.filter(i => i.urgency >= 2.0).length;
-        let msg = `🔄 Reposição semanal: ${topItems.length} itens precisam ser repostos.`;
+        const atrasados = topItems.filter(i => i.urgency >= 2.0).length;
+        const emBreve = topItems.filter(i => i.urgency < 1.0).length;
+        let msg = `🥬 Reposição semanal: ${topPerish.length} perecíveis + ${topOutros.length} outros.`;
         if (atrasados > 0) msg += ` (${atrasados} atrasados!)`;
+        else if (emBreve > 0) msg += ` (${emBreve} chegando ao fim)`;
         setStatus(msg);
     } else if (topItems.length > 0) {
-        setStatus("Os itens que precisam de reposição já estão na sua lista.");
+        setStatus("Os itens de reposição já estão na sua lista.");
     } else {
-        setStatus("Nenhum item precisa de reposição agora (ou faltam dados históricos).");
+        setStatus("Nenhum perecível precisa de reposição agora (ou faltam dados históricos).");
     }
 }
 
@@ -1230,11 +1244,29 @@ function updateCartUI() {
         const colorClass = getColorClassForCategory(cat);
         const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#ef4444';
 
+        // Calcular total e qtd da categoria
+        let catQty = 0;
+        let catTotal = 0;
+        groupedCart[cat].forEach(name => {
+            const item = shoppingCart[name];
+            catQty += item.qty;
+            catTotal += item.price * item.qty;
+        });
+
         // Category section header
         const header = document.createElement('div');
         header.className = 'cart-category-title';
         header.style.color = categoryColor;
-        header.textContent = cat;
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+        
+        header.innerHTML = `
+            <span>${cat}</span>
+            <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">
+                ${catQty} item(s) &bull; ${formatCurrency(catTotal)}
+            </span>
+        `;
         listContainer.appendChild(header);
 
         // Ordenar itens dentro da categoria por prioridade decrescente, depois alfabético
