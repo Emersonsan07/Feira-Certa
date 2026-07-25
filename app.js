@@ -180,56 +180,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Cart Events
     const openCartBtn = document.getElementById('openCartBtn');
-    const closeCartBtn = document.getElementById('closeCartBtn');
-    const cartModal = document.getElementById('cartModal');
+    const navFazerFeiraBtn = document.getElementById('navFazerFeiraBtn');
     const clearCartBtn = document.getElementById('clearCartBtn');
     const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
 
-    openCartBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        cartModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    });
+    if (openCartBtn) {
+        openCartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showView('feira');
+        });
+    }
 
-    closeCartBtn.addEventListener('click', () => {
-        cartModal.classList.remove('active');
-        document.body.style.overflow = '';
-    });
+    if (navFazerFeiraBtn) {
+        navFazerFeiraBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showView('feira');
+        });
+    }
 
-    // Close on overlay click
-    cartModal.addEventListener('click', (e) => {
-        if (e.target === cartModal) {
-            cartModal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-    });
+    if (clearCartBtn) {
+        clearCartBtn.addEventListener('click', () => {
+            shoppingCart = {};
+            updateCartUI();
+            if (typeof renderProducts === 'function' && document.getElementById('searchInput')) {
+                renderProducts(document.getElementById('searchInput').value);
+            }
+        });
+    }
 
-    clearCartBtn.addEventListener('click', () => {
-        shoppingCart = {};
-        updateCartUI();
-        renderProducts(searchInput.value); // Re-render to clear button states
-    });
-
-    shareWhatsAppBtn.addEventListener('click', () => {
-        shareViaWhatsApp();
-    });
+    if (shareWhatsAppBtn) {
+        shareWhatsAppBtn.addEventListener('click', shareViaWhatsApp);
+    }
 
     const smartListBtn = document.getElementById('smartListBtn');
-    if (smartListBtn) {
-        smartListBtn.addEventListener('click', generateSmartList);
-    }
+    if (smartListBtn) smartListBtn.addEventListener('click', generateSmartList);
 
     const expiringListBtn = document.getElementById('expiringListBtn');
-    if (expiringListBtn) {
-        expiringListBtn.addEventListener('click', generateExpiringList);
-    }
+    if (expiringListBtn) expiringListBtn.addEventListener('click', generateExpiringList);
 
     const cartBudgetInput = document.getElementById('cartBudgetInput');
-    if (cartBudgetInput) {
-        cartBudgetInput.addEventListener('input', updateCartUI);
-    }
+    if (cartBudgetInput) cartBudgetInput.addEventListener('input', updateCartUI);
 
     const navDashboardBtn = document.getElementById('navDashboardBtn');
     const navProductsBtn = document.getElementById('navProductsBtn');
@@ -237,40 +228,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const dashboardView = document.getElementById('dashboardView');
     const productsView = document.getElementById('productsView');
     const compareView = document.getElementById('compareView');
+    const feiraView = document.getElementById('feiraView');
 
     // Quick action buttons no dashboard
     const quickSmartListBtn = document.getElementById('quickSmartListBtn');
     const quickExpiringBtn = document.getElementById('quickExpiringBtn');
-    if (quickSmartListBtn) quickSmartListBtn.addEventListener('click', () => { openCartAndRun(generateSmartList); });
-    if (quickExpiringBtn) quickExpiringBtn.addEventListener('click', () => { openCartAndRun(generateExpiringList); });
+    if (quickSmartListBtn) quickSmartListBtn.addEventListener('click', () => { showView('feira'); generateSmartList(); });
+    if (quickExpiringBtn) quickExpiringBtn.addEventListener('click', () => { showView('feira'); generateExpiringList(); });
 
     function showView(view) {
         const isDash = view === 'dashboard';
         const isProd = view === 'products';
         const isComp = view === 'compare';
+        const isFeira = view === 'feira' || view === 'cart';
 
-        dashboardView.style.display = isDash ? 'block' : 'none';
-        productsView.style.display = isProd ? 'block' : 'none';
-        compareView.style.display = isComp ? 'block' : 'none';
+        if (dashboardView) dashboardView.style.display = isDash ? 'block' : 'none';
+        if (productsView) productsView.style.display = isProd ? 'block' : 'none';
+        if (compareView) compareView.style.display = isComp ? 'block' : 'none';
+        const plannerView = document.getElementById('plannerView');
+        if (plannerView) plannerView.style.display = 'none';
+        if (feiraView) feiraView.style.display = isFeira ? 'block' : 'none';
 
         if (searchBarWrapper) searchBarWrapper.style.display = isProd ? 'block' : 'none';
 
-        navDashboardBtn.classList.toggle('active', isDash);
-        navProductsBtn.classList.toggle('active', isProd);
+        if (navDashboardBtn) navDashboardBtn.classList.toggle('active', isDash);
+        if (navProductsBtn) navProductsBtn.classList.toggle('active', isProd);
         if (navCompareBtn) navCompareBtn.classList.toggle('active', isComp);
+        if (openCartBtn) openCartBtn.classList.toggle('active', isFeira);
+        if (navFazerFeiraBtn) navFazerFeiraBtn.classList.toggle('active', isFeira);
 
-        if (isComp) {
-            updateCompareView();
-        }
+        if (isComp) updateCompareView();
+        if (isFeira) updateCartUI();
     }
 
     if (navDashboardBtn && navProductsBtn) {
         navDashboardBtn.addEventListener('click', (e) => { e.preventDefault(); showView('dashboard'); });
         navProductsBtn.addEventListener('click', (e) => { e.preventDefault(); showView('products'); });
-        if (navCompareBtn) {
-            navCompareBtn.addEventListener('click', (e) => { e.preventDefault(); showView('compare'); });
-        }
+        if (navCompareBtn) navCompareBtn.addEventListener('click', (e) => { e.preventDefault(); showView('compare'); });
         showView('dashboard');
+    }
+
+    // Toggle de Modos dentro da Feira (Montar Lista vs No Mercado)
+    const modePlanningBtn = document.getElementById('modePlanningBtn');
+    const modeMarketBtn = document.getElementById('modeMarketBtn');
+    const feiraMarketBanner = document.getElementById('feiraMarketBanner');
+
+    if (modePlanningBtn && modeMarketBtn) {
+        modePlanningBtn.addEventListener('click', () => {
+            modePlanningBtn.classList.add('active');
+            modeMarketBtn.classList.remove('active');
+            if (feiraMarketBanner) feiraMarketBanner.style.display = 'none';
+            updateCartUI();
+        });
+
+        modeMarketBtn.addEventListener('click', () => {
+            modeMarketBtn.classList.add('active');
+            modePlanningBtn.classList.remove('active');
+            if (feiraMarketBanner) feiraMarketBanner.style.display = 'flex';
+            if (typeof openFazerFeira === 'function') openFazerFeira();
+        });
     }
 
     // Atualiza hint dos botões de acordo com o dia
@@ -1157,53 +1173,66 @@ function updateCartQuantity(name, delta) {
     renderProducts(searchInput.value);
 }
 
+let cartActiveCatFilter = 'Todos';
+let cartViewMode = 'category'; // 'category' | 'priority' | 'alphabetical'
+
 function updateCartUI() {
     const listContainer = document.getElementById('cartItemsList');
     const badge = document.getElementById('cartBadge');
     const totalEl = document.getElementById('cartTotalValue');
     const shareBtn = document.getElementById('shareWhatsAppBtn');
+    const countStatEl = document.getElementById('cartCountStat');
+    const totalStatEl = document.getElementById('cartTotalStat');
+    const catFilterWrapper = document.getElementById('cartCatFilterWrapper');
+    const catFilterContainer = document.getElementById('cartCatFilter');
 
+    if (!listContainer) return;
     listContainer.innerHTML = '';
 
     let totalItems = 0;
     let totalPrice = 0;
-
     const itemsKeys = Object.keys(shoppingCart);
 
     if (itemsKeys.length === 0) {
         listContainer.innerHTML = `
             <div class="empty-cart-msg">
                 <i class="ph ph-basket" style="font-size: 2.5rem; opacity: 0.3;"></i>
-                <p>Sua lista está vazia.</p>
-                <p style="font-size: 0.8rem;">Use os botões acima para gerar sugestões ou adicione produtos na aba Produtos.</p>
+                <p>Sua lista de compras está vazia.</p>
+                <p style="font-size: 0.8rem;">Use os botões acima para gerar sugestões ou busque um produto no campo de adição rápida.</p>
             </div>`;
-        badge.style.display = 'none';
-        totalEl.textContent = 'R$ 0,00';
-        shareBtn.style.display = 'none';
+        if (badge) badge.style.display = 'none';
+        if (totalEl) totalEl.textContent = 'R$ 0,00';
+        if (shareBtn) shareBtn.style.display = 'none';
+        if (countStatEl) countStatEl.textContent = '0 itens';
+        if (totalStatEl) totalStatEl.textContent = 'R$ 0,00';
+        if (catFilterWrapper) catFilterWrapper.style.display = 'none';
 
         const adjustBtn = document.getElementById('adjustToBudgetBtn');
         if (adjustBtn) adjustBtn.style.display = 'none';
+
+        const budgetProgress = document.getElementById('cartBudgetProgress');
+        const pctLabel = document.getElementById('budgetPctLabel');
+        const remLabel = document.getElementById('budgetRemainingLabel');
+        if (budgetProgress) budgetProgress.style.width = '0%';
+        if (pctLabel) pctLabel.textContent = '0% do orçamento';
+        if (remLabel) remLabel.textContent = '';
         return;
     }
 
-    shareBtn.style.display = 'flex';
+    if (shareBtn) shareBtn.style.display = 'flex';
 
-    // Calcular orçamento cumulativo por prioridade
+    // Calculate budget & accumulated totals
     const budgetInput = document.getElementById('cartBudgetInput');
     const targetBudget = parseFloat(budgetInput?.value) || 0;
 
-    // Ordenar itens globalmente por prioridade decrescente (Alta -> Média -> Baixa) e alfabético
     const weight = { 'Alta': 3, 'Média': 2, 'Baixa': 1 };
     const sortedGlobalItems = [...itemsKeys].sort((a, b) => {
         const prioA = getPriority(a);
         const prioB = getPriority(b);
-        if (weight[prioB] !== weight[prioA]) {
-            return weight[prioB] - weight[prioA];
-        }
+        if (weight[prioB] !== weight[prioA]) return weight[prioB] - weight[prioA];
         return a.localeCompare(b);
     });
 
-    // Determinar quais itens excedem o orçamento
     let accumulated = 0;
     const exceedsBudget = {};
     let hasExceedingItems = false;
@@ -1220,15 +1249,156 @@ function updateCartUI() {
         accumulated += cost;
     });
 
-    // Exibir/ocultar botão de ajuste ao orçamento
     const adjustBtn = document.getElementById('adjustToBudgetBtn');
     if (adjustBtn) {
         adjustBtn.style.display = (targetBudget > 0 && hasExceedingItems) ? 'flex' : 'none';
     }
 
-    // Agrupar itens por categoria para exibição
-    const groupedCart = {};
+    // Render Category Filter Chips
+    const presentCats = new Set(['Todos']);
+    itemsKeys.forEach(name => presentCats.add(resolveCategory(name)));
+
+    if (catFilterContainer && catFilterWrapper) {
+        catFilterWrapper.style.display = 'block';
+        catFilterContainer.innerHTML = '';
+        presentCats.forEach(cat => {
+            const chip = document.createElement('button');
+            chip.className = 'cart-cat-chip' + (cat === cartActiveCatFilter ? ' active' : '');
+            let labelText = cat;
+            if (cat === 'Todos') {
+                labelText = `Todos (${itemsKeys.length})`;
+            } else {
+                const countInCat = itemsKeys.filter(n => resolveCategory(n) === cat).length;
+                labelText = `${cat} (${countInCat})`;
+            }
+            chip.textContent = labelText;
+            const colorClass = getColorClassForCategory(cat);
+            const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#3b82f6';
+            if (cat !== 'Todos') chip.style.setProperty('--cat-accent', categoryColor);
+
+            chip.addEventListener('click', () => {
+                cartActiveCatFilter = cat;
+                updateCartUI();
+            });
+            catFilterContainer.appendChild(chip);
+        });
+    }
+
+    // Filter itemsKeys based on cartActiveCatFilter
+    let filteredKeys = itemsKeys;
+    if (cartActiveCatFilter !== 'Todos') {
+        filteredKeys = itemsKeys.filter(name => resolveCategory(name) === cartActiveCatFilter);
+    }
+
+    // Calculate total summary stats for all items in cart
     itemsKeys.forEach(name => {
+        const item = shoppingCart[name];
+        totalItems += item.qty;
+        totalPrice += (item.price * item.qty);
+    });
+
+    if (countStatEl) countStatEl.textContent = `${itemsKeys.length} prod (${totalItems} un)`;
+    if (totalStatEl) totalStatEl.textContent = formatCurrency(totalPrice);
+    if (badge) { badge.style.display = 'inline-block'; badge.textContent = totalItems; }
+    if (totalEl) totalEl.textContent = formatCurrency(totalPrice);
+
+    // Render Cart Items based on cartViewMode
+    if (cartViewMode === 'category') {
+        renderCartByCategory(filteredKeys, listContainer, exceedsBudget, weight);
+    } else if (cartViewMode === 'priority') {
+        renderCartByPriority(filteredKeys, listContainer, exceedsBudget, weight);
+    } else {
+        renderCartAlphabetical(filteredKeys, listContainer, exceedsBudget);
+    }
+
+    // Update Budget Progress Bar & Info Label
+    const budgetProgress = document.getElementById('cartBudgetProgress');
+    const pctLabel = document.getElementById('budgetPctLabel');
+    const remLabel = document.getElementById('budgetRemainingLabel');
+    if (budgetInput && budgetProgress) {
+        const target = parseFloat(budgetInput.value) || 0;
+        if (target > 0) {
+            const rawPct = (totalPrice / target) * 100;
+            const pct = Math.min(rawPct, 100);
+            budgetProgress.style.width = pct + '%';
+            if (totalPrice > target) {
+                budgetProgress.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
+                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% do orçamento`; pctLabel.style.color = '#f87171'; }
+                if (remLabel) { remLabel.textContent = `Excede: ${formatCurrency(totalPrice - target)}`; remLabel.style.color = '#f87171'; }
+            } else {
+                budgetProgress.style.background = rawPct > 80 ? 'linear-gradient(90deg, #3b82f6, #f59e0b)' : 'linear-gradient(90deg, #3b82f6, #10b981)';
+                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% do orçamento`; pctLabel.style.color = 'var(--text-secondary)'; }
+                if (remLabel) { remLabel.textContent = `Saldo: ${formatCurrency(target - totalPrice)}`; remLabel.style.color = '#34d399'; }
+            }
+        } else {
+            budgetProgress.style.width = '0%';
+            if (pctLabel) pctLabel.textContent = 'Defina um orçamento acima';
+            if (remLabel) remLabel.textContent = '';
+        }
+    }
+
+    attachCartCardEventListeners();
+}
+
+function renderCartItemCard(name, isExceeded, categoryColor) {
+    const item = shoppingCart[name];
+    const priority = getPriority(name);
+
+    // Calculate historical average
+    const history = groupedProducts[name];
+    let avgPrice = item.price;
+    let diffBadge = '';
+
+    if (history && history.length > 0) {
+        const validPrices = history.map(h => h.price).filter(p => p > 0);
+        if (validPrices.length > 0) {
+            avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+            if (avgPrice > 0) {
+                const diffPct = ((item.price - avgPrice) / avgPrice) * 100;
+                if (diffPct > 3) {
+                    diffBadge = `<span class="cart-item-badge-diff up" title="Preço estimado ${diffPct.toFixed(0)}% acima da média">📈 +${diffPct.toFixed(0)}%</span>`;
+                } else if (diffPct < -3) {
+                    diffBadge = `<span class="cart-item-badge-diff down" title="Preço estimado ${Math.abs(diffPct).toFixed(0)}% abaixo da média">📉 -${Math.abs(diffPct).toFixed(0)}%</span>`;
+                }
+            }
+        }
+    }
+
+    const card = document.createElement('div');
+    card.className = `cart-item-card ${isExceeded ? 'exceeds-budget' : ''}`;
+    card.style.setProperty('--item-accent', categoryColor);
+
+    card.innerHTML = `
+        <div class="cart-item-details">
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+                <div class="cart-item-name" title="${name}">${name}</div>
+                ${diffBadge}
+            </div>
+            <div class="cart-item-stats" style="align-items:center;margin-top:0.2rem;">
+                <select class="cart-item-priority-select" data-name="${name}">
+                    <option value="Alta" ${priority === 'Alta' ? 'selected' : ''}>🔴 Alta</option>
+                    <option value="Média" ${priority === 'Média' ? 'selected' : ''}>🟡 Média</option>
+                    <option value="Baixa" ${priority === 'Baixa' ? 'selected' : ''}>🟢 Baixa</option>
+                </select>
+                <span title="Preço unitário estim." style="margin-left:0.5rem;font-size:0.7rem;color:var(--text-secondary)">${formatCurrency(item.price)}/un</span>
+                <span class="item-total-val" style="margin-left:auto;">${formatCurrency(item.price * item.qty)}</span>
+            </div>
+        </div>
+        <div class="cart-qty-controls">
+            <button class="cart-qty-btn dec-btn" data-name="${name}"><i class="ph ph-minus"></i></button>
+            <span class="cart-qty-value">${item.qty}</span>
+            <button class="cart-qty-btn inc-btn" data-name="${name}"><i class="ph ph-plus"></i></button>
+        </div>
+        <button class="cart-remove-item-btn" data-name="${name}" title="Remover da lista">
+            <i class="ph ph-trash"></i>
+        </button>
+    `;
+    return card;
+}
+
+function renderCartByCategory(filteredKeys, listContainer, exceedsBudget, weight) {
+    const groupedCart = {};
+    filteredKeys.forEach(name => {
         const cat = resolveCategory(name);
         if (!groupedCart[cat]) groupedCart[cat] = [];
         groupedCart[cat].push(name);
@@ -1244,7 +1414,6 @@ function updateCartUI() {
         const colorClass = getColorClassForCategory(cat);
         const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#ef4444';
 
-        // Calcular total e qtd da categoria
         let catQty = 0;
         let catTotal = 0;
         groupedCart[cat].forEach(name => {
@@ -1253,131 +1422,124 @@ function updateCartUI() {
             catTotal += item.price * item.qty;
         });
 
-        // Category section header
         const header = document.createElement('div');
         header.className = 'cart-category-title';
         header.style.color = categoryColor;
         header.style.display = 'flex';
         header.style.justifyContent = 'space-between';
         header.style.alignItems = 'center';
-        
+        header.style.marginTop = '0.75rem';
+        header.style.marginBottom = '0.35rem';
+
         header.innerHTML = `
             <span>${cat}</span>
-            <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.9;">
-                ${catQty} item(s) &bull; ${formatCurrency(catTotal)}
+            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.85;">
+                ${groupedCart[cat].length} prod (${catQty} un) &bull; <strong>${formatCurrency(catTotal)}</strong>
             </span>
         `;
         listContainer.appendChild(header);
 
-        // Ordenar itens dentro da categoria por prioridade decrescente, depois alfabético
         groupedCart[cat].sort((a, b) => {
             const prioA = getPriority(a);
             const prioB = getPriority(b);
-            if (weight[prioB] !== weight[prioA]) {
-                return weight[prioB] - weight[prioA];
-            }
+            if (weight[prioB] !== weight[prioA]) return weight[prioB] - weight[prioA];
             return a.localeCompare(b);
         });
 
         groupedCart[cat].forEach(name => {
-            const item = shoppingCart[name];
-            totalItems += item.qty;
-            totalPrice += (item.price * item.qty);
-
-            // Calculate historical average
-            const history = groupedProducts[name];
-            let avgPrice = item.price;
-            if (history && history.length > 0) {
-                const validPrices = history.map(h => h.price).filter(p => p > 0);
-                if (validPrices.length > 0) {
-                    avgPrice = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
-                }
-            }
-
-            const priority = getPriority(name);
-            const isExceeded = exceedsBudget[name];
-
-            const card = document.createElement('div');
-            card.className = `cart-item-card ${isExceeded ? 'exceeds-budget' : ''}`;
-            card.style.setProperty('--item-accent', categoryColor);
-
-            card.innerHTML = `
-                <div class="cart-item-details">
-                    <div class="cart-item-name" title="${name}">${name}</div>
-                    <div class="cart-item-stats">
-                        <select class="cart-item-priority-select" data-name="${name}">
-                            <option value="Alta" ${priority === 'Alta' ? 'selected' : ''}>🔴 Alta</option>
-                            <option value="Média" ${priority === 'Média' ? 'selected' : ''}>🟡 Média</option>
-                            <option value="Baixa" ${priority === 'Baixa' ? 'selected' : ''}>🟢 Baixa</option>
-                        </select>
-                        <span title="Preço Médio Histórico" style="margin-left: 0.5rem;">Média: ${formatCurrency(avgPrice)}</span>
-                        <span class="item-total-val" style="margin-left: auto;">${formatCurrency(item.price * item.qty)}</span>
-                    </div>
-                </div>
-                <div class="cart-qty-controls">
-                    <button class="cart-qty-btn dec-btn" data-name="${name}"><i class="ph ph-minus"></i></button>
-                    <span class="cart-qty-value">${item.qty}</span>
-                    <button class="cart-qty-btn inc-btn" data-name="${name}"><i class="ph ph-plus"></i></button>
-                </div>
-                <button class="cart-remove-item-btn" data-name="${name}" title="Remover da lista">
-                    <i class="ph ph-trash"></i>
-                </button>
-            `;
+            const card = renderCartItemCard(name, exceedsBudget[name], categoryColor);
             listContainer.appendChild(card);
         });
     });
+}
 
-    badge.style.display = 'inline-block';
-    badge.textContent = totalItems;
-    totalEl.textContent = formatCurrency(totalPrice);
+function renderCartByPriority(filteredKeys, listContainer, exceedsBudget, weight) {
+    const priorityGroups = { 'Alta': [], 'Média': [], 'Baixa': [] };
+    filteredKeys.forEach(name => {
+        const p = getPriority(name);
+        if (!priorityGroups[p]) priorityGroups[p] = [];
+        priorityGroups[p].push(name);
+    });
 
-    // Atualizar barra de progresso do orçamento
-    const budgetProgress = document.getElementById('cartBudgetProgress');
-    const pctLabel = document.getElementById('budgetPctLabel');
-    if (budgetInput && budgetProgress) {
-        const target = parseFloat(budgetInput.value) || 0;
-        if (target > 0) {
-            const rawPct = (totalPrice / target) * 100;
-            const pct = Math.min(rawPct, 100);
-            budgetProgress.style.width = pct + '%';
-            if (totalPrice > target) {
-                budgetProgress.classList.add('over-budget');
-                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% — acima do orçamento!`; pctLabel.style.color = '#f87171'; }
-            } else {
-                budgetProgress.classList.remove('over-budget');
-                if (pctLabel) { pctLabel.textContent = `${rawPct.toFixed(0)}% do orçamento`; pctLabel.style.color = rawPct > 80 ? '#fbbf24' : 'var(--text-secondary)'; }
-            }
-        } else {
-            budgetProgress.style.width = '0%';
-            if (pctLabel) pctLabel.textContent = 'Defina um orçamento acima';
-        }
-    }
+    const prioConfig = [
+        { key: 'Alta', label: '🔴 Alta Prioridade (Essenciais)', color: '#ef4444' },
+        { key: 'Média', label: '🟡 Média Prioridade', color: '#f59e0b' },
+        { key: 'Baixa', label: '🟢 Baixa Prioridade (Desejáveis)', color: '#10b981' }
+    ];
 
-    // Attach qty events inside cart
+    prioConfig.forEach(cfg => {
+        const items = priorityGroups[cfg.key];
+        if (!items || items.length === 0) return;
+
+        let pQty = 0;
+        let pTotal = 0;
+        items.forEach(n => {
+            pQty += shoppingCart[n].qty;
+            pTotal += shoppingCart[n].price * shoppingCart[n].qty;
+        });
+
+        const header = document.createElement('div');
+        header.className = 'cart-category-title';
+        header.style.color = cfg.color;
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'center';
+        header.style.marginTop = '0.75rem';
+        header.style.marginBottom = '0.35rem';
+
+        header.innerHTML = `
+            <span>${cfg.label}</span>
+            <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.85;">
+                ${items.length} prod (${pQty} un) &bull; <strong>${formatCurrency(pTotal)}</strong>
+            </span>
+        `;
+        listContainer.appendChild(header);
+
+        items.sort((a, b) => a.localeCompare(b));
+        items.forEach(name => {
+            const cat = resolveCategory(name);
+            const colorClass = getColorClassForCategory(cat);
+            const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || cfg.color;
+            const card = renderCartItemCard(name, exceedsBudget[name], categoryColor);
+            listContainer.appendChild(card);
+        });
+    });
+}
+
+function renderCartAlphabetical(filteredKeys, listContainer, exceedsBudget) {
+    const sorted = [...filteredKeys].sort((a, b) => a.localeCompare(b));
+    sorted.forEach(name => {
+        const cat = resolveCategory(name);
+        const colorClass = getColorClassForCategory(cat);
+        const categoryColor = getComputedStyle(document.documentElement).getPropertyValue(`--cat-${colorClass}`).trim() || '#3b82f6';
+        const card = renderCartItemCard(name, exceedsBudget[name], categoryColor);
+        listContainer.appendChild(card);
+    });
+}
+
+function attachCartCardEventListeners() {
     document.querySelectorAll('.dec-btn').forEach(btn => {
         btn.addEventListener('click', (e) => updateCartQuantity(e.currentTarget.getAttribute('data-name'), -1));
     });
     document.querySelectorAll('.inc-btn').forEach(btn => {
         btn.addEventListener('click', (e) => updateCartQuantity(e.currentTarget.getAttribute('data-name'), 1));
     });
-
-    // Ouvintes para o seletor de prioridade rápida no carrinho
     document.querySelectorAll('.cart-item-priority-select').forEach(select => {
         select.addEventListener('change', (e) => {
             const name = e.currentTarget.getAttribute('data-name');
             const newPriority = e.currentTarget.value;
             setPriority(name, newPriority);
-            updateCartUI(); // Re-renderiza para recalcular
+            updateCartUI();
         });
     });
-
-    // Ouvintes para o botão de exclusão rápida no carrinho
     document.querySelectorAll('.cart-remove-item-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const name = e.currentTarget.getAttribute('data-name');
             delete shoppingCart[name];
             updateCartUI();
-            renderProducts(searchInput.value); // atualiza botão da aba produtos
+            if (typeof renderProducts === 'function' && document.getElementById('searchInput')) {
+                renderProducts(document.getElementById('searchInput').value);
+            }
         });
     });
 }
@@ -2293,7 +2455,9 @@ function finishFazerFeira() {
         }
     });
 
-    if (confirm(`🎉 Deseja finalizar a feira e salvar estas ${newItemsToSave.length} compras no histórico de preços?\n\nTotal real: ${formatCurrency(running)} no local "${marketName}"`)) {
+    const feiraType = document.getElementById('ffTypeSelect')?.value || 'Mensal';
+
+    if (confirm(`🎉 Deseja finalizar a Feira ${feiraType} e salvar estas ${newItemsToSave.length} compras no histórico de preços?\n\nTotal real: ${formatCurrency(running)} no local "${marketName}"`)) {
         let userPurchases = JSON.parse(localStorage.getItem('feiraCertaUserPurchases')) || [];
         userPurchases = userPurchases.concat(newItemsToSave);
         localStorage.setItem('feiraCertaUserPurchases', JSON.stringify(userPurchases));
@@ -2306,7 +2470,7 @@ function finishFazerFeira() {
         processData(marketData, true);
 
         closeFazerFeira();
-        setStatus(`🎉 Feira finalizada! ${checked} itens salvos no histórico. Total: ${formatCurrency(running)}`);
+        setStatus(`🎉 Feira ${feiraType} finalizada com sucesso! ${checked} itens salvos. Total: ${formatCurrency(running)}`);
     } else {
         if (confirm("Deseja fechar o modo Fazer Feira sem salvar no histórico?")) {
             closeFazerFeira();
@@ -2946,6 +3110,115 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const addLowStockModalBtn = document.getElementById('addLowStockToCartModalBtn');
+    if (addLowStockModalBtn) addLowStockModalBtn.addEventListener('click', addLowStockToCart);
+
+    const dashAddLowStockBtn = document.getElementById('dashAddLowStockBtn');
+    if (dashAddLowStockBtn) {
+        dashAddLowStockBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            addLowStockToCart();
+        });
+    }
+
+    const addLowStockCartBtn = document.getElementById('addLowStockCartBtn');
+    if (addLowStockCartBtn) addLowStockCartBtn.addEventListener('click', addLowStockToCart);
+
+    const plannerBudgetInput = document.getElementById('plannerBudgetInput');
+    if (plannerBudgetInput) {
+        plannerBudgetInput.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value) || 0;
+            localStorage.setItem('feiraCertaPlannerBudget', val);
+            updatePlannerBudgetSummary();
+        });
+    }
+
+    // Cart View Mode Buttons
+    document.querySelectorAll('.cart-view-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.cart-view-btn').forEach(b => b.classList.remove('active'));
+            const targetBtn = e.currentTarget;
+            targetBtn.classList.add('active');
+            cartViewMode = targetBtn.getAttribute('data-mode') || 'category';
+            updateCartUI();
+        });
+    });
+
+    // Cart Quick Add Input Autocomplete
+    const quickAddInput = document.getElementById('cartQuickAddInput');
+    const quickAddDropdown = document.getElementById('cartQuickAddDropdown');
+
+    if (quickAddInput && quickAddDropdown) {
+        quickAddInput.addEventListener('input', () => {
+            const q = quickAddInput.value.trim().toLowerCase();
+            if (!q || !groupedProducts) {
+                quickAddDropdown.classList.remove('active');
+                quickAddDropdown.innerHTML = '';
+                return;
+            }
+
+            const matches = Object.keys(groupedProducts).filter(k => k.toLowerCase().includes(q)).slice(0, 6);
+            quickAddDropdown.innerHTML = '';
+            
+            matches.forEach(name => {
+                const history = groupedProducts[name];
+                const sorted = [...history].sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
+                const price = sorted[0]?.price || 10.00;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-quick-item';
+                itemDiv.innerHTML = `
+                    <span>${name}</span>
+                    <strong style="color:#2dd4bf">${formatCurrency(price)}</strong>
+                `;
+                itemDiv.addEventListener('click', () => {
+                    shoppingCart[name] = { price: price, qty: (shoppingCart[name]?.qty || 0) + 1 };
+                    quickAddInput.value = '';
+                    quickAddDropdown.classList.remove('active');
+                    updateCartUI();
+                    if (typeof renderProducts === 'function' && document.getElementById('searchInput')) {
+                        renderProducts(document.getElementById('searchInput').value);
+                    }
+                });
+                quickAddDropdown.appendChild(itemDiv);
+            });
+
+            if (matches.length > 0) {
+                quickAddDropdown.classList.add('active');
+            } else {
+                quickAddDropdown.classList.remove('active');
+            }
+        });
+
+        quickAddInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const text = quickAddInput.value.trim();
+                if (!text) return;
+
+                let price = 10.00;
+                if (groupedProducts && groupedProducts[text]) {
+                    const history = groupedProducts[text];
+                    const sorted = [...history].sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
+                    price = sorted[0]?.price || 10.00;
+                }
+
+                shoppingCart[text] = { price: price, qty: (shoppingCart[text]?.qty || 0) + 1 };
+                quickAddInput.value = '';
+                quickAddDropdown.classList.remove('active');
+                updateCartUI();
+                if (typeof renderProducts === 'function' && document.getElementById('searchInput')) {
+                    renderProducts(document.getElementById('searchInput').value);
+                }
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!quickAddInput.contains(e.target) && !quickAddDropdown.contains(e.target)) {
+                quickAddDropdown.classList.remove('active');
+            }
+        });
+    }
+
     // Inicializar alertas de estoque ao carregar
     updateEstoqueDashAlert();
 });
@@ -3258,11 +3531,107 @@ function updateEstoqueDashAlert() {
     if (descEl)   descEl.textContent     = `${alertCount} produto(s) precisam de atenção no estoque`;
 }
 
+function addLowStockToCart() {
+    if (!estoqueItems || estoqueItems.length === 0) {
+        setStatus("⚠️ Nenhum item no estoque doméstico. Adicione itens no estoque primeiro.", true);
+        return;
+    }
+
+    const itemsToReplenish = estoqueItems.filter(item => {
+        const status = getEstoqueStatus(item);
+        return status.cls !== '';
+    });
+
+    if (itemsToReplenish.length === 0) {
+        setStatus("✅ Todos os itens do estoque estão em dia!");
+        return;
+    }
+
+    let addedCount = 0;
+    itemsToReplenish.forEach(item => {
+        let price = 10.00;
+        if (groupedProducts && groupedProducts[item.name] && groupedProducts[item.name].length > 0) {
+            const sorted = [...groupedProducts[item.name]].sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
+            price = sorted[0].price || 10.00;
+        } else if (groupedProducts) {
+            const matchKey = Object.keys(groupedProducts).find(k => k.toLowerCase() === item.name.toLowerCase());
+            if (matchKey && groupedProducts[matchKey].length > 0) {
+                const sorted = [...groupedProducts[matchKey]].sort((a, b) => (b.datetime || 0) - (a.datetime || 0));
+                price = sorted[0].price || 10.00;
+            }
+        }
+
+        const neededQty = Math.max(1, Math.ceil((item.minQty || 1) * 2 - item.qty));
+        if (!shoppingCart[item.name]) {
+            shoppingCart[item.name] = { price: price, qty: neededQty };
+            addedCount++;
+        } else {
+            shoppingCart[item.name].qty += neededQty;
+            addedCount++;
+        }
+    });
+
+    updateCartUI();
+    setStatus(`📦 ${addedCount} produto(s) com estoque baixo/vencendo adicionados à lista de compras!`);
+
+    const cartModal = document.getElementById('cartModal');
+    if (cartModal) cartModal.classList.add('active');
+}
+
 // ============================================================
 //  FUNCIONALIDADE 3 — PLANEJAMENTO MENSAL COM DIVISÃO SEMANAL
 // ============================================================
 let weekChecks     = JSON.parse(localStorage.getItem('feiraCertaWeekChecks')) || {};
 let monthlyPlanCache = null;
+
+function updatePlannerBudgetSummary() {
+    if (!monthlyPlanCache || !monthlyPlanCache.weeks) return;
+    const mbCard = document.getElementById('monthlyBudget30DaysCard');
+    if (!mbCard) return;
+
+    mbCard.style.display = 'flex';
+
+    const weeks = monthlyPlanCache.weeks;
+    const totalEst = weeks.reduce((sum, w) => sum + w.items.reduce((s, i) => s + i.price * i.avgMonthlyQty, 0), 0);
+    const week1Est = weeks[0] ? weeks[0].items.reduce((s, i) => s + i.price * i.avgMonthlyQty, 0) : 0;
+    
+    let restWeeksSum = 0;
+    for (let i = 1; i < weeks.length; i++) {
+        restWeeksSum += weeks[i].items.reduce((s, item) => s + item.price * item.avgMonthlyQty, 0);
+    }
+    const avgRestWeeks = weeks.length > 1 ? restWeeksSum / (weeks.length - 1) : 0;
+
+    const totEl = document.getElementById('plannerTotalEstVal');
+    const sem1El = document.getElementById('plannerSem1Val');
+    const semFrescosEl = document.getElementById('plannerSemFrescosVal');
+    const bInput = document.getElementById('plannerBudgetInput');
+    const pBar = document.getElementById('plannerBudgetProgressBar');
+    const pDesc = document.getElementById('plannerBudgetProgressDesc');
+
+    if (totEl) totEl.textContent = formatCurrency(totalEst);
+    if (sem1El) sem1El.textContent = formatCurrency(week1Est);
+    if (semFrescosEl) semFrescosEl.textContent = `${formatCurrency(avgRestWeeks)}/sem`;
+
+    let targetBudget = parseFloat(bInput?.value) || 1200;
+    if (bInput && localStorage.getItem('feiraCertaPlannerBudget')) {
+        targetBudget = parseFloat(localStorage.getItem('feiraCertaPlannerBudget')) || targetBudget;
+        bInput.value = targetBudget;
+    }
+
+    if (targetBudget > 0 && pBar && pDesc) {
+        const pct = Math.min(200, Math.round((totalEst / targetBudget) * 100));
+        pBar.style.width = Math.min(100, pct) + '%';
+        if (pct > 100) {
+            pBar.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
+            pDesc.textContent = `${pct}% da meta (Excede o orçamento em ${formatCurrency(totalEst - targetBudget)})`;
+            pDesc.style.color = '#f87171';
+        } else {
+            pBar.style.background = 'linear-gradient(90deg, #3b82f6, #10b981)';
+            pDesc.textContent = `${pct}% da meta mensal (Saldo estimado: ${formatCurrency(targetBudget - totalEst)})`;
+            pDesc.style.color = 'var(--text-secondary)';
+        }
+    }
+}
 
 function generateMonthlyPlan() {
     if (!groupedProducts || Object.keys(groupedProducts).length === 0) {
@@ -3274,7 +3643,7 @@ function generateMonthlyPlan() {
     const month = now.getMonth();
     const label = MONTH_NAMES[month] + ' / ' + year;
     const plannerLabel = document.getElementById('plannerMonthLabel');
-    if (plannerLabel) plannerLabel.textContent = `Plano para ${label}`;
+    if (plannerLabel) plannerLabel.textContent = `Plano para ${label} (Ciclo 30 Dias)`;
 
     const todayMs  = now.getTime();
     const cutoffMs = todayMs - (DATA_CUTOFF_MONTHS * 30.44 * 24 * 60 * 60 * 1000);
@@ -3303,33 +3672,43 @@ function generateMonthlyPlan() {
         const avgDay = totalDay / forCalc.length;
 
         const sortedByDate = [...valid].sort((a, b) => b.datetime - a.datetime);
-        items.push({ name, avgDay, avgMonthlyQty, price: sortedByDate[0].price, months });
+        const category = resolveCategory(name);
+        const isPerishable = PERISHABLE_CATEGORIES.includes(category);
+
+        items.push({ name, avgDay, avgMonthlyQty, price: sortedByDate[0].price, months, category, isPerishable });
     });
 
     // Ordenar por frequência (mais comprado primeiro)
     items.sort((a, b) => b.months - a.months);
     const topItems = items.slice(0, 120);
 
-    // Distribuir em 4 semanas pelo dia médio de compra
+    // Distribuir em 4 semanas:
+    // Estocáveis (não perecíveis) entram na Semana 1 (Grande Feira Mensal)
+    // Perecíveis (hortifruti, padaria, laticínios) são distribuídos nas semanas de consumo
     const weeks = [
-        { label: 'Semana 1', range: '1–7',   items: [] },
-        { label: 'Semana 2', range: '8–14',  items: [] },
-        { label: 'Semana 3', range: '15–21', items: [] },
-        { label: 'Semana 4', range: '22–31', items: [] },
+        { label: 'Semana 1 (Feira Mensal & Frescos)', range: '1–7',   items: [] },
+        { label: 'Semana 2 (Reposição Frescos)',     range: '8–14',  items: [] },
+        { label: 'Semana 3 (Reposição Frescos)',     range: '15–21', items: [] },
+        { label: 'Semana 4 (Reposição Frescos)',     range: '22–31', items: [] },
     ];
 
     topItems.forEach(item => {
-        const d = item.avgDay;
-        let wIdx = 0;
-        if (d >= 8  && d < 15)  wIdx = 1;
-        else if (d >= 15 && d < 22) wIdx = 2;
-        else if (d >= 22)        wIdx = 3;
-        weeks[wIdx].items.push(item);
+        if (!item.isPerishable) {
+            weeks[0].items.push(item);
+        } else {
+            const d = item.avgDay;
+            let wIdx = 0;
+            if (d >= 8  && d < 15)  wIdx = 1;
+            else if (d >= 15 && d < 22) wIdx = 2;
+            else if (d >= 22)        wIdx = 3;
+            weeks[wIdx].items.push(item);
+        }
     });
 
     monthlyPlanCache = { weeks, year, month };
     renderWeeksGrid();
-    setStatus(`📅 Plano de ${label} gerado com ${topItems.length} itens em 4 semanas!`);
+    updatePlannerBudgetSummary();
+    setStatus(`📅 Plano de 30 dias gerado com sucesso! (${topItems.length} itens organizados)`);
 }
 
 function renderWeeksGrid() {

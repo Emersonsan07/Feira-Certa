@@ -207,6 +207,9 @@
                             <h4>Alertas de Estoque</h4>
                             <p id="estoqueDashAlertDesc">Produtos precisam de atenção</p>
                         </div>
+                        <button class="btn-add-estoque-alert" id="dashAddLowStockBtn" title="Adicionar produtos em alerta diretamente à lista de compras">
+                            <i class="ph ph-plus-circle"></i> Repor na Lista
+                        </button>
                         <span class="alert-count" id="estoqueDashAlertCount">0</span>
                     </div>
                 </div>
@@ -333,20 +336,53 @@
                     </div>
                 </section>
 
-                <!-- Planejamento Mensal com Divisão Semanal -->
+                <!-- Planejamento Mensal com Divisão Semanal (30 Dias) -->
                 <section class="planner-section">
                     <div class="planner-header-row">
                         <div class="planner-title-group">
                             <i class="ph ph-calendar-check"></i>
                             <div>
-                                <h2>Planejamento Mensal</h2>
-                                <span id="plannerMonthLabel">Organize sua feira em semanas</span>
+                                <h2>Planejamento Mensal (30 Dias)</h2>
+                                <span id="plannerMonthLabel">Organize sua feira mensal e feiras semanais de frescos</span>
                             </div>
                         </div>
                         <button class="btn-generate-plan" id="generatePlanBtn">
                             <i class="ph ph-magic-wand"></i> Gerar Plano do Mês
                         </button>
                     </div>
+
+                    <!-- Resumo Financeiro 30 Dias -->
+                    <div class="monthly-budget-card" id="monthlyBudget30DaysCard" style="display:none;">
+                        <div class="mb-header">
+                            <div class="mb-title">
+                                <i class="ph ph-piggy-bank"></i>
+                                <h3>Resumo do Orçamento (30 Dias)</h3>
+                            </div>
+                            <div class="mb-budget-input-group">
+                                <span>Meta Mensal: R$</span>
+                                <input type="number" id="plannerBudgetInput" value="1200" min="0" class="budget-input">
+                            </div>
+                        </div>
+                        <div class="mb-stats-grid">
+                            <div class="mb-stat-box">
+                                <span class="mb-stat-label">Estimativa Total 30 Dias</span>
+                                <strong class="mb-stat-val" id="plannerTotalEstVal">R$ 0,00</strong>
+                            </div>
+                            <div class="mb-stat-box">
+                                <span class="mb-stat-label">Feira Mensal (Sem 1)</span>
+                                <strong class="mb-stat-val" id="plannerSem1Val" style="color: #60a5fa;">R$ 0,00</strong>
+                            </div>
+                            <div class="mb-stat-box">
+                                <span class="mb-stat-label">Média Semanal Frescos (Sem 2-4)</span>
+                                <strong class="mb-stat-val" id="plannerSemFrescosVal" style="color: #34d399;">R$ 0,00/sem</strong>
+                            </div>
+                        </div>
+                        <div class="mb-progress-bar-bg">
+                            <div class="mb-progress-bar-fill" id="plannerBudgetProgressBar"></div>
+                        </div>
+                        <div class="mb-progress-desc" id="plannerBudgetProgressDesc">0% da meta mensal</div>
+                    </div>
+
                     <div class="weeks-grid" id="weeksGrid">
                         <div class="planner-empty">
                             <i class="ph ph-calendar-blank"></i>
@@ -358,65 +394,160 @@
 
             </div><!-- #plannerView -->
 
-        </main>
-
-        <!-- Cart Modal -->
-        <div class="modal-overlay" id="cartModal">
-            <div class="modal-content cart-modal-content">
-                <button class="close-modal" id="closeCartBtn"><i class="ph ph-x"></i></button>
-                <div class="cart-header">
-                    <h2><i class="ph ph-shopping-cart-simple"></i> Lista de Compras</h2>
-                    <div class="cart-period-badge" id="cartPeriodBadge"></div>
-                </div>
-                <div class="cart-smart-actions">
-                    <button id="smartListBtn" class="btn-smart">
-                        <i class="ph ph-magic-wand"></i> Feira do Mês
-                    </button>
-                    <button id="expiringListBtn" class="btn-smart secondary">
-                        <i class="ph ph-clock-countdown"></i> Reposição Semanal
-                    </button>
-                </div>
-                <div class="cart-items" id="cartItemsList">
-                    <div class="empty-cart-msg">
-                        <i class="ph ph-basket" style="font-size:2.5rem;opacity:.3"></i>
-                        <p>Sua lista está vazia.</p>
-                        <p style="font-size:.8rem">Use os botões acima ou adicione produtos na aba Produtos.</p>
+            <!-- View: Minha Feira & Lista de Compras (Página Completa) -->
+            <div id="feiraView" class="feira-page-view" style="display:none">
+                
+                <!-- Header & Mode Switcher Banner -->
+                <div class="feira-page-header">
+                    <div class="feira-header-left">
+                        <div class="feira-header-icon"><i class="ph ph-storefront"></i></div>
+                        <div>
+                            <h2>Minha Feira & Lista de Compras</h2>
+                            <p class="feira-header-sub">Gerencie sua lista de 30 dias, controle seu orçamento e acompanhe no supermercado.</p>
+                        </div>
                     </div>
-                </div>
-                <div class="cart-footer">
-                    <div class="budget-section">
-                        <div class="budget-info">
-                            <span><i class="ph ph-target"></i> Orçamento Alvo</span>
-                            <div style="display:flex;align-items:center;gap:.5rem">
-                                <span style="font-size:.8rem;color:var(--text-secondary)">R$</span>
-                                <input type="number" id="cartBudgetInput" value="500" class="budget-input">
-                            </div>
-                        </div>
-                        <div class="budget-bar-bg">
-                            <div class="budget-bar-fill" id="cartBudgetProgress"></div>
-                        </div>
-                        <div class="budget-pct-label" id="budgetPctLabel">0% do orçamento</div>
-                        <button id="adjustToBudgetBtn" class="btn-adjust-budget" style="display: none;">
-                            <i class="ph ph-sliders"></i> Ajustar Lista ao Orçamento
+
+                    <div class="feira-mode-toggle">
+                        <button class="feira-mode-btn active" id="modePlanningBtn">
+                            <i class="ph ph-list-checks"></i> <span>📋 Modo Lista</span>
+                        </button>
+                        <button class="feira-mode-btn" id="modeMarketBtn">
+                            <i class="ph ph-shopping-bag-open"></i> <span>🛒 No Mercado</span>
                         </button>
                     </div>
-                    <div class="cart-summary">
-                        <div class="total-box">
-                            <span>Total Estimado</span>
-                            <h3 id="cartTotalValue">R$ 0,00</h3>
-                        </div>
-                        <div class="footer-actions">
-                            <button class="btn-share" id="shareWhatsAppBtn" style="display:none">
-                                <i class="ph ph-whatsapp-logo"></i> Compartilhar
-                            </button>
-                            <button class="btn-clear" id="clearCartBtn" title="Limpar">
-                                <i class="ph ph-trash"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            </div>
-        </div>
+
+                <!-- Generators Bar -->
+                <div class="feira-actions-bar">
+                    <button id="smartListBtn" class="btn-smart" title="Gera lista de estocáveis e compras do mês">
+                        <i class="ph ph-magic-wand"></i> Feira do Mês (30d)
+                    </button>
+                    <button id="expiringListBtn" class="btn-smart secondary" title="Reposição de frescos e perecíveis da semana">
+                        <i class="ph ph-clock-countdown"></i> Reposição Semanal
+                    </button>
+                    <button id="addLowStockCartBtn" class="btn-smart tertiary" title="Adiciona produtos com estoque baixo ou vencendo">
+                        <i class="ph ph-warehouse"></i> Do Estoque Doméstico
+                    </button>
+                    <button class="btn-clear" id="clearCartBtn" title="Limpar Lista">
+                        <i class="ph ph-trash"></i> Limpar Lista
+                    </button>
+                    <button class="btn-share" id="shareWhatsAppBtn" style="display:none">
+                        <i class="ph ph-whatsapp-logo"></i> WhatsApp
+                    </button>
+                </div>
+
+                <!-- Mercado Active Header (Visível apenas no Modo No Mercado) -->
+                <div class="feira-market-banner" id="feiraMarketBanner" style="display:none;">
+                    <div class="market-inputs-row">
+                        <div class="market-input-group">
+                            <i class="ph ph-buildings"></i>
+                            <input type="text" id="ffMarketInput" placeholder="Nome do Supermercado..." value="Supermercado">
+                        </div>
+                        <div class="market-select-group">
+                            <select id="ffTypeSelect">
+                                <option value="Mensal">Feira Mensal</option>
+                                <option value="Semanal">Reposição Semanal</option>
+                            </select>
+                        </div>
+                        <button class="btn-ff-toggle" id="ffToggleCheckedBtn" title="Ocultar itens comprados">
+                            <i class="ph ph-eye"></i>
+                        </button>
+                    </div>
+                    <div class="market-progress-bar-bg">
+                        <div id="ffProgressBar" class="market-progress-bar-fill"></div>
+                    </div>
+                    <div class="market-status-info">
+                        <span id="ffProgressText">0 de 0 itens marcados</span>
+                        <span id="ffRunningTotal">R$ 0,00</span>
+                    </div>
+                    <button class="btn-ff-finish" id="ffFinishBtn">
+                        <i class="ph ph-check-circle"></i> <span>Finalizar Feira e Salvar no Histórico</span>
+                    </button>
+                </div>
+
+                <!-- Main Layout Grid: Sidebar + Product List -->
+                <div class="feira-layout-grid">
+
+                    <!-- Sidebar: Quick Add, Stats, Budget & Controls -->
+                    <aside class="feira-sidebar">
+                        
+                        <!-- Quick Add -->
+                        <div class="feira-card quick-add-card">
+                            <h3><i class="ph ph-plus-circle"></i> Adicionar Produto Rápido</h3>
+                            <div class="cart-quick-add-wrapper">
+                                <i class="ph ph-magnifying-glass"></i>
+                                <input type="text" id="cartQuickAddInput" placeholder="Ex: Leite, Arroz, Detergente..." autocomplete="off">
+                                <div class="cart-quick-add-dropdown" id="cartQuickAddDropdown"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Bar -->
+                        <div class="feira-card stats-card">
+                            <h3><i class="ph ph-chart-pie-slice"></i> Resumo da Feira</h3>
+                            <div class="cart-summary-bar">
+                                <div class="cart-stat-chip">
+                                    <i class="ph ph-package"></i> <span id="cartCountStat">0 itens</span>
+                                </div>
+                                <div class="cart-stat-chip highlight">
+                                    <i class="ph ph-coins"></i> <span id="cartTotalStat">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Budget Control -->
+                        <div class="feira-card budget-card">
+                            <div class="budget-info">
+                                <span><i class="ph ph-target"></i> Orçamento Alvo</span>
+                                <div style="display:flex;align-items:center;gap:.5rem">
+                                    <span style="font-size:.8rem;color:var(--text-secondary)">R$</span>
+                                    <input type="number" id="cartBudgetInput" value="500" class="budget-input">
+                                </div>
+                            </div>
+                            <div class="budget-bar-bg">
+                                <div class="budget-bar-fill" id="cartBudgetProgress"></div>
+                            </div>
+                            <div class="budget-pct-row">
+                                <span class="budget-pct-label" id="budgetPctLabel">0% do orçamento</span>
+                                <span class="budget-remaining-label" id="budgetRemainingLabel"></span>
+                            </div>
+                            <button id="adjustToBudgetBtn" class="btn-adjust-budget" style="display: none;">
+                                <i class="ph ph-scissors"></i> Ajustar Lista ao Orçamento
+                            </button>
+                        </div>
+
+                        <!-- View Controls & Category Filters -->
+                        <div class="feira-card controls-card">
+                            <div class="cart-view-controls">
+                                <span class="cart-view-label">Agrupar por:</span>
+                                <div class="cart-view-toggle">
+                                    <button class="cart-view-btn active" data-mode="category"><i class="ph ph-folders"></i> Categoria</button>
+                                    <button class="cart-view-btn" data-mode="priority"><i class="ph ph-warning-circle"></i> Prioridade</button>
+                                    <button class="cart-view-btn" data-mode="alphabetical"><i class="ph ph-sort-ascending"></i> Nome</button>
+                                </div>
+                            </div>
+                            <div class="cart-cat-filter-wrapper" id="cartCatFilterWrapper" style="display:none; margin-top:0.75rem;">
+                                <div class="cart-cat-filter" id="cartCatFilter"></div>
+                            </div>
+                        </div>
+
+                    </aside>
+
+                    <!-- Main Section: Products List -->
+                    <main class="feira-main-content">
+                        <div class="cart-items" id="cartItemsList">
+                            <div class="empty-cart-msg">
+                                <i class="ph ph-basket" style="font-size:2.5rem;opacity:.3"></i>
+                                <p>Sua lista de compras está vazia.</p>
+                                <p style="font-size:.8rem">Use os botões no topo para gerar sugestões ou busque um produto no campo de adição rápida.</p>
+                            </div>
+                        </div>
+                    </main>
+
+                </div>
+
+            </div><!-- #feiraView -->
+
+        </main>
 
         <!-- Edit Modal -->
         <div class="modal-overlay" id="editModal">
@@ -499,6 +630,9 @@
                 <div class="estoque-header-row">
                     <h2><i class="ph ph-warehouse"></i> Estoque Doméstico</h2>
                     <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn-add-estoque" id="addLowStockToCartModalBtn" style="background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 4px 12px rgba(16,185,129,0.3);" title="Adicionar todos os itens com estoque baixo ou vencendo à lista de compras">
+                            <i class="ph ph-shopping-cart-simple"></i> Repor na Lista
+                        </button>
                         <button class="btn-add-estoque" id="reporEstoqueNotaBtn" style="background: linear-gradient(135deg,#f59e0b,#d97706); box-shadow: 0 4px 12px rgba(245,158,11,0.3);" title="Repor estoque com os itens da última nota fiscal importada">
                             <i class="ph ph-receipt"></i> Repor da Nota
                         </button>
@@ -584,11 +718,15 @@
                 <span class="ff-sep"> / </span>
                 <span class="ff-budget-value" id="ffBudgetDisplay"></span>
                 <div class="ff-market-field"
-                    style="margin-left: auto; display: flex; align-items: center; gap: 0.4rem;">
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);"><i class="ph ph-storefront"></i>
-                        Local:</span>
+                    style="margin-left: auto; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);"><i class="ph ph-tag"></i> Tipo:</span>
+                    <select id="ffTypeSelect" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: #fff; border-radius: 6px; padding: 0.25rem 0.4rem; font-size: 0.8rem; outline: none;">
+                        <option value="Mensal" style="background:#18181b;">🛒 Feira Mensal</option>
+                        <option value="Semanal" style="background:#18181b;">🥬 Reposição Semanal</option>
+                    </select>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 0.25rem;"><i class="ph ph-storefront"></i> Local:</span>
                     <input type="text" id="ffMarketInput" placeholder="Ex: Pão de Açúcar"
-                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 140px; outline: none; transition: var(--transition-fast);">
+                        style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.8rem; width: 130px; outline: none; transition: var(--transition-fast);">
                 </div>
             </div>
             <div class="ff-search-wrapper" style="display: flex; gap: 0.5rem; align-items: center;">

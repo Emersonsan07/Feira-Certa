@@ -675,7 +675,7 @@ body {
     border-radius: 20px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
     margin: 0;
-    
+
     transform: scale(0.95);
     opacity: 0;
     transition: transform var(--transition-smooth), opacity var(--transition-smooth) !important;
@@ -2687,6 +2687,7 @@ body {
     -webkit-appearance: none;
     margin: 0;
 }
+
 .ff-item-price-input {
     -moz-appearance: textfield;
 }
@@ -3038,8 +3039,15 @@ body {
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* --- Reposição Automática --- */
@@ -3060,13 +3068,13 @@ body {
 .replenishment-section .section-title i {
     font-size: 1.6rem;
     color: #f59e0b;
-    filter: drop-shadow(0 0 8px rgba(245,158,11,0.4));
+    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
 }
 
 .replenishment-section .section-title h2 {
     font-size: 1.25rem;
     font-weight: 700;
-    background: linear-gradient(135deg,#f59e0b,#ef4444);
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3102,21 +3110,31 @@ body {
 
 .replen-card:hover {
     transform: translateY(-4px) scale(1.02);
-    border-color: rgba(245,158,11,0.3);
-    box-shadow: 0 8px 24px rgba(245,158,11,0.12);
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
 }
 
 .replen-card::before {
-    content:'';
+    content: '';
     position: absolute;
-    top:0; left:0;
-    width:3px; height:100%;
-    border-radius:4px 0 0 4px;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 4px 0 0 4px;
 }
 
-.replen-card.urgency-atrasado::before { background: #ef4444; }
-.replen-card.urgency-nahora::before  { background: #f97316; }
-.replen-card.urgency-embreve::before { background: #eab308; }
+.replen-card.urgency-atrasado::before {
+    background: #ef4444;
+}
+
+.replen-card.urgency-nahora::before {
+    background: #f97316;
+}
+
+.replen-card.urgency-embreve::before {
+    background: #eab308;
+}
 
 .replen-card-name {
     font-size: 0.95rem;
@@ -3142,9 +3160,20 @@ body {
     border-radius: var(--radius-full);
 }
 
-.badge-atrasado { background: rgba(239,68,68,0.15); color:#f87171; }
-.badge-nahora   { background: rgba(249,115,22,0.15); color:#fb923c; }
-.badge-embreve  { background: rgba(234,179,8,0.15);  color:#fbbf24; }
+.badge-atrasado {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.badge-nahora {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+}
+
+.badge-embreve {
+    background: rgba(234, 179, 8, 0.15);
+    color: #fbbf24;
+}
 
 .replen-price {
     font-size: 0.9rem;
@@ -3155,8 +3184,8 @@ body {
 
 .replen-add-btn {
     margin-top: 0.5rem;
-    background: rgba(245,158,11,0.1);
-    border: 1px solid rgba(245,158,11,0.25);
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
     color: #fbbf24;
     border-radius: var(--radius-sm);
     padding: 0.45rem;
@@ -3172,14 +3201,14 @@ body {
 }
 
 .replen-add-btn:hover {
-    background: rgba(245,158,11,0.2);
+    background: rgba(245, 158, 11, 0.2);
     color: #f59e0b;
     transform: scale(1.02);
 }
 
 .replen-add-btn.added {
-    background: rgba(16,185,129,0.12);
-    border-color: rgba(16,185,129,0.3);
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
     color: #34d399;
 }
 
@@ -3226,13 +3255,13 @@ body {
 .planner-title-group i {
     font-size: 1.6rem;
     color: #60a5fa;
-    filter: drop-shadow(0 0 8px rgba(96,165,250,0.4));
+    filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.4));
 }
 
 .planner-title-group h2 {
     font-size: 1.25rem;
     font-weight: 700;
-    background: linear-gradient(135deg,#60a5fa,#a78bfa);
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -3245,7 +3274,7 @@ body {
 }
 
 .btn-generate-plan {
-    background: linear-gradient(135deg,#3b82f6,#6366f1);
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
     color: white;
     border: none;
     padding: 0.7rem 1.35rem;
@@ -3257,12 +3286,12 @@ body {
     align-items: center;
     gap: 0.5rem;
     transition: var(--transition-bounce);
-    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-generate-plan:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 8px 25px rgba(99,102,241,0.5);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
 }
 
 .weeks-grid {
@@ -3280,8 +3309,8 @@ body {
 }
 
 .week-card:hover {
-    border-color: rgba(99,102,241,0.3);
-    box-shadow: 0 8px 24px rgba(99,102,241,0.12);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
     transform: translateY(-3px);
 }
 
@@ -3290,7 +3319,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    background: linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
     border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -3308,7 +3337,7 @@ body {
 .week-total-badge {
     font-size: 0.8rem;
     font-weight: 700;
-    background: rgba(99,102,241,0.15);
+    background: rgba(99, 102, 241, 0.15);
     color: #818cf8;
     padding: 0.25rem 0.6rem;
     border-radius: var(--radius-full);
@@ -3331,7 +3360,7 @@ body {
 }
 
 .week-item-row:hover {
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .week-item-check {
@@ -3386,8 +3415,8 @@ body {
 
 .btn-week-add-all {
     flex: 1;
-    background: rgba(99,102,241,0.1);
-    border: 1px solid rgba(99,102,241,0.25);
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
     color: #818cf8;
     border-radius: var(--radius-sm);
     padding: 0.5rem;
@@ -3402,7 +3431,7 @@ body {
 }
 
 .btn-week-add-all:hover {
-    background: rgba(99,102,241,0.2);
+    background: rgba(99, 102, 241, 0.2);
     color: #a78bfa;
     transform: scale(1.02);
 }
@@ -3424,8 +3453,17 @@ body {
 }
 
 @keyframes pulse {
-    0%,100% { transform: scale(1); opacity: 0.2; }
-    50% { transform: scale(1.08); opacity: 0.35; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.2;
+    }
+
+    50% {
+        transform: scale(1.08);
+        opacity: 0.35;
+    }
 }
 
 /* ==========================================================================
@@ -3463,7 +3501,7 @@ body {
 }
 
 .btn-add-estoque {
-    background: linear-gradient(135deg,#10b981,#059669);
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     border: none;
     padding: 0.6rem 1.1rem;
@@ -3475,19 +3513,19 @@ body {
     align-items: center;
     gap: 0.5rem;
     transition: var(--transition-bounce);
-    box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-add-estoque:hover {
     transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(16,185,129,0.4);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
 }
 
 /* Formulário de adição */
 .estoque-form {
     display: none;
     background: var(--bg-elevated);
-    border: 1px solid rgba(16,185,129,0.25);
+    border: 1px solid rgba(16, 185, 129, 0.25);
     border-radius: var(--radius-md);
     padding: 1.25rem;
     margin-bottom: 1.5rem;
@@ -3506,7 +3544,9 @@ body {
 }
 
 @media(max-width:480px) {
-    .estoque-form-grid { grid-template-columns: 1fr; }
+    .estoque-form-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .estoque-form-grid .form-group {
@@ -3542,11 +3582,11 @@ body {
 
 .form-input-sm:focus {
     border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .btn-save-estoque {
-    background: linear-gradient(135deg,#10b981,#059669);
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
     border: none;
     padding: 0.6rem 1.25rem;
@@ -3562,7 +3602,7 @@ body {
 
 .btn-save-estoque:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16,185,129,0.4);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
 
 /* Alertas de validade */
@@ -3591,26 +3631,26 @@ body {
 }
 
 .estoque-alert-row.alert-vencido {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.25);
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.25);
     color: #f87171;
 }
 
 .estoque-alert-row.alert-vence-hoje {
-    background: rgba(249,115,22,0.1);
-    border: 1px solid rgba(249,115,22,0.25);
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.25);
     color: #fb923c;
 }
 
 .estoque-alert-row.alert-vence-semana {
-    background: rgba(234,179,8,0.1);
-    border: 1px solid rgba(234,179,8,0.25);
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.25);
     color: #fbbf24;
 }
 
 .estoque-alert-row.alert-baixo {
-    background: rgba(99,102,241,0.1);
-    border: 1px solid rgba(99,102,241,0.25);
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.25);
     color: #818cf8;
 }
 
@@ -3638,23 +3678,23 @@ body {
 }
 
 .estoque-item-row:hover {
-    border-color: rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.02);
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .estoque-item-row.estoque-vencido {
     border-left: 3px solid #ef4444;
-    background: rgba(239,68,68,0.04);
+    background: rgba(239, 68, 68, 0.04);
 }
 
 .estoque-item-row.estoque-vence-breve {
     border-left: 3px solid #eab308;
-    background: rgba(234,179,8,0.04);
+    background: rgba(234, 179, 8, 0.04);
 }
 
 .estoque-item-row.estoque-baixo {
     border-left: 3px solid #6366f1;
-    background: rgba(99,102,241,0.04);
+    background: rgba(99, 102, 241, 0.04);
 }
 
 .estoque-item-icon {
@@ -3735,10 +3775,25 @@ body {
     white-space: nowrap;
 }
 
-.estoque-badge-ok      { background: rgba(16,185,129,0.12); color: #34d399; }
-.estoque-badge-baixo   { background: rgba(99,102,241,0.12); color: #818cf8; }
-.estoque-badge-vence   { background: rgba(234,179,8,0.12);  color: #fbbf24; }
-.estoque-badge-vencido { background: rgba(239,68,68,0.12);  color: #f87171; }
+.estoque-badge-ok {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+}
+
+.estoque-badge-baixo {
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+}
+
+.estoque-badge-vence {
+    background: rgba(234, 179, 8, 0.12);
+    color: #fbbf24;
+}
+
+.estoque-badge-vencido {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+}
 
 .btn-del-estoque {
     background: transparent;
@@ -3754,7 +3809,7 @@ body {
 
 .btn-del-estoque:hover {
     color: #ef4444;
-    background: rgba(239,68,68,0.1);
+    background: rgba(239, 68, 68, 0.1);
 }
 
 .estoque-empty {
@@ -3775,7 +3830,7 @@ body {
 
 /* Botão de acesso ao Estoque na navbar */
 .estoque-nav-badge {
-    background: linear-gradient(135deg,#ef4444,#f43f5e);
+    background: linear-gradient(135deg, #ef4444, #f43f5e);
     color: white;
     font-size: 0.65rem;
     font-weight: 700;
@@ -3788,14 +3843,21 @@ body {
 }
 
 @keyframes blink-badge {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* Cartão de estoque no dashboard (alerta rápido) */
 .estoque-dashboard-alert {
-    background: linear-gradient(135deg,rgba(239,68,68,0.08),rgba(249,115,22,0.06));
-    border: 1px solid rgba(239,68,68,0.2);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(249, 115, 22, 0.06));
+    border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: var(--radius-md);
     padding: 1.1rem 1.5rem;
     display: flex;
@@ -3807,9 +3869,9 @@ body {
 }
 
 .estoque-dashboard-alert:hover {
-    border-color: rgba(239,68,68,0.35);
+    border-color: rgba(239, 68, 68, 0.35);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(239,68,68,0.12);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.12);
 }
 
 .estoque-dashboard-alert i {
@@ -3838,7 +3900,7 @@ body {
 
 /* Planner nav button highlight */
 #navPlannerBtn.active {
-    background: rgba(96,165,250,0.1);
+    background: rgba(96, 165, 250, 0.1);
     color: #60a5fa;
 }
 
@@ -3850,9 +3912,11 @@ body {
         padding: 1.5rem 2rem;
         gap: 2rem;
     }
+
     .top-navbar {
         padding: 1rem 2rem;
     }
+
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
@@ -3864,6 +3928,7 @@ body {
         padding: 1rem;
         gap: 1rem;
     }
+
     .nav-menu {
         width: 100%;
         justify-content: space-around;
@@ -3871,41 +3936,724 @@ body {
         padding-bottom: 0.5rem;
         scrollbar-width: none;
     }
-    .nav-menu::-webkit-scrollbar { display: none; }
+
+    .nav-menu::-webkit-scrollbar {
+        display: none;
+    }
+
     .nav-link span {
         display: none;
     }
+
     .nav-link {
         padding: 0.5rem 0.75rem;
     }
+
     .main-content {
         padding: 1rem;
         gap: 1.5rem;
     }
+
     .top-header {
         flex-direction: column;
         align-items: stretch;
         gap: 1rem;
     }
+
     .search-bar {
         max-width: 100%;
     }
+
     .replenishment-grid {
         grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
     }
+
     .weeks-grid {
         grid-template-columns: 1fr;
     }
+
     .estoque-form-grid {
         grid-template-columns: 1fr;
     }
+
     .product-actions {
         flex-wrap: wrap;
         gap: 0.5rem;
     }
+
     .chart-stats-row {
         flex-direction: column;
         gap: 0.5rem;
     }
 }
-
+
+/* ==========================================================================
+   ALERT BUTTON IN DASHBOARD & 30-DAY BUDGET CARD IN PLANNER
+   ========================================================================== */
+.btn-add-estoque-alert {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    margin-right: 0.5rem;
+    transition: var(--transition-fast);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-add-estoque-alert:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+}
+
+.monthly-budget-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.mb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.mb-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.mb-title i {
+    color: #f59e0b;
+    font-size: 1.3rem;
+}
+
+.mb-budget-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.mb-budget-input-group .budget-input {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    width: 110px;
+    outline: none;
+}
+
+.mb-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.mb-stat-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.mb-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.mb-stat-val {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.mb-progress-bar-bg {
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.mb-progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    transition: width 0.4s ease;
+}
+
+.mb-progress-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: right;
+}
+
+/* ==========================================================================
+   ENHANCED SHOPPING LIST MODAL UI (ABAS & ESTILOS DA LISTA DE COMPRAS)
+   ========================================================================== */
+.cart-modal-content {
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, rgba(20, 20, 25, 0.98) 0%, rgba(12, 12, 16, 0.99) 100%);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.cart-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+}
+
+.cart-stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-full);
+}
+
+.cart-stat-chip i {
+    color: #60a5fa;
+}
+
+.cart-quick-add-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.4rem 0.8rem;
+    gap: 0.5rem;
+    transition: var(--transition-fast);
+}
+
+.cart-quick-add-wrapper:focus-within {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+}
+
+.cart-quick-add-wrapper i {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.cart-quick-add-wrapper input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    width: 100%;
+}
+
+.cart-quick-add-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.cart-quick-add-dropdown.active {
+    display: block;
+}
+
+.cart-quick-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.cart-quick-item:hover {
+    background: rgba(59, 130, 246, 0.15);
+    color: #fff;
+}
+
+.cart-cat-filter-wrapper {
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+}
+
+.cart-cat-filter {
+    display: flex;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+
+.cart-cat-chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.cart-cat-chip:hover,
+.cart-cat-chip.active {
+    background: var(--cat-accent, #3b82f6);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.cart-view-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.2rem;
+}
+
+.cart-view-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.cart-view-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 0.15rem;
+    border-radius: var(--radius-sm);
+    gap: 0.2rem;
+}
+
+.cart-view-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.25rem 0.55rem;
+    border-radius: calc(var(--radius-sm) - 2px);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: var(--transition-fast);
+}
+
+.cart-view-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.budget-pct-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+}
+
+.budget-remaining-label {
+    font-weight: 700;
+    font-size: 0.78rem;
+}
+
+.cart-item-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 0.65rem 0.85rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.cart-item-card:hover {
+    background: var(--bg-elevated);
+    transform: translateY(-1px);
+}
+
+.cart-item-priority-select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.35rem;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+}
+
+.cart-item-badge-diff {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+}
+
+.cart-item-badge-diff.up {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+}
+
+.cart-item-badge-diff.down {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+}
+
+/* ============================================================
+   PÁGINA DEDICADA: MINHA FEIRA & LISTA DE COMPRAS (#feiraView)
+   ============================================================ */
+.feira-page-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.feira-page-header {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.feira-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.feira-header-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.feira-header-left h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.feira-header-sub {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0.15rem 0 0 0;
+}
+
+.feira-mode-toggle {
+    display: flex;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    gap: 4px;
+}
+
+.feira-mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+}
+
+.feira-mode-btn.active {
+    background: var(--gradient-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.feira-actions-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.feira-layout-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+@media (max-width: 992px) {
+    .feira-layout-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.feira-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.feira-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.15rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.feira-card h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.85rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.feira-main-content {
+    background: var(--surface-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    min-height: 500px;
+}
+
+.feira-market-banner {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.15));
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.feira-market-banner .market-inputs-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.feira-market-banner input[type="text"],
+.feira-market-banner select {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #ffffff;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    outline: none;
+}
+
+.feira-market-banner .market-status-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #34d399;
+}
+
+.feira-market-banner .btn-ff-finish {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feira-market-banner .btn-ff-finish:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+/* ============================================================
+   BOTÕES DA BARRA DE AÇÕES DA FEIRA (ALTO CONTRASTE)
+   ============================================================ */
+.feira-actions-bar .btn-smart,
+.feira-actions-bar .btn-clear,
+.feira-actions-bar .btn-share,
+button.btn-smart,
+button.btn-clear,
+button.btn-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.15rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Feira do Mês (30d) - Roxo Neon Vívido */
+.feira-actions-bar #smartListBtn,
+button.btn-smart {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.35), rgba(109, 40, 217, 0.55)) !important;
+    border: 1px solid #c084fc !important;
+    color: #f3e8ff !important;
+}
+
+.feira-actions-bar #smartListBtn:hover,
+button.btn-smart:hover {
+    background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.6) !important;
+}
+
+/* Reposição Semanal - Âmbar / Laranja Quente */
+.feira-actions-bar #expiringListBtn,
+button.btn-smart.secondary {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.35), rgba(180, 83, 9, 0.55)) !important;
+    border: 1px solid #fbbf24 !important;
+    color: #fef3c7 !important;
+}
+
+.feira-actions-bar #expiringListBtn:hover,
+button.btn-smart.secondary:hover {
+    background: linear-gradient(135deg, #d97706, #b45309) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.6) !important;
+}
+
+/* Do Estoque Doméstico - Menta / Verde Esmeralda */
+.feira-actions-bar #addLowStockCartBtn,
+button.btn-smart.tertiary {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(4, 120, 87, 0.55)) !important;
+    border: 1px solid #34d399 !important;
+    color: #ecfdf5 !important;
+}
+
+.feira-actions-bar #addLowStockCartBtn:hover,
+button.btn-smart.tertiary:hover {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.6) !important;
+}
+
+/* Limpar Lista - Compacto, discreto e alinhado à direita */
+.feira-actions-bar #clearCartBtn,
+button.btn-clear {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border: 1px solid rgba(248, 113, 113, 0.3) !important;
+    color: #fca5a5 !important;
+    padding: 0.45rem 0.8rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    margin-left: auto;
+    width: auto !important;
+    height: auto !important;
+}
+
+.feira-actions-bar #clearCartBtn:hover,
+button.btn-clear:hover {
+    background: rgba(239, 68, 68, 0.28) !important;
+    border-color: rgba(248, 113, 113, 0.6) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Compartilhar WhatsApp - Verde WhatsApp */
+.feira-actions-bar #shareWhatsAppBtn,
+button.btn-share {
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.35), rgba(21, 128, 61, 0.55)) !important;
+    border: 1px solid #4ade80 !important;
+    color: #f0fdf4 !important;
+}
+
+.feira-actions-bar #shareWhatsAppBtn:hover,
+button.btn-share:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(74, 222, 128, 0.6) !important;
+}
