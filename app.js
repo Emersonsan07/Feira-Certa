@@ -491,6 +491,27 @@ function getSimplifiedName(name) {
     return toTitleCase(name);
 }
 
+const CATEGORY_ALIASES = {
+    'pão francês': 'Padaria',
+    'pao francês': 'Padaria',
+    'queijo mussarela': 'Laticínios & Frios',
+    'presunto': 'Laticínios & Frios',
+    'mortadela': 'Laticínios & Frios',
+    'leite líquido': 'Laticínios & Frios',
+    'leite em pó': 'Laticínios & Frios',
+    'leite condensado': 'Laticínios & Frios',
+    'creme de leite': 'Laticínios & Frios',
+    'coca-cola': 'Bebidas',
+    'coca-cola sem açúcar': 'Bebidas',
+    'suco': 'Bebidas',
+    'água mineral': 'Bebidas',
+    'agua mineral': 'Bebidas',
+    'macarrão / massas': 'Mercearia Básica',
+    'extrato / molho de tomate': 'Mercearia Básica',
+    'margarina / manteiga': 'Mercearia Básica',
+    'biscoito': 'Doces & Snacks'
+};
+
 function processData(data, replace = true) {
     if (replace) {
         marketData = data;
@@ -1545,7 +1566,14 @@ function attachCartCardEventListeners() {
 }
 
 function getCategory(name) {
-    const n = name.toLowerCase();
+    const simplifiedName = getSimplifiedName(name);
+    const normalized = simplifiedName.toLowerCase().trim();
+
+    if (CATEGORY_ALIASES[normalized]) {
+        return CATEGORY_ALIASES[normalized];
+    }
+
+    const n = normalized;
 
     if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform|multiuso|multi uso|pedra sanit|desengord|tira mancha|vassoura|rodo|pano|flanela|balde|saco|lixeira|omo|ariel|ype|brilhante|tixan|vanish|cloro|naftalina|desodorizador|lustra|cera)/)) return "Limpeza";
 
@@ -1563,11 +1591,11 @@ function getCategory(name) {
 
     if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel |atum|seleta|azeitona|cogumelo|palmito|vinagre|cald|knorr|sazon|miojo|lamen|sop |canela|cravo|baunilha|adoçante|adocante|granola|cereal|mucilon|leite em po|ninho|trigo|fubá|fuba|polvilho|doce|azedo|lentilha|grão de bico|grao de bico|canjica|gergelim|linhaça|linhaca|chia|sagu|fermento|pó químico|po quimico|bicarbonato|gelatina|creme cebola|sopa|caldo galinha|caldo carne|caldo legumes|extrato tomate|molho tomate|polpa tomate|passata|molho pimenta|molho ingles|molho inglês|molho de alho|azeite de oliva|óleo de soja|oleo soja|óleo de girassol|oleo girassol|óleo de milho|oleo milho|óleo de canola|oleo canola|óleo de algodão|oleo algodao|banha|sal refinado|sal grosso|sal marinho|sal rosa|açúcar refinado|acucar refinado|açúcar cristal|acucar cristal|açúcar demerara|acucar demerara|açúcar mascavo|acucar mascavo|açúcar light|açúcar coco|adoçante líquido|adoçante em pó|café em pó|cafe po|café solúvel|cafe soluvel|café em grãos|cafe graos|cápsula café|capsula cafe|chá mate|cha mate|chá preto|cha preto|chá verde|cha verde|chá camomila|cha camomila|chá erva doce|cha erva doce)/)) return "Mercearia Básica";
 
-    if (n.match(/(cerveja|refrigerante|suco|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle|pepsi|fanta|kuat|antarctica|skol|brahma|heineken|amstel|monster|red bull|energetico|energético|gin|rum|cachaça|licor|whisky|champagne|espumante|bebida|refri|ice)/)) return "Bebidas";
+    if (n.match(/(cerveja|refrigerante|suco|tampico|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle|pepsi|fanta|kuat|antarctica|skol|brahma|heineken|amstel|monster|red bull|energetico|energético|gin|rum|cachaça|licor|whisky|champagne|espumante|bebida|refri|ice)/)) return "Bebidas";
 
     if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa|croissant|baguete|bisnag|panet|chocott|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|cuca|broa|sonho|panific|pão francês|pao frances|pão de hambúrguer|pao hamburguer|pão de cachorro quente|pao cachorro quente|pão sírio|pao sirio|pão australiano|pao australiano|pão integral|pao integral|pão multigrãos|pao multigraos|pão centeio|pao centeio|colomba pascal|donuts|carolina|bomba chocolate|mil folhas|quindim|pudim padaria|torta doce|torta salgada|quiche|empada|empadão|pastel|folhado|pão de batata|pao batata|enroladinho|esfiha fechada|esfiha aberta)/)) return "Padaria";
 
-    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher|copo descartável|copo descartavel|prato descartável|prato descartavel|talher descartável|talher descartavel|guardanapo de papel|papel alumínio|papel aluminio|papel manteiga|filme de pvc|filme plástico|filme plastico|saco hermético|saco hermetico|saco zip|saco para congelamento|saco para assar|saco assar|acendedor|espeto de madeira|espeto madeira|espeto de bambu|espeto bambu|grelha descartável|grelha descartavel|prendedor de roupas|prendedor roupas|varal|cabide plástico|cabide plastico|pilha aa|pilha aaa|pilha de lítio|pilha de litio|bateria 9v|lâmpada led|lampada led|lâmpada fluorescente|lampada fluorescente|vela de cera|vela votiva|vela flutuante|vela perfumada|repelente elétrico|repelente eletrico)/)) return "Utilidades";
+    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher|copo descartável|copo descartavel|prato descartável|prato descartavel|talher descartável|talher descartavel|guardanapo de papel|papel alumínio|papel aluminio|papel manteiga|filme de pvc|filme plástico|filme plastico|saco hermético|saco hermetico|saco zip|saco para congelamento|saco para assar|saco assar|acendedor|espeto de madeira|espeto madeira|espeto de bambu|espeto bambu|grelha descartável|grelha descartavel|prendedor de roupas|prendedor roupas|varal|cabide plástico|cabide plastico|pilha aa|pilha aaa|pilha de lítio|pilha de litio|bateria 9v|lâmpada led|lampada led|lâmpada fluorescente|lampada fluorescente|vela de cera|vela votiva|vela flutuante|vela perfumada|repelente elétrico|repelente eletrico|pacote diversos)/)) return "Utilidades";
 
     return "Outros";
 }
