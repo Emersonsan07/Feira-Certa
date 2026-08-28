@@ -52,6 +52,7 @@
                     </a>
                     <div class="config-dropdown" id="configGroup">
                         <a href="#" id="importBtn"><i class="ph ph-upload-simple"></i> Carregar CSV</a>
+                        <a href="#" id="importNfcBtn"><i class="ph ph-qr-code"></i> Importar Nota (NFC-e)</a>
                         <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
                         <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Restaurar Backup</a>
                         <a href="#" id="manageExcludedBtn"><i class="ph ph-trash-simple"></i> Itens Ocultados (<span
@@ -150,6 +151,14 @@
                             </div>
                             <i class="ph ph-arrow-right qa-arrow"></i>
                         </button>
+                        <button class="quick-action-card nfc" id="qaImportNfcBtn">
+                            <div class="qa-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); color: #34d399;"><i class="ph ph-qr-code"></i></div>
+                            <div class="qa-text">
+                                <strong>Importar Nota (NFC-e)</strong>
+                                <span>Cole o texto ou HTML da nota</span>
+                            </div>
+                            <i class="ph ph-arrow-right qa-arrow"></i>
+                        </button>
                     </div>
                 </section>
 
@@ -165,6 +174,16 @@
                         <h3><i class="ph ph-warning-circle"></i> Vilões da Inflação</h3>
                         <div class="inflation-list" id="inflationList"></div>
                     </div>
+                </section>
+
+                <!-- Dicas de Economia por Mercado -->
+                <section class="economy-tips-section" id="economyTipsSection" style="display:none">
+                    <div class="section-title">
+                        <i class="ph ph-piggy-bank" style="color: #34d399;"></i>
+                        <h2>💰 Dicas de Economia por Mercado</h2>
+                        <span class="section-subtitle">Onde comprar mais barato com base no seu histórico</span>
+                    </div>
+                    <div class="economy-tips-grid" id="economyTipsGrid"></div>
                 </section>
 
                 <!-- Calendário de Compras -->
@@ -750,6 +769,41 @@
                 <button class="ff-finish-btn" id="ffFinishBtn">
                     <i class="ph ph-check-circle"></i> Finalizar Feira
                 </button>
+            </div>
+        </div>
+
+        <!-- ===== MODAL IMPORTAR NFC-e ===== -->
+        <div class="modal-overlay" id="importNfcModal" style="display:none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3><i class="ph ph-qr-code"></i> Importar Nota Fiscal (NFC-e)</h3>
+                    <button class="modal-close" id="closeImportNfcModal">&times;</button>
+                </div>
+                <div class="modal-body" style="padding-top: 1rem;">
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem; line-height:1.4;">
+                        Abra a nota fiscal da SEFAZ no navegador do seu celular ou PC, selecione tudo (Ctrl+A / Selecionar Tudo), copie e cole o texto ou HTML no campo abaixo:
+                    </p>
+                    <div style="display:flex; gap:0.5rem; margin-bottom:0.75rem;">
+                        <div style="flex:1;">
+                            <label for="nfcMarketInput" class="form-label">Nome do Mercado (opcional):</label>
+                            <input type="text" id="nfcMarketInput" class="form-input" placeholder="Detectado auto se vazio">
+                        </div>
+                        <div style="flex:1;">
+                            <label for="nfcDateInput" class="form-label">Data da Compra (opcional):</label>
+                            <input type="date" id="nfcDateInput" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="nfcTextInput" class="form-label">Conteúdo / HTML da Nota Fiscal:</label>
+                        <textarea id="nfcTextInput" class="form-input" rows="7" placeholder="Cole aqui o texto ou código HTML da nota fiscal..." style="font-family:monospace; font-size:0.8rem;"></textarea>
+                    </div>
+                    <div id="nfcPreviewResult" style="display:none; margin-top:0.75rem; padding:0.75rem; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); border-radius:8px; max-height:180px; overflow-y:auto;">
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem; padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.1);">
+                    <button class="btn btn-secondary" id="btnPreviewNfc"><i class="ph ph-magnifying-glass"></i> Processar Texto</button>
+                    <button class="btn btn-primary" id="btnSaveNfc" style="display:none; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"><i class="ph ph-check-circle"></i> Salvar Compras no Histórico</button>
+                </div>
             </div>
         </div>
 

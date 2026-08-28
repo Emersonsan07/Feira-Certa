@@ -25,10 +25,14 @@ function getColorClassForCategory(cat) {
 
 // Cart State
 // Structure: { "ProductName": { price: 10.50, qty: 1 } }
-let shoppingCart = {};
+let shoppingCart = JSON.parse(localStorage.getItem('feiraCertaShoppingCart')) || {};
 let activeCategory = 'Todas';
 let itemOverrides = JSON.parse(localStorage.getItem('feiraCertaOverrides')) || {};
 let excludedItems = JSON.parse(localStorage.getItem('feiraCertaExcludedItems')) || [];
+
+function saveCartToStorage() {
+    localStorage.setItem('feiraCertaShoppingCart', JSON.stringify(shoppingCart));
+}
 
 const productsGrid = document.getElementById('productsGrid');
 const searchInput = document.getElementById('searchInput');
@@ -74,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProducts(searchInput.value);
     });
 
+    setupNfcModalEvents();
     document.getElementById('closeModal').addEventListener('click', closeModal);
 
     const closeEditModalBtn = document.getElementById('closeEditModal');
@@ -412,6 +417,57 @@ function getSimplifiedName(name) {
     if (n.includes('PRESUNTO') || n.includes('PRES SADIA') || n.includes('PRES NOBRE')) return 'Presunto';
     if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORTAD')) return 'Mortadela';
     
+    if (n.includes('PACOQ S HELENA') || n.includes('PAÇOCA') || n.includes('PACOCA')) return 'Paçoca';
+    if (n.includes('COMP LACT PIRAC') || n.includes('COMPOSTO LACT')) return 'Composto Lácteo';
+    if (n.includes('RQ BATAVO') || n.includes('REQ CATUP') || n.includes('REQ QUALICOCO') || n.includes('REQUEIJAO') || n.includes('REQUEIJÃO')) return 'Requeijão';
+    if (n.includes('NESCAU') || n.includes('ACHOC') || n.includes('TODDY')) return 'Achocolatado';
+    if (n.includes('CHAND') || n.includes('CH BIS') || n.includes('HERSHEYS') || n.includes('CHOC LACTA') || n.includes('CHOC TWIX') || n.includes('CHOCOLATE')) return 'Chocolate';
+    if (n.includes('LAYS') || n.includes('RUFFLES') || n.includes('DORITOS')) return 'Salgadinho';
+    if (n.includes('TERERE') || n.includes('TERERÊ')) return 'Tererê / Erva Mate';
+    if (n.includes('PURAPOLPA') || n.includes('POLP NORTE') || n.includes('POLPA FRUTA')) return 'Polpa de Fruta';
+    if (n.includes('KIMILHO') || n.includes('FLOCAO') || n.includes('FLOCÃO')) return 'Flocão de Milho';
+    if (n.includes('CR AVELA') || n.includes('NUTELLA')) return 'Creme de Avelã';
+    if (n.includes('MORANGO')) return 'Morango';
+    if (n.includes('PONKAN') || n.includes('TANGERINA')) return 'Tangerina / Ponkan';
+    if (n.includes('MELANCIA')) return 'Melancia';
+    if (n.includes('UVA ')) return 'Uva';
+    if (n.includes('MAND AMARELINHA') || n.includes('MANDIOCA')) return 'Mandioca';
+    if (n.includes('LING ') || n.includes('LINGUICA') || n.includes('LINGUIÇA')) return 'Linguiça';
+    if (n.includes('CAPA COXAO') || n.includes('CORDAO FILE') || n.includes('COXAO MOLE') || n.includes('PALETA') || n.includes('FRALDINHA') || n.includes('MUSCULO') || n.includes('MIOL ACEM') || n.includes('PICANHA') || n.includes('CUPIM') || n.includes('COSTELINHA') || n.includes('CAR BOV')) return 'Corte de Carne Bovina';
+    if (n.includes('REXONA') || n.includes('DOVE') || n.includes('DESODORANTE') || n.includes('D REX')) return 'Desodorante';
+    if (n.includes('ESPUMA PREST') || n.includes('AP PREST') || n.includes('GILLETTE')) return 'Aparelho / Espuma de Barbear';
+    if (n.includes('PH FLORAL') || n.includes('P HIG') || n.includes('PAPEL HIG')) return 'Papel Higiênico';
+    if (n.includes('CLORO GEL') || n.includes('SAPONAC') || n.includes('SURF') || n.includes('LIMPOL')) return 'Produtos de Limpeza';
+    if (n.includes('LR MINUANO') || n.includes('L ROU') || n.includes('SABÃO EM PÓ') || n.includes('SABAO EM PO')) return 'Sabão em Pó / Lava-Roupas';
+    if (n.includes('CATCH HEINZ') || n.includes('KETCHUP') || n.includes('MAIONESE')) return 'Condimentos (Ketchup/Maionese)';
+    if (n.includes('FEIJ ') || n.includes('FEIJAO') || n.includes('FEIJÃO')) return 'Feijão';
+    if (n.includes('ALHO')) return 'Alho';
+    if (n.includes('VINHO') || n.includes('V C GARCIA')) return 'Vinho';
+    if (n.includes('CERVEJA') || n.includes('CERV BUDW') || n.includes('HEINEKEN')) return 'Cerveja';
+    if (n.includes('TOALHA SOCIAL') || n.includes('T PAP') || n.includes('PAPEL TOALHA')) return 'Papel Toalha';
+    if (n.includes('CD COLG') || n.includes('CREME DENTAL') || n.includes('COLGATE')) return 'Creme Dental';
+    if (n.includes('LISTERINE') || n.includes('ENXAG')) return 'Enxaguante Bucal';
+    if (n.includes('ESCOVA') || n.includes('ESC COL')) return 'Escova Dental';
+    if (n.includes('HID NIVEA') || n.includes('HIDRATANTE')) return 'Hidratante';
+    if (n.includes('SER DOV') || n.includes('SERUM')) return 'Sérum Corporal';
+    if (n.includes('OLEO CR') || n.includes('OL PANT')) return 'Óleo Capilar';
+    if (n.includes('ALG COTTON') || n.includes('ALGODAO') || n.includes('ALGODÃO')) return 'Algodão';
+    if (n.includes('MOLICO') || n.includes('F LAC') || n.includes('FAR LAC')) return 'Farinha Láctea / Composto';
+    if (n.includes('CREAM CHEESE')) return 'Cream Cheese';
+    if (n.includes('QJ T COAL') || n.includes('QJ COALHO') || n.includes('QJO MINAS') || n.includes('QUEIJO')) return 'Queijo';
+    if (n.includes('APRES PERD')) return 'Peito de Peru Fatiado / Apresuntado';
+    if (n.includes('BICARB')) return 'Bicarbonato';
+    if (n.includes('AZ ') || n.includes('AZEITE')) return 'Azeite';
+    if (n.includes('AVEIA') || n.includes('AV NAT')) return 'Aveia';
+    if (n.includes('PEPINO')) return 'Pepino';
+    if (n.includes('LIMAO') || n.includes('LIMÃO')) return 'Limão';
+    if (n.includes('PAO NUTR') || n.includes('PAO PULM') || n.includes('P FORM') || n.includes('PAO ARTES') || n.includes('P HAM PUL') || n.includes('PAO HAMB')) return 'Pão de Forma / Hambúrguer';
+    if (n.includes('PILHA') || n.includes('BATERIA')) return 'Pilha / Bateria';
+    if (n.includes('WAF TRELOSO') || n.includes('WAF VITARE') || n.includes('WAFER')) return 'Biscoito Wafer';
+    if (n.includes('MASSA RAP10')) return 'Massa Rap10';
+    if (n.includes('CAP 3CORAC') || n.includes('CAPPUC')) return 'Cappuccino';
+    if (n.includes('TEMP KITANO') || n.includes('CHIMICHU')) return 'Tempero';
+
     if (n.includes('LTE ') || n.includes('LEITE ')) {
         if (n.includes('PÓ') || n.includes(' EM PO') || n.includes(' EM PÓ')) return 'Leite em Pó';
         if (n.includes('COND')) return 'Leite Condensado';
@@ -653,6 +709,7 @@ function processData(data, replace = true) {
     initCategoryFilters();
     renderProducts();
     updateFinanceDashboard();
+    renderEconomyTips();
     renderCategorySpending();
     initCalendar();
     updateExcludedCount();
@@ -804,6 +861,16 @@ function renderProducts(filter = '') {
             const cartIcon = inCart ? '<i class="ph ph-trash"></i>' : '<i class="ph ph-plus"></i>';
             const cartBtnTitle = inCart ? 'Remover da Lista' : 'Adicionar à Lista';
 
+            const econ = getMarketPriceComparison(name);
+            let econBadgeHtml = '';
+            if (econ && econ.diffPercent >= 5) {
+                econBadgeHtml = `
+                    <div class="economy-badge" title="Mais barato no ${econ.cheapestMarket} (${formatCurrency(econ.minPrice)}) vs ${econ.expensiveMarket} (${formatCurrency(econ.maxPrice)})">
+                        <i class="ph ph-piggy-bank"></i> Mais barato no <strong>${econ.cheapestMarket}</strong> (${formatCurrency(econ.minPrice)})
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
                 <div class="product-title" title="${formattedName}">${formattedName}</div>
                 <div class="product-latest">
@@ -818,6 +885,7 @@ function renderProducts(filter = '') {
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     Última compra: ${latestEntry.date} &bull; Unidade: ${latestEntry.unit}
                 </div>
+                ${econBadgeHtml}
                 <div class="sparkline-container" title="Variação de Preço">
                     ${generateSparklineSVG(history, colorName)}
                 </div>
@@ -1198,6 +1266,7 @@ let cartActiveCatFilter = 'Todos';
 let cartViewMode = 'category'; // 'category' | 'priority' | 'alphabetical'
 
 function updateCartUI() {
+    saveCartToStorage();
     const listContainer = document.getElementById('cartItemsList');
     const badge = document.getElementById('cartBadge');
     const totalEl = document.getElementById('cartTotalValue');
@@ -3927,5 +3996,342 @@ function replenishEstoqueFromLatestInvoice(dataList = null) {
 
     const dateStr = itemsToReplenish[0].date;
     setStatus(`📦 Estoque doméstico reabastecido com a nota de ${dateStr} (${addedCount} novos, ${updatedCount} atualizados).`);
+}
+
+// ==========================================
+// DICAS DE ECONOMIA & RECOMENDAÇÃO DE MERCADO
+// ==========================================
+function getMarketPriceComparison(productName) {
+    const entries = groupedProducts[productName];
+    if (!entries || entries.length === 0) return null;
+
+    const marketPrices = {};
+    entries.forEach(e => {
+        if (!e.market || !e.price || e.price <= 0) return;
+        if (!marketPrices[e.market] || (e.datetime && e.datetime > marketPrices[e.market].datetime)) {
+            marketPrices[e.market] = {
+                price: e.price,
+                date: e.date,
+                datetime: e.datetime
+            };
+        }
+    });
+
+    const markets = Object.keys(marketPrices);
+    if (markets.length < 2) return null;
+
+    let cheapestMarket = null;
+    let minPrice = Infinity;
+    let expensiveMarket = null;
+    let maxPrice = -Infinity;
+
+    markets.forEach(m => {
+        const p = marketPrices[m].price;
+        if (p < minPrice) {
+            minPrice = p;
+            cheapestMarket = m;
+        }
+        if (p > maxPrice) {
+            maxPrice = p;
+            expensiveMarket = m;
+        }
+    });
+
+    if (maxPrice <= minPrice || minPrice === 0) return null;
+
+    const diff = maxPrice - minPrice;
+    const diffPercent = Math.round((diff / maxPrice) * 100);
+
+    return {
+        cheapestMarket,
+        minPrice,
+        expensiveMarket,
+        maxPrice,
+        diff,
+        diffPercent,
+        allMarkets: marketPrices
+    };
+}
+
+function renderEconomyTips() {
+    const section = document.getElementById('economyTipsSection');
+    const grid = document.getElementById('economyTipsGrid');
+    if (!section || !grid) return;
+
+    const tips = [];
+
+    Object.keys(groupedProducts).forEach(name => {
+        const comp = getMarketPriceComparison(name);
+        if (comp && comp.diffPercent >= 8 && comp.diff >= 0.40) {
+            tips.push({
+                product: name,
+                ...comp
+            });
+        }
+    });
+
+    tips.sort((a, b) => b.diff - a.diff);
+
+    if (tips.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    grid.innerHTML = tips.slice(0, 8).map(tip => `
+        <div class="economy-tip-card">
+            <div class="tip-header">
+                <strong>${tip.product}</strong>
+                <span class="tip-savings-badge">Economia de ${tip.diffPercent}%</span>
+            </div>
+            <div class="tip-body">
+                <div class="tip-market cheapest">
+                    <i class="ph ph-check-circle" style="color:#34d399"></i>
+                    <span><strong>${tip.cheapestMarket}</strong>: ${formatCurrency(tip.minPrice)}</span>
+                </div>
+                <div class="tip-market expensive">
+                    <i class="ph ph-x-circle" style="color:#f87171"></i>
+                    <span><strong>${tip.expensiveMarket}</strong>: ${formatCurrency(tip.maxPrice)}</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ==========================================
+// IMPORTAÇÃO DIRETA DE NFC-e (CLIENT-SIDE)
+// ==========================================
+let lastParsedNfcResult = null;
+
+function parseNfcInput(rawText, manualMarket = '', manualDate = '') {
+    let market = manualMarket.trim();
+    let dateStr = manualDate.trim();
+    let items = [];
+
+    if (!rawText || !rawText.trim()) return null;
+
+    if (rawText.includes('<html') || rawText.includes('<tr') || rawText.includes('<div') || rawText.includes('<table')) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawText, 'text/html');
+
+        if (!market) {
+            const u20 = doc.querySelector('#u20') || doc.querySelector('.txtTopo') || doc.querySelector('#conteudo header');
+            if (u20) market = u20.textContent.trim();
+        }
+
+        if (!dateStr) {
+            const fullText = doc.body.textContent;
+            const matchDate = fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
+            if (matchDate) dateStr = matchDate[1];
+        }
+
+        const rows = doc.querySelectorAll('tr');
+        rows.forEach(tr => {
+            const nameEl = tr.querySelector('.txtTit') || tr.querySelector('td:nth-child(1)');
+            if (!nameEl) return;
+            const name = nameEl.textContent.trim();
+            if (!name || name.toUpperCase().includes('PRODUTO') || name.toUpperCase().includes('DESCRICAO')) return;
+
+            const qtdEl = tr.querySelector('.Rqtd') || tr.querySelector('td:nth-child(2)');
+            const unEl = tr.querySelector('.RUN') || tr.querySelector('td:nth-child(3)');
+            const vuEl = tr.querySelector('.RvlUnit') || tr.querySelector('td:nth-child(4)');
+            const vtEl = tr.querySelector('.valor') || tr.querySelector('td:nth-child(5)');
+
+            let qty = qtdEl ? qtdEl.textContent.replace(/[^\d,.]/g, '').replace(',', '.') : '1';
+            let unit = unEl ? unEl.textContent.replace(/UN:/i, '').trim() : 'UN';
+            let vUnit = vuEl ? vuEl.textContent.replace(/[^\d,.]/g, '').replace(',', '.') : '0';
+            let vTotal = vtEl ? vtEl.textContent.replace(/[^\d,.]/g, '').replace(',', '.') : '0';
+
+            const parsedQty = parseFloat(qty) || 1;
+            const parsedVU = parseFloat(vUnit) || 0;
+            let parsedVT = parseFloat(vTotal) || (parsedQty * parsedVU);
+
+            if (name && (parsedVU > 0 || parsedVT > 0)) {
+                items.push({
+                    product: getSimplifiedName(name),
+                    rawName: name,
+                    qty: parsedQty,
+                    unit: unit || 'UN',
+                    price: parsedVU || (parsedVT / parsedQty),
+                    total: parsedVT
+                });
+            }
+        });
+    }
+
+    if (items.length === 0) {
+        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+
+        if (!market) {
+            const knownMarkets = ['ASSAI', 'ASSAÍ', 'LEGAL', 'FORT', 'FRUTARIA', 'SUPERMERCADO', 'ATACADAO', 'COMPER'];
+            for (let l of lines) {
+                const found = knownMarkets.find(k => l.toUpperCase().includes(k));
+                if (found) {
+                    market = l;
+                    break;
+                }
+            }
+        }
+
+        if (!dateStr) {
+            for (let l of lines) {
+                const matchDate = l.match(/(\d{2}\/\d{2}\/\d{4})/);
+                if (matchDate) {
+                    dateStr = matchDate[1];
+                    break;
+                }
+            }
+        }
+
+        let currentItemName = '';
+        lines.forEach(line => {
+            const matchQtd = line.match(/(?:Qtde\.?:?|Qtd\.?:?)\s*([\d,.]+)\s*(?:UN:?\s*([A-Za-z]+))?\s*(?:Vl\.?\s*Unit\.?:?)\s*([\d,.]+)(?:\s*(?:Vl\.?\s*Total\.?:?)\s*([\d,.]+))?/i);
+            
+            if (matchQtd) {
+                let name = currentItemName || 'Produto Importado';
+                let qty = parseFloat(matchQtd[1].replace(',', '.')) || 1;
+                let unit = matchQtd[2] || 'UN';
+                let price = parseFloat(matchQtd[3].replace(',', '.')) || 0;
+                let total = matchQtd[4] ? parseFloat(matchQtd[4].replace(',', '.')) : (qty * price);
+
+                name = name.replace(/\(Cód.*?\)/i, '').replace(/Vl\..*/i, '').trim();
+
+                if (name && price > 0) {
+                    items.push({
+                        product: getSimplifiedName(name),
+                        rawName: name,
+                        qty,
+                        unit,
+                        price,
+                        total
+                    });
+                }
+                currentItemName = '';
+            } else if (!line.toUpperCase().includes('EMISSÃO') && !line.toUpperCase().includes('CNPJ') && !line.toUpperCase().includes('TOTAL R$') && line.length > 2) {
+                currentItemName = line;
+            }
+        });
+    }
+
+    if (!dateStr) {
+        const today = new Date();
+        dateStr = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    }
+
+    if (market) {
+        const upperMkt = market.toUpperCase();
+        if (upperMkt.includes('SENDAS') || upperMkt.includes('ASSAI') || upperMkt.includes('ASSAÍ')) market = 'Assaí';
+        else if (upperMkt.includes('SANTO ANTONIO') || upperMkt.includes('LEGAL')) market = 'Legal';
+        else if (upperMkt.includes('MIYAZATO') || upperMkt.includes('JULIO')) market = 'Frutaria Julio';
+        else if (upperMkt.includes('SDB') || upperMkt.includes('FORT')) market = 'Fort';
+    } else {
+        market = 'Mercado Local';
+    }
+
+    return {
+        market,
+        date: dateStr,
+        items
+    };
+}
+
+function openNfcModal() {
+    const modal = document.getElementById('importNfcModal');
+    if (!modal) return;
+    document.getElementById('nfcTextInput').value = '';
+    document.getElementById('nfcMarketInput').value = '';
+    document.getElementById('nfcDateInput').value = '';
+    document.getElementById('nfcPreviewResult').style.display = 'none';
+    document.getElementById('btnSaveNfc').style.display = 'none';
+    lastParsedNfcResult = null;
+    modal.style.display = 'flex';
+}
+
+function closeNfcModal() {
+    const modal = document.getElementById('importNfcModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function setupNfcModalEvents() {
+    const closeBtn = document.getElementById('closeImportNfcModal');
+    if (closeBtn) closeBtn.addEventListener('click', closeNfcModal);
+
+    const openBtns = [document.getElementById('importNfcBtn'), document.getElementById('qaImportNfcBtn')];
+    openBtns.forEach(btn => {
+        if (btn) btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openNfcModal();
+        });
+    });
+
+    const btnPreview = document.getElementById('btnPreviewNfc');
+    if (btnPreview) {
+        btnPreview.addEventListener('click', () => {
+            const rawText = document.getElementById('nfcTextInput').value;
+            const manualMarket = document.getElementById('nfcMarketInput').value;
+            const manualDateRaw = document.getElementById('nfcDateInput').value;
+
+            let manualDate = '';
+            if (manualDateRaw) {
+                const parts = manualDateRaw.split('-');
+                if (parts.length === 3) manualDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            const result = parseNfcInput(rawText, manualMarket, manualDate);
+            const previewEl = document.getElementById('nfcPreviewResult');
+            const saveBtn = document.getElementById('btnSaveNfc');
+
+            if (!result || result.items.length === 0) {
+                previewEl.style.display = 'block';
+                previewEl.innerHTML = `<div style="color:var(--danger); padding:0.5rem;"><i class="ph ph-warning"></i> Nenhum produto identificado. Verifique se colou o texto ou HTML correto da nota fiscal.</div>`;
+                saveBtn.style.display = 'none';
+                return;
+            }
+
+            lastParsedNfcResult = result;
+            previewEl.style.display = 'block';
+
+            let itemsListHtml = result.items.map(item => `
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:0.3rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <span><strong>${item.product}</strong> <small style="color:var(--text-secondary)">(${item.rawName})</small></span>
+                    <span>${item.qty} ${item.unit} &times; ${formatCurrency(item.price)} = <strong>${formatCurrency(item.total)}</strong></span>
+                </div>
+            `).join('');
+
+            previewEl.innerHTML = `
+                <div style="color:#34d399; margin-bottom:0.5rem; font-size:0.9rem;">
+                    <strong><i class="ph ph-check-circle"></i> ${result.items.length} itens identificados</strong> &bull; Mercado: <strong>${result.market}</strong> &bull; Data: <strong>${result.date}</strong>
+                </div>
+                ${itemsListHtml}
+            `;
+            saveBtn.style.display = 'inline-block';
+        });
+    }
+
+    const saveBtn = document.getElementById('btnSaveNfc');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            if (!lastParsedNfcResult || lastParsedNfcResult.items.length === 0) return;
+
+            const userPurchases = JSON.parse(localStorage.getItem('feiraCertaUserPurchases')) || [];
+
+            lastParsedNfcResult.items.forEach(item => {
+                userPurchases.push({
+                    product: item.product,
+                    market: lastParsedNfcResult.market,
+                    price: item.price,
+                    qty: item.qty,
+                    unit: item.unit,
+                    date: lastParsedNfcResult.date
+                });
+            });
+
+            localStorage.setItem('feiraCertaUserPurchases', JSON.stringify(userPurchases));
+
+            processData(marketData, true);
+            closeNfcModal();
+            setStatus(`✅ ${lastParsedNfcResult.items.length} itens importados com sucesso da nota do ${lastParsedNfcResult.market} (${lastParsedNfcResult.date}).`);
+        });
+    }
 }
 
