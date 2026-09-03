@@ -28,6 +28,16 @@ function getColorClassForCategory(cat) {
 let shoppingCart = JSON.parse(localStorage.getItem('feiraCertaShoppingCart')) || {};
 let activeCategory = 'Todas';
 let itemOverrides = JSON.parse(localStorage.getItem('feiraCertaOverrides')) || {};
+let dirtyOverrides = false;
+Object.keys(itemOverrides).forEach(k => {
+    if (itemOverrides[k] && itemOverrides[k].customName !== undefined) {
+        delete itemOverrides[k].customName;
+        dirtyOverrides = true;
+    }
+});
+if (dirtyOverrides) {
+    localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
+}
 let excludedItems = JSON.parse(localStorage.getItem('feiraCertaExcludedItems')) || [];
 
 function saveCartToStorage() {
@@ -172,6 +182,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const jsonObj = JSON.parse(evt.target.result);
                         // Mesclar edicoes pra não perder as do celular/PC qdo restaurar
                         itemOverrides = { ...itemOverrides, ...jsonObj };
+                        Object.keys(itemOverrides).forEach(k => {
+                            if (itemOverrides[k] && itemOverrides[k].customName !== undefined) {
+                                delete itemOverrides[k].customName;
+                            }
+                        });
                         localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
                         processData(marketData, true);
                         setStatus("Backup restaurado da nuvem com sucesso!");
@@ -621,20 +636,12 @@ function processData(data, replace = true) {
         const dateRaw = row['Data']?.trim();
         const market = row['Fornecedor']?.trim();
 
-        // Check overrides
-        let product = originalProduct;
+        // Product name is simplified automatically to group similar items
+        let product = getSimplifiedName(originalProduct);
         let customCat = null;
 
-        if (itemOverrides[originalProduct]) {
-            if (itemOverrides[originalProduct].customName) {
-                product = itemOverrides[originalProduct].customName;
-            }
-            if (itemOverrides[originalProduct].customCategory) {
-                customCat = itemOverrides[originalProduct].customCategory;
-            }
-        } else {
-            // Apply automatic simplification if no custom override exists
-            product = getSimplifiedName(originalProduct);
+        if (itemOverrides[originalProduct] && itemOverrides[originalProduct].customCategory) {
+            customCat = itemOverrides[originalProduct].customCategory;
         }
 
         const unitKey = Object.keys(row).find(k => k.toLowerCase().includes('unit') || k.toLowerCase().includes('preço') || k.toLowerCase().includes('preco'));
@@ -893,7 +900,7 @@ function renderProducts(filter = '') {
                     <button class="btn-outline view-history-btn" data-product="${name}" title="Ver Histórico">
                         <i class="ph ph-chart-line-up"></i>
                     </button>
-                    <button class="btn-outline edit-product-btn" data-product="${name}" title="Editar Nome e Categoria">
+                    <button class="btn-outline edit-product-btn" data-product="${name}" title="Editar Categoria e Prioridade">
                         <i class="ph ph-pencil-simple"></i>
                     </button>
                     <button class="btn-outline delete-product-btn" data-product="${name}" title="Ocultar Produto" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
@@ -1849,10 +1856,9 @@ function closeModal() {
 
 function openEditModal(name) {
     const history = groupedProducts[name];
-    const originals = [...new Set(history.map(h => h.originalName))].filter(o => o);
+    const originals = history ? [...new Set(history.map(h => h.originalName))].filter(o => o) : [name];
 
-    document.getElementById('editOriginalName').value = originals.join(' | ');
-    document.getElementById('editCustomName').value = name;
+    document.getElementById('editOriginalName').value = name;
 
     const currentCat = resolveCategory(name);
     const selectCat = document.getElementById('editCategory');
@@ -1873,31 +1879,24 @@ function openEditModal(name) {
 }
 
 function saveProductEdit(currentName, originalNames) {
-    const customName = document.getElementById('editCustomName').value.trim();
     const customCat = document.getElementById('editCategory').value;
     const customPriority = document.getElementById('editPriority').value;
 
     originalNames.forEach(orig => {
         if (!itemOverrides[orig]) itemOverrides[orig] = {};
-        itemOverrides[orig].customName = customName || orig;
+        delete itemOverrides[orig].customName;
         itemOverrides[orig].customCategory = customCat;
         itemOverrides[orig].customPriority = customPriority;
     });
 
     localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
 
-    // Updates the cart if the name was changed and it is inside the cart
-    if (customName && customName !== currentName && shoppingCart[currentName]) {
-        shoppingCart[customName] = shoppingCart[currentName];
-        delete shoppingCart[currentName];
-    }
-
     document.getElementById('editModal').classList.remove('active');
 
     // Reprocessar toda a lista com as novas classificações
     processData(marketData, true);
     updateCartUI();
-    setStatus("Produto atualizado e agrupado com sucesso!");
+    setStatus("Categoria e prioridade atualizadas com sucesso!");
 }
 
 let financeChartInstance = null;
@@ -2741,10 +2740,7 @@ function renderExcludedItems() {
     }
 
     excludedItems.forEach(origName => {
-        let displayName = origName;
-        if (itemOverrides[origName] && itemOverrides[origName].customName) {
-            displayName = itemOverrides[origName].customName;
-        }
+        let displayName = getSimplifiedName(origName) || origName;
 
         const div = document.createElement('div');
         div.className = 'excluded-item-row';
@@ -3898,12 +3894,7 @@ function getLatestInvoiceItems(dataList = null) {
 
             const unit = row['Unidade'] || 'UN';
 
-            let product = originalProduct;
-            if (itemOverrides[originalProduct] && itemOverrides[originalProduct].customName) {
-                product = itemOverrides[originalProduct].customName;
-            } else {
-                product = getSimplifiedName(originalProduct);
-            }
+            let product = getSimplifiedName(originalProduct);
 
             entries.push({
                 product,
