@@ -426,76 +426,37 @@ function getSimplifiedName(name) {
     if (!name) return '';
     const n = name.toUpperCase().trim();
 
-    // Regras específicas de padronização para agrupar itens duplicados/similares
+    // 1. Padaria & Pães
     if (n.includes('PAO FRANCES') || n.includes('PÃO FRANCÊS')) return 'Pão Francês';
-    if (n.includes('MUSS') || n.includes('MUSSARELA') || n.includes('QJO MUS')) return 'Queijo Mussarela';
-    if (n.includes('PRESUNTO') || n.includes('PRES SADIA') || n.includes('PRES NOBRE')) return 'Presunto';
-    if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORTAD')) return 'Mortadela';
-    
-    if (n.includes('PACOQ S HELENA') || n.includes('PAÇOCA') || n.includes('PACOCA')) return 'Paçoca';
-    if (n.includes('COMP LACT PIRAC') || n.includes('COMPOSTO LACT')) return 'Composto Lácteo';
-    if (n.includes('RQ BATAVO') || n.includes('REQ CATUP') || n.includes('REQ QUALICOCO') || n.includes('REQUEIJAO') || n.includes('REQUEIJÃO')) return 'Requeijão';
-    if (n.includes('NESCAU') || n.includes('ACHOC') || n.includes('TODDY')) return 'Achocolatado';
-    if (n.includes('CHAND') || n.includes('CH BIS') || n.includes('HERSHEYS') || n.includes('CHOC LACTA') || n.includes('CHOC TWIX') || n.includes('CHOCOLATE')) return 'Chocolate';
-    if (n.includes('LAYS') || n.includes('RUFFLES') || n.includes('DORITOS')) return 'Salgadinho';
-    if (n.includes('TERERE') || n.includes('TERERÊ')) return 'Tererê / Erva Mate';
-    if (n.includes('PURAPOLPA') || n.includes('POLP NORTE') || n.includes('POLPA FRUTA')) return 'Polpa de Fruta';
-    if (n.includes('KIMILHO') || n.includes('FLOCAO') || n.includes('FLOCÃO')) return 'Flocão de Milho';
-    if (n.includes('CR AVELA') || n.includes('NUTELLA')) return 'Creme de Avelã';
-    if (n.includes('MORANGO')) return 'Morango';
-    if (n.includes('PONKAN') || n.includes('TANGERINA')) return 'Tangerina / Ponkan';
-    if (n.includes('MELANCIA')) return 'Melancia';
-    if (n.includes('UVA ')) return 'Uva';
-    if (n.includes('MAND AMARELINHA') || n.includes('MANDIOCA')) return 'Mandioca';
-    if (n.includes('LING ') || n.includes('LINGUICA') || n.includes('LINGUIÇA')) return 'Linguiça';
-    if (n.includes('CAPA COXAO') || n.includes('CORDAO FILE') || n.includes('COXAO MOLE') || n.includes('PALETA') || n.includes('FRALDINHA') || n.includes('MUSCULO') || n.includes('MIOL ACEM') || n.includes('PICANHA') || n.includes('CUPIM') || n.includes('COSTELINHA') || n.includes('CAR BOV')) return 'Corte de Carne Bovina';
-    if (n.includes('REXONA') || n.includes('DOVE') || n.includes('DESODORANTE') || n.includes('D REX')) return 'Desodorante';
-    if (n.includes('ESPUMA PREST') || n.includes('AP PREST') || n.includes('GILLETTE')) return 'Aparelho / Espuma de Barbear';
-    if (n.includes('PH FLORAL') || n.includes('P HIG') || n.includes('PAPEL HIG')) return 'Papel Higiênico';
-    if (n.includes('CLORO GEL') || n.includes('SAPONAC') || n.includes('SURF') || n.includes('LIMPOL')) return 'Produtos de Limpeza';
-    if (n.includes('LR MINUANO') || n.includes('L ROU') || n.includes('SABÃO EM PÓ') || n.includes('SABAO EM PO')) return 'Sabão em Pó / Lava-Roupas';
-    if (n.includes('CATCH HEINZ') || n.includes('KETCHUP') || n.includes('MAIONESE')) return 'Condimentos (Ketchup/Maionese)';
-    if (n.includes('FEIJ ') || n.includes('FEIJAO') || n.includes('FEIJÃO')) return 'Feijão';
-    if (n.includes('ALHO')) return 'Alho';
-    if (n.includes('VINHO') || n.includes('V C GARCIA')) return 'Vinho';
-    if (n.includes('CERVEJA') || n.includes('CERV BUDW') || n.includes('HEINEKEN')) return 'Cerveja';
-    if (n.includes('TOALHA SOCIAL') || n.includes('T PAP') || n.includes('PAPEL TOALHA')) return 'Papel Toalha';
-    if (n.includes('CD COLG') || n.includes('CREME DENTAL') || n.includes('COLGATE')) return 'Creme Dental';
-    if (n.includes('LISTERINE') || n.includes('ENXAG')) return 'Enxaguante Bucal';
-    if (n.includes('ESCOVA') || n.includes('ESC COL')) return 'Escova Dental';
-    if (n.includes('HID NIVEA') || n.includes('HIDRATANTE')) return 'Hidratante';
-    if (n.includes('SER DOV') || n.includes('SERUM')) return 'Sérum Corporal';
-    if (n.includes('OLEO CR') || n.includes('OL PANT')) return 'Óleo Capilar';
-    if (n.includes('ALG COTTON') || n.includes('ALGODAO') || n.includes('ALGODÃO')) return 'Algodão';
-    if (n.includes('MOLICO') || n.includes('F LAC') || n.includes('FAR LAC')) return 'Farinha Láctea / Composto';
-    if (n.includes('CREAM CHEESE')) return 'Cream Cheese';
-    if (n.includes('QJ T COAL') || n.includes('QJ COALHO') || n.includes('QJO MINAS') || n.includes('QUEIJO')) return 'Queijo';
-    if (n.includes('APRES PERD')) return 'Peito de Peru Fatiado / Apresuntado';
-    if (n.includes('BICARB')) return 'Bicarbonato';
-    if (n.includes('AZ ') || n.includes('AZEITE')) return 'Azeite';
-    if (n.includes('AVEIA') || n.includes('AV NAT')) return 'Aveia';
-    if (n.includes('PEPINO')) return 'Pepino';
-    if (n.includes('LIMAO') || n.includes('LIMÃO')) return 'Limão';
-    if (n.includes('PAO NUTR') || n.includes('PAO PULM') || n.includes('P FORM') || n.includes('PAO ARTES') || n.includes('P HAM PUL') || n.includes('PAO HAMB')) return 'Pão de Forma / Hambúrguer';
-    if (n.includes('PILHA') || n.includes('BATERIA')) return 'Pilha / Bateria';
-    if (n.includes('WAF TRELOSO') || n.includes('WAF VITARE') || n.includes('WAFER')) return 'Biscoito Wafer';
-    if (n.includes('MASSA RAP10')) return 'Massa Rap10';
-    if (n.includes('CAP 3CORAC') || n.includes('CAPPUC')) return 'Cappuccino';
-    if (n.includes('TEMP KITANO') || n.includes('CHIMICHU')) return 'Tempero';
+    if (n.includes('PAO NUTR') || n.includes('PAO PULM') || n.includes('P FORM') || n.includes('PAO ARTES') || n.includes('P HAM PUL') || n.includes('PAO HAMB') || n.includes('PAO PULLM') || n.includes('PAO PULLMAN') || n.includes('PAO TECO') || n.includes('PULLMAN') || n.includes('PAO FOR')) return 'Pão de Forma / Hambúrguer';
 
-    if (n.includes('LTE ') || n.includes('LEITE ')) {
-        if (n.includes('PÓ') || n.includes(' EM PO') || n.includes(' EM PÓ')) return 'Leite em Pó';
-        if (n.includes('COND')) return 'Leite Condensado';
-        return 'Leite Líquido';
-    }
-    if (n.includes('CR LEITE') || n.includes('CR LEIT') || n.includes('CREME LEITE') || n.includes('CREME DE LEITE')) return 'Creme de Leite';
-    if (n.includes('L COND') || n.includes('LEIT COND')) return 'Leite Condensado';
-    
-    if (n.includes('COCA COLA') || n.includes('COCA-COLA')) {
-        if (n.includes('S/AC') || n.includes('ZERO') || n.includes('S/ AC')) return 'Coca-Cola Sem Açúcar';
-        return 'Coca-Cola';
-    }
-    
+    // 2. Laticínios & Frios
+    if (n.includes('MUSS') || n.includes('MUSSARELA') || n.includes('QJO MUS')) return 'Queijo Mussarela';
+    if (n.includes('PRESUNTO') || n.includes('PRES SADIA') || n.includes('PRES NOBRE') || n.includes('PRES AURORA') || n.includes('PRES FRIMESA') || n.includes('PRES ')) return 'Presunto';
+    if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORTAD')) return 'Mortadela';
+    if (n.includes('QJ T COAL') || n.includes('QJ COALHO') || n.includes('QUEIJO COALHO')) return 'Queijo Coalho';
+    if (n.includes('QJO MINAS')) return 'Queijo Minas';
+    if (n.includes('CREAM CHEESE')) return 'Cream Cheese';
+    if (n.includes('RQ BATAVO') || n.includes('REQ CATUP') || n.includes('REQ QUALICOCO') || n.includes('REQUEIJAO') || n.includes('REQUEIJÃO')) return 'Requeijão';
+    if (n.includes('CR LEITE') || n.includes('CR LEIT') || n.includes('CREME LEITE') || n.includes('CREME DE LEITE') || n.includes('CR LTE')) return 'Creme de Leite';
+    if (n.includes('L COND') || n.includes('LEIT COND') || n.includes('LEITE COND')) return 'Leite Condensado';
+    if (n.includes('L PO ') || n.includes('LEITE EM PO') || n.includes('LEITE EM PÓ')) return 'Leite em Pó';
+    if (n.includes('LTE ') || n.includes('LEITE ')) return 'Leite Líquido';
+    if (n.includes('COMP LACT') || n.includes('COMPOSTO LACT')) return 'Composto Lácteo';
+    if (n.includes('IOG ') || n.includes('IOGURTE') || n.includes('IOG LIQ') || n.includes('IOG MOLICO') || n.includes('IOG NESTLE') || n.includes('IOG ITAM')) return 'Iogurte';
+    if (n.includes('MARG ') || n.includes('MARGARINA') || n.includes('MANTEIGA') || n.includes('QUALY')) return 'Margarina / Manteiga';
+    if (n.includes('OVOS') || n.includes('OVO ')) return 'Ovos';
+    if (n.includes('APRES PERD') || n.includes('APRES FRIM')) return 'Peito de Peru Fatiado / Apresuntado';
+
+    // 3. Açougue & Carnes
+    if (n.includes('FILE PEITO') || n.includes('FILÉ PEITO') || n.includes('F PEITO') || n.includes('FILEZINHO') || n.includes('SASSAM') || n.includes('FGO BELLO') || n.includes('M PEITO') || n.includes('CAR FGO') || n.includes('FILEZ')) return 'Peito de Frango (Filé/Sassami)';
+    if (n.includes('SOBRECOXA') || n.includes('COXA FGO')) return 'Sobrecoxa / Coxa de Frango';
+    if (n.includes('TEXAS BURGUER') || n.includes('HAMB ') || n.includes('HAMBURGUER') || n.includes('BURGUER')) return 'Hambúrguer';
+    if (n.includes('LING ') || n.includes('LINGUICA') || n.includes('LINGUIÇA') || n.includes('LI CAL D') || n.includes('LI FGO')) return 'Linguiça';
+    if (n.includes('COST SEARA') || n.includes('COSTELINHA') || n.includes('COSTELA')) return 'Costela / Costelinha';
+    if (n.includes('CAPA COXAO') || n.includes('CORDAO FILE') || n.includes('CORD F MIG') || n.includes('COXAO MOLE') || n.includes('PALETA') || n.includes('FRALDINHA') || n.includes('MUSCULO') || n.includes('MIOL ACEM') || n.includes('PICANHA') || n.includes('CUPIM') || n.includes('CAR BOV') || n.includes('LAGARTO')) return 'Corte de Carne Bovina';
+
+    // 4. Hortifruti - Frutas
     if (n.includes('BANANA')) {
         if (n.includes('PRATA')) return 'Banana Prata';
         if (n.includes('NANICA')) return 'Banana Nanica';
@@ -506,58 +467,119 @@ function getSimplifiedName(name) {
         if (n.includes('FORMOSA')) return 'Mamão Formosa';
         return 'Mamão';
     }
+    if (n.includes('PONKAN') || n.includes('TANGERINA')) return 'Tangerina / Ponkan';
+    if (n.includes('MELANCIA')) return 'Melancia';
+    if (n.includes('MORANGO') || n.includes('MOR P NORTE')) return 'Morango';
+    if (n.includes('BANDEJA MACA') || (n.includes('MACA') && !n.includes('MACARR') && !n.includes('MAC '))) return 'Maçã';
+    if (n.includes('UVA ')) return 'Uva';
+    if (n.includes('PURAPOLPA') || n.includes('POLP NORTE') || n.includes('POLPA FRUTA')) return 'Polpa de Fruta';
+    if (n.includes('TAMARA') || n.includes('TÂMARA')) return 'Tâmara';
+    if (n.includes('LIMAO') || n.includes('LIMÃO')) return 'Limão';
+
+    // 5. Hortifruti - Legumes & Verduras
     if (n.includes('CEBOLA')) {
         if (n.includes('ROXA')) return 'Cebola Roxa';
         return 'Cebola';
     }
-    if (n.includes('TOMATE')) {
-        if (n.includes('ROMA') || n.includes('ITALIANO') || n.includes('RASTEIRO')) return 'Tomate Italiano / Rasteiro';
+    if (n.includes('TOMATE') && !n.includes('EXTRATO') && !n.includes('EXT ') && !n.includes('MOLHO') && !n.includes('PASSATA') && !n.includes('PASSAT')) {
+        if (n.includes('ROMA') || n.includes('ITALIANO') || n.includes('RASTEIRO') || n.includes('SALADETE')) return 'Tomate Italiano / Rasteiro';
         return 'Tomate';
     }
+    if (/\bALHO\b/.test(n) && !n.includes('COALHO')) return 'Alho';
     if (n.includes('CENOURA')) return 'Cenoura';
-    if (n.includes('BATATA')) {
+    if (n.includes('BATATA') && !n.includes('PALHA')) {
         if (n.includes('DOCE')) return 'Batata Doce';
-        if (n.includes('PALHA')) return 'Batata Palha';
         return 'Batata';
     }
-    if (n.includes('OVOS') || n.includes('OVO ')) return 'Ovos';
-    if (n.includes('DET ') || n.includes('DETERGENTE') || n.includes('DET.YP')) return 'Detergente Líquido';
-    if (n.includes('SAB LUX') || n.includes('SABONETE') || n.includes('SBT ') || n.includes('ST LUX') || n.includes('SAB BARRA')) return 'Sabonete';
-    if (n.includes('SACOLA')) return 'Sacola Plástica';
-    if (n.includes('PAPRICA') || n.includes('PÁPRICA')) return 'Páprica Defumada';
-    if (n.includes('TAPIOCA') || n.includes('GOMA BEIJUBOM')) return 'Tapioca';
-    if (n.includes('BISC ') || n.includes('BISCOITO') || n.includes('BOLACHA') || n.includes('CLUB SOCIAL')) return 'Biscoito';
-    if (n.includes('MAC ') || n.includes('MACARRAO') || n.includes('MACARRÃO') || n.includes('ESPAG') || n.includes('PENNE') || n.includes('LASANHA')) return 'Macarrão / Massas';
-    if (n.includes('EXT TOM') || n.includes('EXTR TOM') || n.includes('EXTRATO TOM') || n.includes('MOLHO TOMATE') || n.includes('MOLHO DE TOMATE') || n.includes('PASSATA') || n.includes('MOLHO QUERO') || n.includes('EXT QUERO')) return 'Extrato / Molho de Tomate';
-    if (n.includes('MARG ') || n.includes('MARGARINA') || n.includes('MANTEIGA') || n.includes('QUALY')) return 'Margarina / Manteiga';
-    if (n.includes('ARR ') || n.includes('ARROZ')) return 'Arroz';
-    if (n.includes('CAF ') || n.includes('CAFE') || n.includes('CAFÉ')) return 'Café';
-    if (n.includes('SALS ') || n.includes('SALSICHA')) return 'Salsicha';
-    if (n.includes('TEXAS BURGUER') || n.includes('HAMB ') || n.includes('HAMBURGUER') || n.includes('BURGUER')) return 'Hambúrguer';
-    if (n.includes('FILE PEITO') || n.includes('FILÉ PEITO') || n.includes('F PEITO') || n.includes('FILEZINHO') || n.includes('SASSAM') || n.includes('FGO BELLO') || n.includes('M PEITO')) return 'Peito de Frango (Filé/Sassami)';
+    if (n.includes('MAND AMARELINHA') || n.includes('MANDIOCA')) return 'Mandioca';
+    if (n.includes('PEPINO')) return 'Pepino';
     if (n.includes('COENTRO') || n.includes('SALSA ') || n.includes('CHEIRO VERDE') || n.includes('CHEIRO-VERDE')) return 'Cheiro Verde / Temperos';
     if (n.includes('REPOLHO')) return 'Repolho';
     if (n.includes('ALFACE')) return 'Alface';
     if (n.includes('COUVE')) return 'Couve';
     if (n.includes('BROCOLIS') || n.includes('BRÓCOLIS')) return 'Brócolis';
+
+    // 6. Mercearia Básica
+    if (n.includes('EXT TOM') || n.includes('EXTR TOM') || n.includes('EXTRATO TOM') || n.includes('MOLHO TOMATE') || n.includes('MOLHO DE TOMATE') || n.includes('PASSATA') || n.includes('PASSAT') || n.includes('MOLHO QUERO') || n.includes('EXT QUERO') || n.includes('EXT FUGINI')) return 'Extrato / Molho de Tomate';
+    if (n.includes('M BARBEC') || n.includes('BARBECUE') || n.includes('MOLHO DAJUDA BARB')) return 'Molho Barbecue';
+    if (n.includes('M TARE') || n.includes('TARE SAKURA') || n.includes('SHOYU')) return 'Molho Tarê / Shoyu';
+    if (n.includes('CATCH HEINZ') || n.includes('KETCHUP') || n.includes('MAIONESE')) return 'Condimentos (Ketchup/Maionese)';
+    if (n.includes('ARR ') || n.includes('ARROZ')) return 'Arroz';
+    if (n.includes('FEIJ ') || n.includes('FEIJAO') || n.includes('FEIJÃO')) return 'Feijão';
+    if (n.includes('MAC ') || n.includes('MACARRAO') || n.includes('MACARRÃO') || n.includes('ESPAG') || n.includes('PENNE') || n.includes('LASANHA')) return 'Macarrão / Massas';
+    if (n.includes('AZ EX') || n.includes('AZ LA') || n.includes('AZEITE')) return 'Azeite';
+    if (n.includes('SAL MIRAMAR') || n.includes('SAL REFINADO') || n.includes('SAL GROSSO')) return 'Sal';
+    if (n.includes('CAF ') || n.includes('CAFE') || n.includes('CAFÉ')) return 'Café';
+    if (n.includes('CAP 3CORAC') || n.includes('CAPPUC')) return 'Cappuccino';
+    if (n.includes('KIMILHO') || n.includes('FLOCAO') || n.includes('FLOCÃO')) return 'Flocão de Milho';
+    if (n.includes('TAPIOCA') || n.includes('GOMA BEIJUBOM')) return 'Tapioca';
+    if (n.includes('FAROFA') || n.includes('FAR P DATERR')) return 'Farofa';
+    if (n.includes('MOLICO') || n.includes('F LAC') || n.includes('FAR LAC') || n.includes('F LACTEA')) return 'Farinha Láctea / Composto';
+    if (n.includes('AVEIA') || n.includes('AV NAT')) return 'Aveia';
+    if (n.includes('AMIDO') || n.includes('MAIZENA')) return 'Amido de Milho';
+    if (n.includes('MASSA RAP10')) return 'Massa Rap10';
+    if (n.includes('BICARB')) return 'Bicarbonato';
+    if (n.includes('MEL ') || n.includes('MEL HOLANDA')) return 'Mel';
+    if (n.includes('GERGELIM')) return 'Gergelim';
+    if (n.includes('TEMP KITANO') || n.includes('CHIMICHU') || n.includes('LEMON PEPP') || n.includes('ACAFRAO') || n.includes('PAPRICA') || n.includes('PÁPRICA')) return 'Tempero';
+
+    // 7. Doces & Snacks
+    if (n.includes('NESCAU') || n.includes('ACHOC') || n.includes('TODDY') || n.includes('BEB LAC TOD')) return 'Achocolatado';
+    if (n.includes('CHAND') || n.includes('CH BIS') || n.includes('HERSHEYS') || n.includes('CHOC LACTA') || n.includes('CHOC TWIX') || n.includes('CHOCOLATE') || n.includes('CHOC ') || n.includes('BOMB LACTA') || n.includes('BISAO')) return 'Chocolate';
+    if (n.includes('WAF TRELOSO') || n.includes('WAF VITARE') || n.includes('WAFER')) return 'Biscoito Wafer';
+    if (n.includes('BISC ') || n.includes('BISCOITO') || n.includes('BOLACHA') || n.includes('CLUB SOCIAL')) return 'Biscoito';
+    if (n.includes('LAYS') || n.includes('RUFFLES') || n.includes('DORITOS')) return 'Salgadinho';
+    if (n.includes('PALHA') || n.includes('BATATA PALHA')) return 'Batata Palha';
+    if (n.includes('CR AVELA') || n.includes('NUTELLA')) return 'Creme de Avelã';
+    if (n.includes('PACOQ S HELENA') || n.includes('PAÇOCA') || n.includes('PACOCA')) return 'Paçoca';
+
+    // 8. Bebidas
+    if (n.includes('COCA COLA') || n.includes('COCA-COLA') || n.includes('REFIG COCA')) {
+        if (n.includes('S/AC') || n.includes('ZERO') || n.includes('S/ AC')) return 'Coca-Cola Sem Açúcar';
+        return 'Coca-Cola';
+    }
+    if (n.includes('GUARANA') || n.includes('SPRITE') || n.includes('REFRIGERANTE') || n.includes('REFR ') || n.includes('REFIG ')) return 'Refrigerante';
     if (n.includes('SUCO') || n.includes('DEL VALLE') || n.includes('TAMPICO')) return 'Suco';
-    if (n.includes('IOG ') || n.includes('IOGURTE') || n.includes('IOG LIQ') || n.includes('IOG MOLICO') || n.includes('IOG NESTLE') || n.includes('IOG ITAM')) return 'Iogurte';
-    if (n.includes('GUARANA') || n.includes('SPRITE') || n.includes('REFRIGERANTE')) return 'Refrigerante';
-    if (n.includes('FAROFA')) return 'Farofa';
+    if (n.includes('CERVEJA') || n.includes('CERV BUDW') || n.includes('HEINEKEN')) return 'Cerveja';
+    if (n.includes('VINHO') || n.includes('V C GARCIA')) return 'Vinho';
     if (n.includes('AGUA MIN') || n.includes('AGUA S/G') || n.includes('AG AQUARELA')) return 'Água Mineral';
+    if (n.includes('TERERE') || n.includes('TERERÊ')) return 'Tererê / Erva Mate';
+
+    // 9. Limpeza
+    if (n.includes('DET ') || n.includes('DETERGENTE') || n.includes('DET.YP') || n.includes('LIMPOL')) return 'Detergente Líquido';
+    if (n.includes('AM FOFO') || n.includes('AMAC ') || n.includes('AMACIANTE') || n.includes('COMFORT') || n.includes('DOWNY')) return 'Amaciante de Roupas';
+    if (n.includes('LR MINUANO') || n.includes('L ROU') || n.includes('SABÃO EM PÓ') || n.includes('SABAO EM PO')) return 'Sabão em Pó / Lava-Roupas';
     if (n.includes('AGUA SANIT') || n.includes('ÁGUA SANIT') || n.includes('QBOA')) return 'Água Sanitária';
-    if (n.includes('AMAC ') || n.includes('AMACIANTE') || n.includes('COMFORT') || n.includes('DOWNY')) return 'Amaciante de Roupas';
+    if (n.includes('DESI ') || n.includes('DESINFETANTE') || n.includes('LYSOFORM') || n.includes('LIMP QBOA')) return 'Desinfetante';
+    if (n.includes('CLORO GEL') || n.includes('SAPONAC') || n.includes('SURF') || n.includes('L ALUM TRIEX') || n.includes('LIMP MULTI')) return 'Produtos de Limpeza';
+    if (n.includes('ESPONJA') || n.includes('ESP ') || n.includes('ESP BRILHUS')) return 'Esponja de Limpeza';
+    if (n.includes('SACO LIXO')) return 'Saco de Lixo';
+
+    // 10. Higiene Pessoal
+    if (n.includes('REXONA') || n.includes('DOVE') || n.includes('DESODORANTE') || n.includes('D REX') || n.includes('COND DOVE')) return 'Desodorante';
+    if (n.includes('SHAMPOO') || n.includes('CONDICIONADOR') || n.includes('SH+CO') || n.includes('CR ELSEVE') || n.includes('MASC OX') || n.includes('CR SKALA') || n.includes('DOVE SH') || n.includes('MASC TRA PANT') || n.includes('SH OX')) return 'Shampoo / Condicionador';
+    if (n.includes('SAB LUX') || n.includes('SABONETE') || n.includes('SBT ') || n.includes('ST LUX') || n.includes('SAB BARRA') || n.includes('SB YPE')) return 'Sabonete';
+    if (n.includes('CD COLG') || n.includes('CREME DENTAL') || n.includes('COLGATE')) return 'Creme Dental';
+    if (n.includes('LISTERINE') || n.includes('ENXAG')) return 'Enxaguante Bucal';
+    if (n.includes('ESCOVA') || n.includes('ESC COL')) return 'Escova Dental';
+    if (n.includes('PH FLORAL') || n.includes('P HIG') || n.includes('PAPEL HIG')) return 'Papel Higiênico';
     if (n.includes('ABS ') || n.includes('ABSORVENTE') || n.includes('PROT DIAR') || n.includes('CAREFREE')) return 'Absorvente Higiênico';
-    if (n.includes('TOAL PIQUITUCHO') || n.includes('TOA COTTON') || n.includes('TOALHA UMEDECIDA')) return 'Toalha Umedecida';
+    if (n.includes('TOAL PIQUITUCHO') || n.includes('TOA COTTON') || n.includes('TOALHA UMEDECIDA') || n.includes('TOA PIQUIT')) return 'Toalha Umedecida';
+    if (n.includes('ESPUMA PREST') || n.includes('AP PREST') || n.includes('GILLETTE')) return 'Aparelho / Espuma de Barbear';
+    if (n.includes('HID NIVEA') || n.includes('HIDRATANTE') || n.includes('LEIT HID PAIXAO')) return 'Hidratante';
+    if (n.includes('SER DOV') || n.includes('SERUM')) return 'Sérum Corporal';
+    if (n.includes('OLEO CR') || n.includes('OL PANT') || n.includes('OLEO BAN DAB')) return 'Óleo Capilar';
+    if (n.includes('ALG COTTON') || n.includes('ALGODAO') || n.includes('ALGODÃO')) return 'Algodão';
+
+    // 11. Utilidades
+    if (n.includes('TOALHA SOCIAL') || n.includes('T PAP') || n.includes('PAPEL TOALHA')) return 'Papel Toalha';
+    if (n.includes('PILHA') || n.includes('BATERIA')) return 'Pilha / Bateria';
     if (n.includes('FILME PVC') || n.includes('FILM WYDA')) return 'Filme PVC';
     if (n.includes('SC HERM') || n.includes('SACO HERM')) return 'Saco Hermético';
-    if (n.includes('DESI ') || n.includes('DESINFETANTE') || n.includes('LYSOFORM') || n.includes('LIMP QBOA')) return 'Desinfetante';
     if (n.includes('FILTRO BRIGITTA') || n.includes('FILTRO BRAS') || n.includes('FILTRO 3 COR')) return 'Filtro de Café';
-    if (n.includes('FERMENTO')) return 'Fermento';
+    if (n.includes('SACOLA')) return 'Sacola Plástica';
     if (n.includes('LIXEIRA')) return 'Lixeira';
-    if (n.includes('SHAMPOO') || n.includes('CONDICIONADOR') || n.includes('SH+CO') || n.includes('CR ELSEVE') || n.includes('MASC OX')) return 'Shampoo / Condicionador';
-    if (n.includes('ESPONJA') || n.includes('ESP ')) return 'Esponja de Limpeza';
-    if (n.includes('SACO LIXO')) return 'Saco de Lixo';
+    if (n.includes('PACOTE DIVERSOS') || n.includes('PACOTES')) return 'Pacote Diversos';
 
     return toTitleCase(name);
 }
@@ -565,22 +587,127 @@ function getSimplifiedName(name) {
 const CATEGORY_ALIASES = {
     'pão francês': 'Padaria',
     'pao francês': 'Padaria',
+    'pão de forma / hambúrguer': 'Padaria',
     'queijo mussarela': 'Laticínios & Frios',
+    'queijo coalho': 'Laticínios & Frios',
+    'queijo minas': 'Laticínios & Frios',
+    'queijo': 'Laticínios & Frios',
     'presunto': 'Laticínios & Frios',
     'mortadela': 'Laticínios & Frios',
     'leite líquido': 'Laticínios & Frios',
     'leite em pó': 'Laticínios & Frios',
     'leite condensado': 'Laticínios & Frios',
     'creme de leite': 'Laticínios & Frios',
+    'composto lácteo': 'Laticínios & Frios',
+    'iogurte': 'Laticínios & Frios',
+    'requeijão': 'Laticínios & Frios',
+    'cream cheese': 'Laticínios & Frios',
+    'margarina / manteiga': 'Laticínios & Frios',
+    'ovos': 'Laticínios & Frios',
+    'peito de peru fatiado / apresuntado': 'Laticínios & Frios',
+    'peito de frango (filé/sassami)': 'Açougue',
+    'sobrecoxa / coxa de frango': 'Açougue',
+    'hambúrguer': 'Açougue',
+    'linguiça': 'Açougue',
+    'costela / costelinha': 'Açougue',
+    'corte de carne bovina': 'Açougue',
+    'maçã': 'Hortifruti - Frutas',
+    'banana': 'Hortifruti - Frutas',
+    'banana prata': 'Hortifruti - Frutas',
+    'banana nanica': 'Hortifruti - Frutas',
+    'mamão': 'Hortifruti - Frutas',
+    'mamão papaya': 'Hortifruti - Frutas',
+    'mamão formosa': 'Hortifruti - Frutas',
+    'tangerina / ponkan': 'Hortifruti - Frutas',
+    'melancia': 'Hortifruti - Frutas',
+    'morango': 'Hortifruti - Frutas',
+    'uva': 'Hortifruti - Frutas',
+    'polpa de fruta': 'Hortifruti - Frutas',
+    'tâmara': 'Hortifruti - Frutas',
+    'limão': 'Hortifruti - Frutas',
+    'cebola': 'Hortifruti - Legumes',
+    'cebola roxa': 'Hortifruti - Legumes',
+    'tomate': 'Hortifruti - Legumes',
+    'tomate italiano / rasteiro': 'Hortifruti - Legumes',
+    'alho': 'Hortifruti - Legumes',
+    'cenoura': 'Hortifruti - Legumes',
+    'batata': 'Hortifruti - Legumes',
+    'batata doce': 'Hortifruti - Legumes',
+    'mandioca': 'Hortifruti - Legumes',
+    'pepino': 'Hortifruti - Legumes',
+    'cheiro verde / temperos': 'Hortifruti - Legumes',
+    'repolho': 'Hortifruti - Legumes',
+    'alface': 'Hortifruti - Legumes',
+    'couve': 'Hortifruti - Legumes',
+    'brócolis': 'Hortifruti - Legumes',
+    'extrato / molho de tomate': 'Mercearia Básica',
+    'molho barbecue': 'Mercearia Básica',
+    'molho tarê / shoyu': 'Mercearia Básica',
+    'condimentos (ketchup/maionese)': 'Mercearia Básica',
+    'arroz': 'Mercearia Básica',
+    'feijão': 'Mercearia Básica',
+    'macarrão / massas': 'Mercearia Básica',
+    'azeite': 'Mercearia Básica',
+    'sal': 'Mercearia Básica',
+    'café': 'Mercearia Básica',
+    'cappuccino': 'Mercearia Básica',
+    'flocão de milho': 'Mercearia Básica',
+    'tapioca': 'Mercearia Básica',
+    'farofa': 'Mercearia Básica',
+    'farinha láctea / composto': 'Mercearia Básica',
+    'aveia': 'Mercearia Básica',
+    'amido de milho': 'Mercearia Básica',
+    'massa rap10': 'Mercearia Básica',
+    'bicarbonato': 'Mercearia Básica',
+    'mel': 'Mercearia Básica',
+    'gergelim': 'Mercearia Básica',
+    'tempero': 'Mercearia Básica',
+    'achocolatado': 'Doces & Snacks',
+    'chocolate': 'Doces & Snacks',
+    'biscoito wafer': 'Doces & Snacks',
+    'biscoito': 'Doces & Snacks',
+    'salgadinho': 'Doces & Snacks',
+    'batata palha': 'Doces & Snacks',
+    'creme de avelã': 'Doces & Snacks',
+    'paçoca': 'Doces & Snacks',
     'coca-cola': 'Bebidas',
     'coca-cola sem açúcar': 'Bebidas',
+    'refrigerante': 'Bebidas',
     'suco': 'Bebidas',
+    'cerveja': 'Bebidas',
+    'vinho': 'Bebidas',
     'água mineral': 'Bebidas',
-    'agua mineral': 'Bebidas',
-    'macarrão / massas': 'Mercearia Básica',
-    'extrato / molho de tomate': 'Mercearia Básica',
-    'margarina / manteiga': 'Mercearia Básica',
-    'biscoito': 'Doces & Snacks'
+    'tererê / erva mate': 'Bebidas',
+    'detergente líquido': 'Limpeza',
+    'amaciante de roupas': 'Limpeza',
+    'sabão em pó / lava-roupas': 'Limpeza',
+    'água sanitária': 'Limpeza',
+    'desinfetante': 'Limpeza',
+    'produtos de limpeza': 'Limpeza',
+    'esponja de limpeza': 'Limpeza',
+    'saco de lixo': 'Limpeza',
+    'desodorante': 'Higiene Pessoal',
+    'shampoo / condicionador': 'Higiene Pessoal',
+    'sabonete': 'Higiene Pessoal',
+    'creme dental': 'Higiene Pessoal',
+    'enxaguante bucal': 'Higiene Pessoal',
+    'escova dental': 'Higiene Pessoal',
+    'papel higiênico': 'Higiene Pessoal',
+    'absorvente higiênico': 'Higiene Pessoal',
+    'toalha umedecida': 'Higiene Pessoal',
+    'aparelho / espuma de barbear': 'Higiene Pessoal',
+    'hidratante': 'Higiene Pessoal',
+    'sérum corporal': 'Higiene Pessoal',
+    'óleo capilar': 'Higiene Pessoal',
+    'algodão': 'Higiene Pessoal',
+    'papel toalha': 'Utilidades',
+    'pilha / bateria': 'Utilidades',
+    'filme pvc': 'Utilidades',
+    'saco hermético': 'Utilidades',
+    'filtro de café': 'Utilidades',
+    'sacola plástica': 'Utilidades',
+    'lixeira': 'Utilidades',
+    'pacote diversos': 'Utilidades'
 };
 
 function processData(data, replace = true) {
@@ -1650,30 +1777,19 @@ function getCategory(name) {
     }
 
     const n = normalized;
+    if (/\b(detergente|det\b|sabao|sabão|amaciante|agua sanit|água sanit|qboa|desinfetante|esponja|limpador|veja|alcool|álcool|lava roup|lav louc|saco lixo|sapon|comfort|downy|triex|lysoform|multiuso|cloro|naftalina)\b/.test(n)) return 'Limpeza';
+    if (/\b(shampoo|condicionador|sabonete|creme dental|cd colgate|escova|desodorante|rexona|papel hig|absorvente|fralda|barbear|algodao|algodão|toalha umed|enxaguante|hidratante|dove|nivea|colgate|listerine|gillette|always)\b/.test(n)) return 'Higiene Pessoal';
+    if (/\b(banana|maça|maçã|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|polpa|maracuj|abacate|fruta|kiwi|manga|tangerina|goiaba|ameixa|caju|coco|pêssego|abacaxi|ponkan|tâmara)\b/.test(n)) return 'Hortifruti - Frutas';
+    if (/\b(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|mandioca|repolho|salsa|cheiro verde|pepino|beterraba|chuchu|berinjela|quiabo|rucula|espinafre|coentro|cebolinha)\b/.test(n)) return 'Hortifruti - Legumes';
+    if (/\b(frango|carne|bife|acem|alcatra|peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|salsicha|porco|bacon|hamb|hambúrguer|patinho|costelinha|costela|burguer|tilapia|salmao|fraldinha|maminha|picanha|cupim|lagarto|lombo|pernil|bovino|suino|sassami|paleta|coxao|coxão|músculo|musculo|toscana|calabresa)\b/.test(n)) return 'Açougue';
+    if (/\b(biscoito|bolacha|chocolate|choc|salgadinho|sorvete|doce|bombom|ruffles|achocolatado|cr avela|batata palha|balas|pirulito|chiclete|amendoim|pipoca|gelatina|pudim|wafer|paçoca|snack|nutella|ovomaltine|toddy|nescau|cookies|oreo)\b/.test(n)) return 'Doces & Snacks';
+    if (/\b(leite|queijo|mussarela|presunto|mortadela|manteiga|margarina|iogurte|requeijao|requeijão|danone|cream cheese|creme de leite|leite condensado|ovos|ovo|salame|provolone|parmesao|coalho|ricota|frios|laticinio|cheddar|minas)\b/.test(n)) return 'Laticínios & Frios';
+    if (/\b(arroz|feijao|feijão|macarrao|macarrão|massas|oleo|óleo|azeite|sal|acucar|açúcar|cafe|café|farinha|milho|flocao|extrato|molho|shoyu|ervilha|amido|maizena|aveia|farofa|tapioca|ketchup|maionese|mostarda|barbecue|sal|tempero|cappuccino)\b/.test(n)) return 'Mercearia Básica';
+    if (/\b(cerveja|refrigerante|suco|tampico|agua|água|vinho|vodka|coca|coca-cola|sprite|guarana|guaraná|pepsi|fanta|heineken|energetico|energético|gin|whisky|tererê)\b/.test(n)) return 'Bebidas';
+    if (/\b(pao|pão|torrada|bolo|lasanha|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|pão francês|pão de forma)\b/.test(n)) return 'Padaria';
+    if (/\b(papel alumínio|filme pvc|papel toalha|sacola|filtro|guardanapo|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|pote|vasilha|lixeira|pacote diversos)\b/.test(n)) return 'Utilidades';
 
-    if (n.match(/(detergente|det |sabao|sabão|sb |amaciante|amac |agua sanit|água sanit|qboa|desinfetante|desinf |esponja|limpador|limp |veja|alcool|álcool|lava roup|lav louc|lustr mov|des vim|odor |sac ass|saco lixo|bob extrusa|inset |l vidro|sapólio|sapon|sab barra|comfort|downy|triex|lr |bom ar|lysoform|multiuso|multi uso|pedra sanit|desengord|tira mancha|vassoura|rodo|pano|flanela|balde|saco|lixeira|omo|ariel|ype|brilhante|tixan|vanish|cloro|naftalina|desodorizador|lustra|cera)/)) return "Limpeza";
-
-    if (n.match(/(shampoo|condicionador|sabonete|st lux|st liq|st |creme dental|cd colgate|cd |escova|desodorante|d a |rexona|pap hig|ph |absorvente|abs |fralda|apar barb|algodao|algodão|bastonete|prot diar|cr skala|sbt |sh\+co|toalha umed|toal|lenço|oleo cr|higiene|fio dental|enxaguante|barbear|pre barba|pos barba|laminas|hastes|hidratante|talco|creme pele|seda|pantene|dove|nivea|colgate|sensodyne|close up|oral b|listerine|palmolive|protex|bozzano|gillette|always|intimus|sempre livre|pampers|huggies|cremer|cotonete)/)) return "Higiene Pessoal";
-
-    if (n.match(/(banana|maça|maçã|maca |\bmaca\b|uva|pera|laranja|limao|limão|mamao|mamão|melancia|melao|melão|mexerica|morango|purapolpa|polpa|maracuj|abacate|fruta|kiwi|manga|tangerina|goiaba|ameixa|caju|coco|pêssego|pessego|abacaxi|tanger|ponkan|tâmara|tamara|figo|amora|cereja|framboesa|mirtilo|physalis|roma|romã|nectarina|pitaia|carambola|jaca|caqui|graviola|cupuaçu|cupuacu|marolo)/)) return "Hortifruti - Frutas";
-
-    if (n.match(/(tomate|cebola|alho|batata|cenoura|alface|couve|brocolis|brócolis|pimentao|pimentão|abobora|abóbora|mandioca|mand |repolho|salsa |salada|cheiro verde|pepino|beterraba|chuchu|berinjela|quiabo|vagem|rucula|rúcula|espinafre|agrião|agriao|coentro|cebolinha|hortela|hortelã|pimenta|gengibre|acelga|alcachofra|alcaparra|alecrim|alho-poro|alho-poró|aspargo|basilico|manjericao|manjericão|couve-flor|couve-de-bruxelas|endivia|endívia|ervilha|funcho|jiló|jilo|maxixe|mostarda|nabo|palmito|rabanete|salvia|sálvia|tomilho)/)) return "Hortifruti - Legumes";
-
-    if (n.match(/(frango|carne|bife|acem|alcatra|peito|f peito|coxa|file|filé|filezinho|peixe|linguica|linguiça|ling |salsicha|sals |porco|bacon|hamb|texas burg|patinho|costelinha|burguer|tilapia|tilápia|salmao|salmão|fraldinha|maminha|picanha|cupim|lagarto|lombo|pernil|costela|moida|moída|bovino|suino|suíno|sardinha|atum|pescoço|sobrecoxa|moela|coração|coracao|asa|gizzard|drumet|sassami|tulipa|paleta|coxão|coxao|chã|cha|músculo|musculo|rabada|mocotó|mocoto|toscana|calabresa|tender|panceta|pancetta|toucinho|codorna|pato|marreco|coelho|javali|carneiro|ovelha|bode|cordeiro|cabrito|pescada|merluza|bacalhau|camarão|camarao|lagosta|lula|polvo|marisco|mexilhão|mexilhao|ostra|caranguejo|siri)/)) return "Açougue";
-
-    if (n.match(/(biscoito|bisc |bolacha|chocolate|choc |ch |ch bis|ch neu|salgadinho|sorvete|sorv |doce|bombom|ruffles|achoc |mms|cr avela|goiab |d l |batat palh|palha|ovo alp|ovo pascoa|biju|casq |balas|pirulito|chiclete|amendoim|pipoca|gelatina|pudim|marshmallow|sobremesa|waffer|wafer|paçoca|pacoca|snack|fini|jujuba|torrone|pé de moleque|pe de moleque|rapadura|cocada|doce de leite|nutella|ovomaltine|toddy|nescau|achocolatado|cacau|cookies|rosquinha|tortuguita|kit kat|lacta|nestle|nestlé|garoto|hersheys|milka|trento|club social|pit stop|passatempo|negresco|oreo|bono|trakinas)/)) return "Doces & Snacks";
-
-    if (n.match(/(leite|lte |queijo|qjo |qj |muss |mussarela|presunto|pres |mortadela|mort |manteiga|margarina|marg |iorgute|iogurte|iog |requeijao|requeijão|rq |danone|cr cheese|cr leite|l cond|leit cond|ovos|ovo |peito de peru|salame|provolone|parmesao|parmesão|coalho|ricota|yakult|nata|petit suisse|frios|laticinio|chesse|gorgonzola|cheddar|prato|minas|padrão|padrao|frescal|cottage|brie|camembert|mussarela de búfala|mussarela de bufala|cream cheese|leite de coco|leite de amêndoas|leite de amendoas|leite de soja|leite desnatado|leite integral|leite semi|bebida láctea|bebida lactea|chancliche|mascarpone)/)) return "Laticínios & Frios";
-
-    if (n.match(/(arroz|arr | feij |feijao|feijão|macarrao|macarrão|mac |oleo|óleo|ol soj|azeite|sal |sal$|acucar|açúcar|cafe|café|caf |farinha|far |f lactea|milho|flocao|extrato|ext |ex tom|extr tom|molho|m shoyu|shoyu|ervilha|amido|maizena|aveia|oregano|temp |chimichu|farofa|goma|paprica|massa rap10|tapioca|catchup|cat |ketchup|maionese|maion |mostarda|barbec|louro|\bmel\b|mel |atum|seleta|azeitona|cogumelo|palmito|vinagre|cald|knorr|sazon|miojo|lamen|sop |canela|cravo|baunilha|adoçante|adocante|granola|cereal|mucilon|leite em po|ninho|trigo|fubá|fuba|polvilho|doce|azedo|lentilha|grão de bico|grao de bico|canjica|gergelim|linhaça|linhaca|chia|sagu|fermento|pó químico|po quimico|bicarbonato|gelatina|creme cebola|sopa|caldo galinha|caldo carne|caldo legumes|extrato tomate|molho tomate|polpa tomate|passata|molho pimenta|molho ingles|molho inglês|molho de alho|azeite de oliva|óleo de soja|oleo soja|óleo de girassol|oleo girassol|óleo de milho|oleo milho|óleo de canola|oleo canola|óleo de algodão|oleo algodao|banha|sal refinado|sal grosso|sal marinho|sal rosa|açúcar refinado|acucar refinado|açúcar cristal|acucar cristal|açúcar demerara|acucar demerara|açúcar mascavo|acucar mascavo|açúcar light|açúcar coco|adoçante líquido|adoçante em pó|café em pó|cafe po|café solúvel|cafe soluvel|café em grãos|cafe graos|cápsula café|capsula cafe|chá mate|cha mate|chá preto|cha preto|chá verde|cha verde|chá camomila|cha camomila|chá erva doce|cha erva doce)/)) return "Mercearia Básica";
-
-    if (n.match(/(cerveja|refrigerante|suco|tampico|agua|água|ag |vinho|vin |vodka|coca |cha |chá |v q morg|sprite|guarana|del valle|pepsi|fanta|kuat|antarctica|skol|brahma|heineken|amstel|monster|red bull|energetico|energético|gin|rum|cachaça|licor|whisky|champagne|espumante|bebida|refri|ice)/)) return "Bebidas";
-
-    if (n.match(/(pao|pão|p forma|torrada|bolo|mb italac|lasanha|rosq|chipa|croissant|baguete|bisnag|panet|chocott|pizza|esfiha|salgado|torta|pao de queijo|pão de queijo|cuca|broa|sonho|panific|pão francês|pao frances|pão de hambúrguer|pao hamburguer|pão de cachorro quente|pao cachorro quente|pão sírio|pao sirio|pão australiano|pao australiano|pão integral|pao integral|pão multigrãos|pao multigraos|pão centeio|pao centeio|colomba pascal|donuts|carolina|bomba chocolate|mil folhas|quindim|pudim padaria|torta doce|torta salgada|quiche|empada|empadão|pastel|folhado|pão de batata|pao batata|enroladinho|esfiha fechada|esfiha aberta)/)) return "Padaria";
-
-    if (n.match(/(pap alumin|folha alum|filme pvc|film |pap toalha|t pap|sacola|filtro|isopor|sc herm|guardanapo|papel toalha|fita|pilha|bateria|lampada|lâmpada|fosforo|fósforo|vela|carvao|carvão|espeto|grelha|isqueiro|prendedor|cabide|pote|vasilha|tijela|garfo|faca|colher|copo descartável|copo descartavel|prato descartável|prato descartavel|talher descartável|talher descartavel|guardanapo de papel|papel alumínio|papel aluminio|papel manteiga|filme de pvc|filme plástico|filme plastico|saco hermético|saco hermetico|saco zip|saco para congelamento|saco para assar|saco assar|acendedor|espeto de madeira|espeto madeira|espeto de bambu|espeto bambu|grelha descartável|grelha descartavel|prendedor de roupas|prendedor roupas|varal|cabide plástico|cabide plastico|pilha aa|pilha aaa|pilha de lítio|pilha de litio|bateria 9v|lâmpada led|lampada led|lâmpada fluorescente|lampada fluorescente|vela de cera|vela votiva|vela flutuante|vela perfumada|repelente elétrico|repelente eletrico|pacote diversos)/)) return "Utilidades";
-
-    return "Outros";
+    return 'Outros';
 }
 
 function shareViaWhatsApp() {
