@@ -22,7 +22,9 @@ NOMES_FANTASIA = {
     'G T MIYAZATO - FRUTARIA ME': 'Frutaria Julio',
     'SANTO ANTONIO DISTRIBUIDORA DE ALIMENTOS LTDA': 'Legal',
     'SDB COMERCIO DE ALIMENTOS LTDA': 'Fort',
-    'DISTRIBUIDORA DE OVO': 'Distribuidora de Ovos'
+    'DISTRIBUIDORA DE OVO': 'Distribuidora de Ovos',
+    'ATACADAO': 'Atacadão',
+    'ATACADÃO': 'Atacadão'
 }
 
 def obter_nome_fantasia(nome_real):
@@ -115,7 +117,7 @@ def processar_pdf_nfce(caminho_arquivo):
         # Expressões regulares para o formato NFC-e
         regex_data = re.compile(r"Emissão:\s*(\d{2}/\d{2}/\d{4})")
         regex_item_linha1 = re.compile(r"^(.*?)\s*\(Código:\s*\d+\s*\)\s*Vl\.?\s*Total")
-        regex_item_linha2 = re.compile(r"Qtde\.:\s*([\d,]+)\s*UN:\s*([A-Za-z]+)\s*Vl\.\s*Unit\.:\s*([\d,]+)\s+([\d,]+)")
+        regex_item_linha2 = re.compile(r"Qtde\.:\s*([\d,]+)\s*UN:\s*([A-Za-z]+)\s*\d*\s*Vl\.\s*Unit\.:\s*([\d,]+)\s+([\d,]+)")
         
         # Encontrar Fornecedor e Data
         for i, linha in enumerate(linhas):

@@ -433,28 +433,31 @@ function getSimplifiedName(name) {
     // 2. Laticínios & Frios
     if (n.includes('MUSS') || n.includes('MUSSARELA') || n.includes('QJO MUS')) return 'Queijo Mussarela';
     if (n.includes('PRESUNTO') || n.includes('PRES SADIA') || n.includes('PRES NOBRE') || n.includes('PRES AURORA') || n.includes('PRES FRIMESA') || n.includes('PRES ')) return 'Presunto';
-    if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORTAD')) return 'Mortadela';
+    if (n.includes('MORTADELA') || n.includes('MORT ') || n.includes('MORT.') || n.includes('MORTAD')) return 'Mortadela';
     if (n.includes('QJ T COAL') || n.includes('QJ COALHO') || n.includes('QUEIJO COALHO')) return 'Queijo Coalho';
     if (n.includes('QJO MINAS')) return 'Queijo Minas';
     if (n.includes('CREAM CHEESE')) return 'Cream Cheese';
-    if (n.includes('RQ BATAVO') || n.includes('REQ CATUP') || n.includes('REQ QUALICOCO') || n.includes('REQUEIJAO') || n.includes('REQUEIJÃO')) return 'Requeijão';
-    if (n.includes('CR LEITE') || n.includes('CR LEIT') || n.includes('CREME LEITE') || n.includes('CREME DE LEITE') || n.includes('CR LTE')) return 'Creme de Leite';
-    if (n.includes('L COND') || n.includes('LEIT COND') || n.includes('LEITE COND')) return 'Leite Condensado';
-    if (n.includes('L PO ') || n.includes('LEITE EM PO') || n.includes('LEITE EM PÓ')) return 'Leite em Pó';
-    if (n.includes('LTE ') || n.includes('LEITE ')) return 'Leite Líquido';
+    if (n.includes('RQ BATAVO') || n.includes('REQ CATUP') || n.includes('REQ QUALICOCO') || n.includes('REQUEIJAO') || n.includes('REQUEIJÃO') || n.includes('REQ.') || n.includes('REQ ')) return 'Requeijão';
+    if (n.includes('CR LEITE') || n.includes('CR.LEITE') || n.includes('CR LEIT') || n.includes('CREME LEITE') || n.includes('CREME DE LEITE') || n.includes('CR LTE')) return 'Creme de Leite';
+    if (n.includes('L COND') || n.includes('L.COND') || n.includes('LEIT COND') || n.includes('LEITE COND')) return 'Leite Condensado';
+    if (n.includes('L PO ') || n.includes('LEITE PO') || n.includes('LEITE EM PO') || n.includes('LEITE EM PÓ')) return 'Leite em Pó';
+    if (n.includes('LTE ') || n.includes('LEITE ') || n.includes('LEITE L.VIDA')) return 'Leite Líquido';
     if (n.includes('COMP LACT') || n.includes('COMPOSTO LACT')) return 'Composto Lácteo';
-    if (n.includes('IOG ') || n.includes('IOGURTE') || n.includes('IOG LIQ') || n.includes('IOG MOLICO') || n.includes('IOG NESTLE') || n.includes('IOG ITAM')) return 'Iogurte';
+    if (n.includes('BEB.LACTEA') || n.includes('BEB LACTEA') || n.includes('BEB. LACTEA')) return 'Bebida Láctea';
+    if (n.includes('IOG ') || n.includes('IOG.') || n.includes('IOGURTE') || n.includes('IOG LIQ') || n.includes('IOG MOLICO') || n.includes('IOG NESTLE') || n.includes('IOG ITAM')) return 'Iogurte';
     if (n.includes('MARG ') || n.includes('MARGARINA') || n.includes('MANTEIGA') || n.includes('QUALY')) return 'Margarina / Manteiga';
     if (n.includes('OVOS') || n.includes('OVO ')) return 'Ovos';
-    if (n.includes('APRES PERD') || n.includes('APRES FRIM')) return 'Peito de Peru Fatiado / Apresuntado';
+    if (n.includes('APRES PERD') || n.includes('APRES FRIM') || n.includes('APRES.') || n.includes('APRES ')) return 'Peito de Peru Fatiado / Apresuntado';
 
     // 3. Açougue & Carnes
+    if (n.includes('CAMARAO') || n.includes('CAMARÃO')) return 'Camarão / Frutos do Mar';
     if (n.includes('FILE PEITO') || n.includes('FILÉ PEITO') || n.includes('F PEITO') || n.includes('FILEZINHO') || n.includes('SASSAM') || n.includes('FGO BELLO') || n.includes('M PEITO') || n.includes('CAR FGO') || n.includes('FILEZ')) return 'Peito de Frango (Filé/Sassami)';
     if (n.includes('SOBRECOXA') || n.includes('COXA FGO')) return 'Sobrecoxa / Coxa de Frango';
-    if (n.includes('TEXAS BURGUER') || n.includes('HAMB ') || n.includes('HAMBURGUER') || n.includes('BURGUER')) return 'Hambúrguer';
-    if (n.includes('LING ') || n.includes('LINGUICA') || n.includes('LINGUIÇA') || n.includes('LI CAL D') || n.includes('LI FGO')) return 'Linguiça';
+    if (n.includes('TEXAS BURGUER') || n.includes('HAMB ') || n.includes('HAMB.') || n.includes('HAMBURGUER') || n.includes('BURGUER')) return 'Hambúrguer';
+    if (n.includes('SALSICHA')) return 'Salsicha';
+    if (n.includes('LING ') || n.includes('LING.') || n.includes('LINGUICA') || n.includes('LINGUIÇA') || n.includes('LI CAL D') || n.includes('LI FGO')) return 'Linguiça';
     if (n.includes('COST SEARA') || n.includes('COSTELINHA') || n.includes('COSTELA')) return 'Costela / Costelinha';
-    if (n.includes('CAPA COXAO') || n.includes('CORDAO FILE') || n.includes('CORD F MIG') || n.includes('COXAO MOLE') || n.includes('PALETA') || n.includes('FRALDINHA') || n.includes('MUSCULO') || n.includes('MIOL ACEM') || n.includes('PICANHA') || n.includes('CUPIM') || n.includes('CAR BOV') || n.includes('LAGARTO')) return 'Corte de Carne Bovina';
+    if (n.includes('CAPA COXAO') || n.includes('CAPA FILE') || n.includes('CORDAO FILE') || n.includes('CORD F MIG') || n.includes('COXAO MOLE') || n.includes('PALETA') || n.includes('FRALDINHA') || n.includes('MUSCULO') || n.includes('MIOL ACEM') || n.includes('PICANHA') || n.includes('CUPIM') || n.includes('CAR BOV') || n.includes('LAGARTO')) return 'Corte de Carne Bovina';
 
     // 4. Hortifruti - Frutas
     if (n.includes('BANANA')) {
@@ -470,9 +473,9 @@ function getSimplifiedName(name) {
     if (n.includes('PONKAN') || n.includes('TANGERINA')) return 'Tangerina / Ponkan';
     if (n.includes('MELANCIA')) return 'Melancia';
     if (n.includes('MORANGO') || n.includes('MOR P NORTE')) return 'Morango';
-    if (n.includes('BANDEJA MACA') || (n.includes('MACA') && !n.includes('MACARR') && !n.includes('MAC '))) return 'Maçã';
+    if (n.includes('BANDEJA MACA') || (n.includes('MACA') && !n.includes('MACARR') && !n.includes('MAC ') && !n.includes('MAC.'))) return 'Maçã';
     if (n.includes('UVA ')) return 'Uva';
-    if (n.includes('PURAPOLPA') || n.includes('POLP NORTE') || n.includes('POLPA FRUTA')) return 'Polpa de Fruta';
+    if (n.includes('PURAPOLPA') || n.includes('POLP NORTE') || n.includes('POLPA NORTE') || n.includes('POLPA FRUTA') || n.includes('POLPA ')) return 'Polpa de Fruta';
     if (n.includes('TAMARA') || n.includes('TÂMARA')) return 'Tâmara';
     if (n.includes('LIMAO') || n.includes('LIMÃO')) return 'Limão';
 
@@ -500,19 +503,20 @@ function getSimplifiedName(name) {
     if (n.includes('BROCOLIS') || n.includes('BRÓCOLIS')) return 'Brócolis';
 
     // 6. Mercearia Básica
-    if (n.includes('EXT TOM') || n.includes('EXTR TOM') || n.includes('EXTRATO TOM') || n.includes('MOLHO TOMATE') || n.includes('MOLHO DE TOMATE') || n.includes('PASSATA') || n.includes('PASSAT') || n.includes('MOLHO QUERO') || n.includes('EXT QUERO') || n.includes('EXT FUGINI')) return 'Extrato / Molho de Tomate';
+    if (n.includes('EXT TOM') || n.includes('EXTR TOM') || n.includes('EXTRATO TOM') || n.includes('MOLHO TOMATE') || n.includes('MOLHO DE TOMATE') || n.includes('PASSATA') || n.includes('PASSAT') || n.includes('MOLHO QUERO') || n.includes('EXT QUERO') || n.includes('EXT FUGINI') || n.includes('EXTRATO FUGINI') || n.includes('EXTRATO')) return 'Extrato / Molho de Tomate';
     if (n.includes('M BARBEC') || n.includes('BARBECUE') || n.includes('MOLHO DAJUDA BARB')) return 'Molho Barbecue';
     if (n.includes('M TARE') || n.includes('TARE SAKURA') || n.includes('SHOYU')) return 'Molho Tarê / Shoyu';
-    if (n.includes('CATCH HEINZ') || n.includes('KETCHUP') || n.includes('MAIONESE')) return 'Condimentos (Ketchup/Maionese)';
+    if (n.includes('CATCH HEINZ') || n.includes('CATCHUP') || n.includes('KETCHUP') || n.includes('MAIONESE')) return 'Condimentos (Ketchup/Maionese)';
     if (n.includes('ARR ') || n.includes('ARROZ')) return 'Arroz';
     if (n.includes('FEIJ ') || n.includes('FEIJAO') || n.includes('FEIJÃO')) return 'Feijão';
-    if (n.includes('MAC ') || n.includes('MACARRAO') || n.includes('MACARRÃO') || n.includes('ESPAG') || n.includes('PENNE') || n.includes('LASANHA')) return 'Macarrão / Massas';
+    if (n.includes('MAC ') || n.includes('MAC.') || n.includes('MACARRAO') || n.includes('MACARRÃO') || n.includes('ESPAG') || n.includes('PENNE') || n.includes('LASANHA') || n.includes('NISSIN')) return 'Macarrão / Massas';
     if (n.includes('AZ EX') || n.includes('AZ LA') || n.includes('AZEITE')) return 'Azeite';
     if (n.includes('SAL MIRAMAR') || n.includes('SAL REFINADO') || n.includes('SAL GROSSO')) return 'Sal';
     if (n.includes('CAF ') || n.includes('CAFE') || n.includes('CAFÉ')) return 'Café';
     if (n.includes('CAP 3CORAC') || n.includes('CAPPUC')) return 'Cappuccino';
     if (n.includes('KIMILHO') || n.includes('FLOCAO') || n.includes('FLOCÃO')) return 'Flocão de Milho';
-    if (n.includes('TAPIOCA') || n.includes('GOMA BEIJUBOM')) return 'Tapioca';
+    if (n.includes('GOMA MANDIOCA') || n.includes('GOMA MAND') || n.includes('TAPIOCA') || n.includes('GOMA BEIJUBOM')) return 'Tapioca';
+    if (n.includes('FAR.MAND') || n.includes('FAR MAND') || n.includes('FARINHA MANDIOCA')) return 'Farinha de Mandioca';
     if (n.includes('FAROFA') || n.includes('FAR P DATERR')) return 'Farofa';
     if (n.includes('MOLICO') || n.includes('F LAC') || n.includes('FAR LAC') || n.includes('F LACTEA')) return 'Farinha Láctea / Composto';
     if (n.includes('AVEIA') || n.includes('AV NAT')) return 'Aveia';
@@ -521,11 +525,14 @@ function getSimplifiedName(name) {
     if (n.includes('BICARB')) return 'Bicarbonato';
     if (n.includes('MEL ') || n.includes('MEL HOLANDA')) return 'Mel';
     if (n.includes('GERGELIM')) return 'Gergelim';
-    if (n.includes('TEMP KITANO') || n.includes('CHIMICHU') || n.includes('LEMON PEPP') || n.includes('ACAFRAO') || n.includes('PAPRICA') || n.includes('PÁPRICA')) return 'Tempero';
+    if (n.includes('TEMP KITANO') || n.includes('KITANO') || n.includes('CHIMICHU') || n.includes('LEMON PEPP') || n.includes('ACAFRAO') || n.includes('PAPRICA') || n.includes('PÁPRICA')) return 'Tempero';
+    if (n.includes('OLEO') || n.includes('ÓLEO')) return 'Óleo de Cozinha';
+    if (n.includes('ADOC') || n.includes('ADOÇ')) return 'Adoçante';
 
     // 7. Doces & Snacks
     if (n.includes('NESCAU') || n.includes('ACHOC') || n.includes('TODDY') || n.includes('BEB LAC TOD')) return 'Achocolatado';
-    if (n.includes('CHAND') || n.includes('CH BIS') || n.includes('HERSHEYS') || n.includes('CHOC LACTA') || n.includes('CHOC TWIX') || n.includes('CHOCOLATE') || n.includes('CHOC ') || n.includes('BOMB LACTA') || n.includes('BISAO')) return 'Chocolate';
+    if (n.includes('CHAND') || n.includes('CH BIS') || n.includes('HERSHEYS') || n.includes('CHOC LACTA') || n.includes('CHOC TWIX') || n.includes('CHOCOLATE') || n.includes('CHOC ') || n.includes('CHOC.') || n.includes('BOMB LACTA') || n.includes('BISAO')) return 'Chocolate';
+    if (n.includes('SORV')) return 'Sorvete';
     if (n.includes('WAF TRELOSO') || n.includes('WAF VITARE') || n.includes('WAFER')) return 'Biscoito Wafer';
     if (n.includes('BISC ') || n.includes('BISCOITO') || n.includes('BOLACHA') || n.includes('CLUB SOCIAL')) return 'Biscoito';
     if (n.includes('LAYS') || n.includes('RUFFLES') || n.includes('DORITOS')) return 'Salgadinho';
@@ -538,7 +545,7 @@ function getSimplifiedName(name) {
         if (n.includes('S/AC') || n.includes('ZERO') || n.includes('S/ AC')) return 'Coca-Cola Sem Açúcar';
         return 'Coca-Cola';
     }
-    if (n.includes('GUARANA') || n.includes('SPRITE') || n.includes('REFRIGERANTE') || n.includes('REFR ') || n.includes('REFIG ')) return 'Refrigerante';
+    if (n.includes('GUARANA') || n.includes('GUAR.') || n.includes('SPRITE') || n.includes('REFRIGERANTE') || n.includes('REFR ') || n.includes('REF.') || n.includes('REFIG ')) return 'Refrigerante';
     if (n.includes('SUCO') || n.includes('DEL VALLE') || n.includes('TAMPICO')) return 'Suco';
     if (n.includes('CERVEJA') || n.includes('CERV BUDW') || n.includes('HEINEKEN')) return 'Cerveja';
     if (n.includes('VINHO') || n.includes('V C GARCIA')) return 'Vinho';
@@ -546,33 +553,35 @@ function getSimplifiedName(name) {
     if (n.includes('TERERE') || n.includes('TERERÊ')) return 'Tererê / Erva Mate';
 
     // 9. Limpeza
-    if (n.includes('DET ') || n.includes('DETERGENTE') || n.includes('DET.YP') || n.includes('LIMPOL')) return 'Detergente Líquido';
+    if (n.includes('DET ') || n.includes('DET.') || n.includes('DETERGENTE') || n.includes('DET.YP') || n.includes('LIMPOL')) return 'Detergente Líquido';
     if (n.includes('AM FOFO') || n.includes('AMAC ') || n.includes('AMACIANTE') || n.includes('COMFORT') || n.includes('DOWNY')) return 'Amaciante de Roupas';
     if (n.includes('LR MINUANO') || n.includes('L ROU') || n.includes('SABÃO EM PÓ') || n.includes('SABAO EM PO')) return 'Sabão em Pó / Lava-Roupas';
     if (n.includes('AGUA SANIT') || n.includes('ÁGUA SANIT') || n.includes('QBOA')) return 'Água Sanitária';
-    if (n.includes('DESI ') || n.includes('DESINFETANTE') || n.includes('LYSOFORM') || n.includes('LIMP QBOA')) return 'Desinfetante';
+    if (n.includes('LA ACO') || n.includes('LÃ DE AÇO') || n.includes('ASSOLAN') || n.includes('BOMBRIL')) return 'Lã de Aço';
+    if (n.includes('DESI ') || n.includes('DESINFETANTE') || n.includes('LYSOFORM') || n.includes('LYSOCLIN') || n.includes('LIMP.') || n.includes('LIMP QBOA') || n.includes('LIMP PERFUMADO')) return 'Desinfetante';
     if (n.includes('CLORO GEL') || n.includes('SAPONAC') || n.includes('SURF') || n.includes('L ALUM TRIEX') || n.includes('LIMP MULTI')) return 'Produtos de Limpeza';
     if (n.includes('ESPONJA') || n.includes('ESP ') || n.includes('ESP BRILHUS')) return 'Esponja de Limpeza';
     if (n.includes('SACO LIXO')) return 'Saco de Lixo';
 
     // 10. Higiene Pessoal
-    if (n.includes('REXONA') || n.includes('DOVE') || n.includes('DESODORANTE') || n.includes('D REX') || n.includes('COND DOVE')) return 'Desodorante';
+    if (n.includes('ESCOVA') || n.includes('ESC COL') || n.includes('ESC.DENTAL') || n.includes('ESC DENTAL')) return 'Escova Dental';
+    if (n.includes('CD COLG') || n.includes('CREME DENTAL') || n.includes('CR.DENTAL') || n.includes('COLGATE')) return 'Creme Dental';
+    if (n.includes('REXONA') || n.includes('DOVE') || n.includes('DESODORANTE') || n.includes('DES.') || n.includes('D REX') || n.includes('COND DOVE')) return 'Desodorante';
     if (n.includes('SHAMPOO') || n.includes('CONDICIONADOR') || n.includes('SH+CO') || n.includes('CR ELSEVE') || n.includes('MASC OX') || n.includes('CR SKALA') || n.includes('DOVE SH') || n.includes('MASC TRA PANT') || n.includes('SH OX')) return 'Shampoo / Condicionador';
-    if (n.includes('SAB LUX') || n.includes('SABONETE') || n.includes('SBT ') || n.includes('ST LUX') || n.includes('SAB BARRA') || n.includes('SB YPE')) return 'Sabonete';
-    if (n.includes('CD COLG') || n.includes('CREME DENTAL') || n.includes('COLGATE')) return 'Creme Dental';
+    if (n.includes('SAB LUX') || n.includes('SAB.') || n.includes('SABONETE') || n.includes('SBT ') || n.includes('ST LUX') || n.includes('SAB BARRA') || n.includes('SB YPE')) return 'Sabonete';
     if (n.includes('LISTERINE') || n.includes('ENXAG')) return 'Enxaguante Bucal';
-    if (n.includes('ESCOVA') || n.includes('ESC COL')) return 'Escova Dental';
     if (n.includes('PH FLORAL') || n.includes('P HIG') || n.includes('PAPEL HIG')) return 'Papel Higiênico';
-    if (n.includes('ABS ') || n.includes('ABSORVENTE') || n.includes('PROT DIAR') || n.includes('CAREFREE')) return 'Absorvente Higiênico';
+    if (n.includes('ABS ') || n.includes('ABSORVENTE') || n.includes('PROT DIAR') || n.includes('CAREFREE') || n.includes('SEMPRE LIVRE')) return 'Absorvente Higiênico';
+    if (n.includes('HASTES') || n.includes('COTONET') || n.includes('COTONELA')) return 'Cotonetes / Hastes Flexíveis';
     if (n.includes('TOAL PIQUITUCHO') || n.includes('TOA COTTON') || n.includes('TOALHA UMEDECIDA') || n.includes('TOA PIQUIT')) return 'Toalha Umedecida';
-    if (n.includes('ESPUMA PREST') || n.includes('AP PREST') || n.includes('GILLETTE')) return 'Aparelho / Espuma de Barbear';
+    if (n.includes('ESPUMA PREST') || n.includes('AP PREST') || n.includes('AP.BARB') || n.includes('PRESTO') || n.includes('GILLETTE')) return 'Aparelho / Espuma de Barbear';
     if (n.includes('HID NIVEA') || n.includes('HIDRATANTE') || n.includes('LEIT HID PAIXAO')) return 'Hidratante';
     if (n.includes('SER DOV') || n.includes('SERUM')) return 'Sérum Corporal';
     if (n.includes('OLEO CR') || n.includes('OL PANT') || n.includes('OLEO BAN DAB')) return 'Óleo Capilar';
     if (n.includes('ALG COTTON') || n.includes('ALGODAO') || n.includes('ALGODÃO')) return 'Algodão';
 
     // 11. Utilidades
-    if (n.includes('TOALHA SOCIAL') || n.includes('T PAP') || n.includes('PAPEL TOALHA')) return 'Papel Toalha';
+    if (n.includes('TOALHA SOCIAL') || n.includes('T PAP') || n.includes('PAPEL TOALHA') || n.includes('TOALHA PAP')) return 'Papel Toalha';
     if (n.includes('PILHA') || n.includes('BATERIA')) return 'Pilha / Bateria';
     if (n.includes('FILME PVC') || n.includes('FILM WYDA')) return 'Filme PVC';
     if (n.includes('SC HERM') || n.includes('SACO HERM')) return 'Saco Hermético';
@@ -605,9 +614,12 @@ const CATEGORY_ALIASES = {
     'margarina / manteiga': 'Laticínios & Frios',
     'ovos': 'Laticínios & Frios',
     'peito de peru fatiado / apresuntado': 'Laticínios & Frios',
+    'bebida láctea': 'Laticínios & Frios',
+    'camarão / frutos do mar': 'Açougue',
     'peito de frango (filé/sassami)': 'Açougue',
     'sobrecoxa / coxa de frango': 'Açougue',
     'hambúrguer': 'Açougue',
+    'salsicha': 'Açougue',
     'linguiça': 'Açougue',
     'costela / costelinha': 'Açougue',
     'corte de carne bovina': 'Açougue',
@@ -653,6 +665,7 @@ const CATEGORY_ALIASES = {
     'cappuccino': 'Mercearia Básica',
     'flocão de milho': 'Mercearia Básica',
     'tapioca': 'Mercearia Básica',
+    'farinha de mandioca': 'Mercearia Básica',
     'farofa': 'Mercearia Básica',
     'farinha láctea / composto': 'Mercearia Básica',
     'aveia': 'Mercearia Básica',
@@ -662,8 +675,11 @@ const CATEGORY_ALIASES = {
     'mel': 'Mercearia Básica',
     'gergelim': 'Mercearia Básica',
     'tempero': 'Mercearia Básica',
+    'óleo de cozinha': 'Mercearia Básica',
+    'adoçante': 'Mercearia Básica',
     'achocolatado': 'Doces & Snacks',
     'chocolate': 'Doces & Snacks',
+    'sorvete': 'Doces & Snacks',
     'biscoito wafer': 'Doces & Snacks',
     'biscoito': 'Doces & Snacks',
     'salgadinho': 'Doces & Snacks',
@@ -682,6 +698,7 @@ const CATEGORY_ALIASES = {
     'amaciante de roupas': 'Limpeza',
     'sabão em pó / lava-roupas': 'Limpeza',
     'água sanitária': 'Limpeza',
+    'lã de aço': 'Limpeza',
     'desinfetante': 'Limpeza',
     'produtos de limpeza': 'Limpeza',
     'esponja de limpeza': 'Limpeza',
@@ -694,6 +711,7 @@ const CATEGORY_ALIASES = {
     'escova dental': 'Higiene Pessoal',
     'papel higiênico': 'Higiene Pessoal',
     'absorvente higiênico': 'Higiene Pessoal',
+    'cotonetes / hastes flexíveis': 'Higiene Pessoal',
     'toalha umedecida': 'Higiene Pessoal',
     'aparelho / espuma de barbear': 'Higiene Pessoal',
     'hidratante': 'Higiene Pessoal',
@@ -4292,7 +4310,7 @@ function parseNfcInput(rawText, manualMarket = '', manualDate = '') {
 
         let currentItemName = '';
         lines.forEach(line => {
-            const matchQtd = line.match(/(?:Qtde\.?:?|Qtd\.?:?)\s*([\d,.]+)\s*(?:UN:?\s*([A-Za-z]+))?\s*(?:Vl\.?\s*Unit\.?:?)\s*([\d,.]+)(?:\s*(?:Vl\.?\s*Total\.?:?)\s*([\d,.]+))?/i);
+            const matchQtd = line.match(/(?:Qtde\.?:?|Qtd\.?:?)\s*([\d,.]+)\s*(?:UN:?\s*([A-Za-z]+))?\s*\d*\s*(?:Vl\.?\s*Unit\.?:?)\s*([\d,.]+)(?:\s*(?:Vl\.?\s*Total\.?:?)\s*([\d,.]+))?/i);
             
             if (matchQtd) {
                 let name = currentItemName || 'Produto Importado';
@@ -4331,6 +4349,7 @@ function parseNfcInput(rawText, manualMarket = '', manualDate = '') {
         else if (upperMkt.includes('SANTO ANTONIO') || upperMkt.includes('LEGAL')) market = 'Legal';
         else if (upperMkt.includes('MIYAZATO') || upperMkt.includes('JULIO')) market = 'Frutaria Julio';
         else if (upperMkt.includes('SDB') || upperMkt.includes('FORT')) market = 'Fort';
+        else if (upperMkt.includes('ATACADAO') || upperMkt.includes('ATACADÃO')) market = 'Atacadão';
     } else {
         market = 'Mercado Local';
     }
