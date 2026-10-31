@@ -152,11 +152,11 @@
                             </div>
                             <i class="ph ph-arrow-right qa-arrow"></i>
                         </button>
-                        <button class="quick-action-card nfc" id="qaImportNfcBtn">
-                            <div class="qa-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); color: #34d399;"><i class="ph ph-qr-code"></i></div>
+                        <button class="quick-action-card compare" id="quickCompareBtn">
+                            <div class="qa-icon" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)); color: #a78bfa;"><i class="ph ph-scales"></i></div>
                             <div class="qa-text">
-                                <strong>Importar Nota (NFC-e)</strong>
-                                <span>Cole o texto ou HTML da nota</span>
+                                <strong>Resumo Executivo</strong>
+                                <span id="compareHint">Comparativo de compras mês a mês</span>
                             </div>
                             <i class="ph ph-arrow-right qa-arrow"></i>
                         </button>
@@ -276,6 +276,11 @@
                                     style="color: #a78bfa;"></i> Mês de Comparação (Mês B):</label>
                             <select id="compareMonthB" class="form-input"></select>
                         </div>
+                    </div>
+
+                    <!-- Resumo Executivo da Comparação -->
+                    <div class="compare-executive-summary" id="compareExecutiveSummary">
+                        <!-- Gerado dinamicamente -->
                     </div>
 
                     <!-- Resumo por Categorias -->

@@ -255,6 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const quickExpiringBtn = document.getElementById('quickExpiringBtn');
     if (quickSmartListBtn) quickSmartListBtn.addEventListener('click', () => { showView('feira'); generateSmartList(); });
     if (quickExpiringBtn) quickExpiringBtn.addEventListener('click', () => { showView('feira'); generateExpiringList(); });
+    const quickCompareBtn = document.getElementById('quickCompareBtn');
+    if (quickCompareBtn) quickCompareBtn.addEventListener('click', () => {
+        showView('compare');
+        const execSection = document.getElementById('compareExecutiveSummary');
+        if (execSection) {
+            setTimeout(() => execSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
+    });
 
     function showView(view) {
         const isDash = view === 'dashboard';
@@ -2987,10 +2995,27 @@ function updateCompareView() {
 
     const grid = document.getElementById('compareCategoriesGrid');
     const tbody = document.getElementById('compareTableBody');
+    const execSummary = document.getElementById('compareExecutiveSummary');
 
     if (!monthA || !monthB) {
+        if (execSummary) execSummary.innerHTML = '';
         if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color:var(--text-secondary);">Por favor, selecione dois meses para comparar.</div>';
         if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary); padding: 2rem;">Nenhum dado para exibir.</td></tr>';
+        return;
+    }
+
+    if (monthA === monthB) {
+        if (execSummary) {
+            execSummary.innerHTML = `
+                <div style="text-align:center; padding: 2.5rem; color: var(--text-secondary);">
+                    <i class="ph ph-scales" style="font-size: 2.2rem; color: #818cf8; margin-bottom: 0.75rem; display: block;"></i>
+                    <h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.35rem;">Selecione Meses Distintos</h4>
+                    <p style="font-size: 0.85rem; max-width: 480px; margin: 0 auto;">Para gerar o Resumo Executivo e analisar a evolução de preços e desembolso, escolha um <strong>Mês de Referência (Mês A)</strong> e um <strong>Mês de Comparação (Mês B)</strong> diferentes.</p>
+                </div>
+            `;
+        }
+        if (grid) grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; color:var(--text-secondary);">Escolha meses diferentes para ver a variação por categoria.</div>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-secondary); padding: 2rem;">Escolha meses diferentes para ver a comparação de itens.</td></tr>';
         return;
     }
 
@@ -3017,15 +3042,26 @@ function updateCompareView() {
         const purchasesA = history.filter(h => h.datetime && getYearMonthKey(h.datetime) === monthA);
         const purchasesB = history.filter(h => h.datetime && getYearMonthKey(h.datetime) === monthB);
 
+        let spentItemA = 0;
+        let spentItemB = 0;
+        let qtyItemA = 0;
+        let qtyItemB = 0;
+
         // Somar para gastos de categorias
         purchasesA.forEach(h => {
+            const cost = (h.price || 0) * (h.qty || 1);
+            spentItemA += cost;
+            qtyItemA += (h.qty || 1);
             if (categoryExpenses[category]) {
-                categoryExpenses[category].totalA += h.price * h.qty;
+                categoryExpenses[category].totalA += cost;
             }
         });
         purchasesB.forEach(h => {
+            const cost = (h.price || 0) * (h.qty || 1);
+            spentItemB += cost;
+            qtyItemB += (h.qty || 1);
             if (categoryExpenses[category]) {
-                categoryExpenses[category].totalB += h.price * h.qty;
+                categoryExpenses[category].totalB += cost;
             }
         });
 
@@ -3068,12 +3104,18 @@ function updateCompareView() {
                 category,
                 priceA,
                 priceB,
+                qtyA: qtyItemA,
+                qtyB: qtyItemB,
+                spentA: spentItemA,
+                spentB: spentItemB,
+                diffSpent: spentItemB - spentItemA,
                 changeType,
                 changePct
             });
         }
     });
 
+    renderCompareExecutiveSummary(monthA, monthB, categoryExpenses, itemsComparison);
     renderCompareCategories(categoryExpenses);
     window.compareItemsData = itemsComparison;
     renderCompareItems();
@@ -4382,7 +4424,7 @@ function setupNfcModalEvents() {
     const closeBtn = document.getElementById('closeImportNfcModal');
     if (closeBtn) closeBtn.addEventListener('click', closeNfcModal);
 
-    const openBtns = [document.getElementById('importNfcBtn'), document.getElementById('qaImportNfcBtn')];
+    const openBtns = [document.getElementById('importNfcBtn')];
     openBtns.forEach(btn => {
         if (btn) btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -4461,3 +4503,290 @@ function setupNfcModalEvents() {
     }
 }
 
+
+
+
+/* ==========================================================================
+   RENDERIZAÇÃO DO RESUMO EXECUTIVO DE COMPARAÇÃO
+   ========================================================================== */
+function renderCompareExecutiveSummary(monthA, monthB, categoryExpenses, itemsComparison) {
+    const container = document.getElementById('compareExecutiveSummary');
+    if (!container) return;
+
+    if (!monthA || !monthB) {
+        container.innerHTML = '';
+        return;
+    }
+
+    // 1. Totais consolidados
+    let totalSpentA = 0;
+    let totalSpentB = 0;
+    Object.values(categoryExpenses).forEach(cat => {
+        totalSpentA += (cat.totalA || 0);
+        totalSpentB += (cat.totalB || 0);
+    });
+
+    const diffSpent = totalSpentB - totalSpentA;
+    const diffSpentPct = totalSpentA > 0 ? (diffSpent / totalSpentA) * 100 : 0;
+
+    // 2. Classificação dos itens
+    const commonItems = itemsComparison.filter(i => i.priceA !== null && i.priceB !== null);
+    const itemsUp = commonItems.filter(i => i.changeType === 'Aumentou');
+    const itemsDown = commonItems.filter(i => i.changeType === 'Baixou');
+    const itemsEqual = commonItems.filter(i => i.changeType === 'Manteve');
+    const newItems = itemsComparison.filter(i => i.changeType === 'NaoCompradoA');
+    const cutItems = itemsComparison.filter(i => i.changeType === 'NaoCompradoB');
+
+    // Inflação média observada na cesta comum
+    const avgPriceChangePct = commonItems.length > 0
+        ? commonItems.reduce((acc, i) => acc + (i.changePct || 0), 0) / commonItems.length
+        : 0;
+
+    // 3. Maior vilão de gasto (maior aumento no desembolso absoluto)
+    const sortedBySpendDiffDesc = [...itemsComparison].sort((a, b) => (b.diffSpent || 0) - (a.diffSpent || 0));
+    const topVillain = sortedBySpendDiffDesc.find(i => (i.diffSpent || 0) > 0.05);
+
+    // Maior alta percentual de preço unitário
+    const sortedByPricePctDesc = [...commonItems].sort((a, b) => (b.changePct || 0) - (a.changePct || 0));
+    const topPriceSpike = sortedByPricePctDesc.find(i => (i.changePct || 0) > 0.05);
+
+    // 4. Maior economia de gasto (maior redução no desembolso absoluto)
+    const sortedBySpendDiffAsc = [...itemsComparison].sort((a, b) => (a.diffSpent || 0) - (b.diffSpent || 0));
+    const topSaving = sortedBySpendDiffAsc.find(i => (i.diffSpent || 0) < -0.05);
+
+    // Maior queda percentual de preço unitário
+    const sortedByPricePctAsc = [...commonItems].sort((a, b) => (a.changePct || 0) - (b.changePct || 0));
+    const topPriceDrop = sortedByPricePctAsc.find(i => (i.changePct || 0) < -0.05);
+
+    // 5. Categoria com maior impacto
+    const sortedCats = Object.keys(categoryExpenses).sort((a, b) => {
+        const diffB = (categoryExpenses[b].totalB || 0) - (categoryExpenses[b].totalA || 0);
+        const diffA = (categoryExpenses[a].totalB || 0) - (categoryExpenses[a].totalA || 0);
+        return diffB - diffA;
+    });
+    const topCatIncreaseName = sortedCats[0];
+    const topCatIncreaseDiff = categoryExpenses[topCatIncreaseName]
+        ? (categoryExpenses[topCatIncreaseName].totalB - categoryExpenses[topCatIncreaseName].totalA)
+        : 0;
+
+    const labelA = formatMonthKey(monthA);
+    const labelB = formatMonthKey(monthB);
+
+    // Badges de Variação
+    let spendBadge = '';
+    if (diffSpent > 0.01) {
+        spendBadge = `<span class="exec-badge danger"><i class="ph ph-trend-up"></i> +${formatCurrency(diffSpent)} (+${diffSpentPct.toFixed(1)}%)</span>`;
+    } else if (diffSpent < -0.01) {
+        spendBadge = `<span class="exec-badge success"><i class="ph ph-trend-down"></i> ${formatCurrency(diffSpent)} (${diffSpentPct.toFixed(1)}%)</span>`;
+    } else {
+        spendBadge = `<span class="exec-badge neutral"><i class="ph ph-equals"></i> Estável (0%)</span>`;
+    }
+
+    let inflationBadge = '';
+    if (avgPriceChangePct > 0.01) {
+        inflationBadge = `<span class="exec-badge danger"><i class="ph ph-arrow-up-right"></i> +${avgPriceChangePct.toFixed(1)}% média</span>`;
+    } else if (avgPriceChangePct < -0.01) {
+        inflationBadge = `<span class="exec-badge success"><i class="ph ph-arrow-down-right"></i> ${avgPriceChangePct.toFixed(1)}% média</span>`;
+    } else {
+        inflationBadge = `<span class="exec-badge neutral"><i class="ph ph-equals"></i> 0.0% média</span>`;
+    }
+
+    // Texto Executivo Inteligente
+    let executiveAnalysisHtml = `
+        <p>No comparativo entre <strong>${labelA}</strong> e <strong>${labelB}</strong>, o desembolso total consolidado passou de <strong>${formatCurrency(totalSpentA)}</strong> para <strong>${formatCurrency(totalSpentB)}</strong> (variação líquida de <strong>${diffSpent >= 0 ? '+' : ''}${formatCurrency(diffSpent)}</strong> ou <strong>${diffSpent >= 0 ? '+' : ''}${diffSpentPct.toFixed(1)}%</strong>).</p>
+        <p>Entre os <strong>${commonItems.length} produtos recorrentes</strong> comprados em ambos os períodos, <strong>${itemsUp.length} itens tiveram aumento de preço</strong>, <strong>${itemsDown.length} itens ficaram mais baratos</strong> e <strong>${itemsEqual.length} mantiveram o mesmo patamar</strong>. A inflação média apurada sobre a cesta foi de <strong>${avgPriceChangePct >= 0 ? '+' : ''}${avgPriceChangePct.toFixed(1)}%</strong>.</p>
+    `;
+
+    if (topCatIncreaseDiff > 0.01) {
+        executiveAnalysisHtml += `<p>A categoria com maior pressão de alta foi <strong>${topCatIncreaseName}</strong>, gerando um acréscimo de <strong>+${formatCurrency(topCatIncreaseDiff)}</strong>. `;
+        if (topVillain) {
+            executiveAnalysisHtml += `O item de maior impacto nominal individual foi <strong>${topVillain.name}</strong> (+${formatCurrency(topVillain.diffSpent)} no desembolso).`;
+        }
+        executiveAnalysisHtml += `</p>`;
+    } else if (topSaving) {
+        executiveAnalysisHtml += `<p>O item de maior alívio orçamentário na comparação foi <strong>${topSaving.name}</strong> (${formatCurrency(topSaving.diffSpent)} no desembolso).</p>`;
+    }
+
+    if (newItems.length > 0) {
+        const spentNew = newItems.reduce((acc, i) => acc + (i.spentB || 0), 0);
+        executiveAnalysisHtml += `<p>💡 <em>Novas inclusões:</em> Foram adicionados <strong>${newItems.length} novos itens</strong> em ${labelB}, somando <strong>${formatCurrency(spentNew)}</strong>.</p>`;
+    }
+
+    // Recomendação Executiva
+    if (diffSpent > 0.01) {
+        executiveAnalysisHtml += `<p style="margin-top:0.35rem; color:#f87171;">📌 <strong>Recomendação Executiva:</strong> O aumento global de gastos foi impulsionado principalmente por altas na categoria ${topCatIncreaseName}. Considere pesquisar marcas concorrentes para os itens com maior subida de preço e planejar reposições antecipadas.</p>`;
+    } else {
+        executiveAnalysisHtml += `<p style="margin-top:0.35rem; color:#34d399;">📌 <strong>Recomendação Executiva:</strong> Excelente resultado! Houve controle efetivo no desembolso com economia de ${formatCurrency(Math.abs(diffSpent))}. Mantenha a estratégia de compras focada nas promoções de reposição.</p>`;
+    }
+
+    const topVillainEscaped = topVillain ? topVillain.name.replace(/'/g, "\\'") : '';
+    const topSavingEscaped = topSaving ? topSaving.name.replace(/'/g, "\\'") : '';
+
+    container.innerHTML = `
+        <div class="exec-header">
+            <div class="exec-title-group">
+                <div class="exec-title-icon"><i class="ph ph-presentation-chart"></i></div>
+                <div class="exec-title-text">
+                    <h3>Resumo Executivo da Comparação</h3>
+                    <span>Diagnóstico Estratégico Consolidado: ${labelA} &rarr; ${labelB}</span>
+                </div>
+            </div>
+            <div class="exec-actions">
+                <button type="button" class="exec-btn" onclick="window.print()">
+                    <i class="ph ph-printer"></i> Imprimir / Relatório
+                </button>
+            </div>
+        </div>
+
+        <div class="exec-kpi-grid">
+            <!-- KPI 1: Gasto Consolidado -->
+            <div class="exec-kpi-card">
+                <div class="exec-kpi-label"><i class="ph ph-wallet" style="color:#60a5fa;"></i> Desembolso Total</div>
+                <div class="exec-kpi-val">${formatCurrency(totalSpentB)}</div>
+                <div class="exec-kpi-sub">${spendBadge}</div>
+                <div class="exec-kpi-sub" style="font-size:0.75rem; margin-top:0.25rem;">Ref. (${labelA}): ${formatCurrency(totalSpentA)}</div>
+            </div>
+
+            <!-- KPI 2: Inflação da Cesta -->
+            <div class="exec-kpi-card">
+                <div class="exec-kpi-label"><i class="ph ph-chart-line-up" style="color:#a78bfa;"></i> Inflação da Cesta</div>
+                <div class="exec-kpi-val">${avgPriceChangePct >= 0 ? '+' : ''}${avgPriceChangePct.toFixed(1)}%</div>
+                <div class="exec-kpi-sub">${inflationBadge}</div>
+                <div class="exec-kpi-sub" style="font-size:0.75rem; margin-top:0.25rem;">${commonItems.length} itens recorrentes</div>
+            </div>
+
+            <!-- KPI 3: Maior Vilão de Custo -->
+            <div class="exec-kpi-card clickable" onclick="filterCompareToItem('${topVillainEscaped}')" title="Clique para localizar na tabela">
+                <div class="exec-kpi-label"><i class="ph ph-arrow-fat-up" style="color:#ef4444;"></i> Maior Pressão</div>
+                <div class="exec-kpi-val" style="font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    ${topVillain ? topVillain.name : (topPriceSpike ? topPriceSpike.name : 'Nenhum')}
+                </div>
+                <div class="exec-kpi-sub">
+                    ${topVillain ? `<span class="exec-badge danger">+${formatCurrency(topVillain.diffSpent)}</span>` : '<span class="exec-badge neutral">Sem altas</span>'}
+                </div>
+                <div class="exec-kpi-sub" style="font-size:0.75rem; margin-top:0.25rem;">
+                    ${topPriceSpike ? `Preço unit.: +${topPriceSpike.changePct.toFixed(0)}%` : 'Sem variação'}
+                </div>
+            </div>
+
+            <!-- KPI 4: Maior Economia -->
+            <div class="exec-kpi-card clickable" onclick="filterCompareToItem('${topSavingEscaped}')" title="Clique para localizar na tabela">
+                <div class="exec-kpi-label"><i class="ph ph-arrow-fat-down" style="color:#10b981;"></i> Maior Economia</div>
+                <div class="exec-kpi-val" style="font-size:1.05rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    ${topSaving ? topSaving.name : (topPriceDrop ? topPriceDrop.name : 'Nenhum')}
+                </div>
+                <div class="exec-kpi-sub">
+                    ${topSaving ? `<span class="exec-badge success">${formatCurrency(topSaving.diffSpent)}</span>` : '<span class="exec-badge neutral">Sem reduções</span>'}
+                </div>
+                <div class="exec-kpi-sub" style="font-size:0.75rem; margin-top:0.25rem;">
+                    ${topPriceDrop ? `Preço unit.: ${topPriceDrop.changePct.toFixed(0)}%` : 'Sem variação'}
+                </div>
+            </div>
+
+            <!-- KPI 5: Dinâmica da Cesta -->
+            <div class="exec-kpi-card">
+                <div class="exec-kpi-label"><i class="ph ph-scales" style="color:#f59e0b;"></i> Movimentação</div>
+                <div class="exec-kpi-val">${itemsComparison.length} <span style="font-size:0.8rem; font-weight:normal; color:var(--text-secondary);">itens</span></div>
+                <div class="exec-kpi-sub" style="gap:0.5rem;">
+                    <span title="Itens que subiram de preço" style="color:#f87171;">▲ ${itemsUp.length}</span>
+                    <span title="Itens que baixaram de preço" style="color:#34d399;">▼ ${itemsDown.length}</span>
+                    <span title="Itens de preço estável" style="color:#a1a1aa;">▬ ${itemsEqual.length}</span>
+                </div>
+                <div class="exec-kpi-sub" style="font-size:0.75rem; margin-top:0.25rem;">
+                    ${newItems.length} novos | ${cutItems.length} cortados
+                </div>
+            </div>
+        </div>
+
+        <!-- Parecer Executivo Automatizado -->
+        <div class="exec-diagnostic-box">
+            <div class="exec-diagnostic-header">
+                <i class="ph ph-sparkle"></i>
+                <span>Parecer Executivo & Insights Estratégicos</span>
+            </div>
+            <div class="exec-diagnostic-body">
+                ${executiveAnalysisHtml}
+            </div>
+            <div class="exec-pills-container">
+                <span class="exec-pills-label">Filtrar na tabela:</span>
+                <button type="button" class="exec-pill-btn pill-danger" onclick="applyCompareFilter('Aumentou')">
+                    <i class="ph ph-trend-up"></i> Subiram de Preço (${itemsUp.length})
+                </button>
+                <button type="button" class="exec-pill-btn pill-success" onclick="applyCompareFilter('Baixou')">
+                    <i class="ph ph-trend-down"></i> Baixaram de Preço (${itemsDown.length})
+                </button>
+                <button type="button" class="exec-pill-btn" onclick="applyCompareFilter('NaoCompradoA')">
+                    <i class="ph ph-plus-circle"></i> Novos Itens (${newItems.length})
+                </button>
+                ${topCatIncreaseName ? `
+                <button type="button" class="exec-pill-btn" onclick="applyCompareCategory('${topCatIncreaseName}')">
+                    <i class="ph ph-tag"></i> Categoria: ${topCatIncreaseName}
+                </button>` : ''}
+                <button type="button" class="exec-pill-btn pill-reset" onclick="resetCompareFilters()">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Ver Todos
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+window.applyCompareFilter = function(filterVal) {
+    const priceFilter = document.getElementById('comparePriceChangeFilter');
+    if (priceFilter) {
+        priceFilter.value = filterVal;
+        renderCompareItems();
+        const tableSec = document.querySelector('.compare-details-section');
+        if (tableSec) tableSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.applyCompareCategory = function(catVal) {
+    const catFilter = document.getElementById('compareCategoryFilter');
+    if (catFilter) {
+        catFilter.value = catVal;
+        renderCompareItems();
+        const tableSec = document.querySelector('.compare-details-section');
+        if (tableSec) tableSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
+window.resetCompareFilters = function() {
+    const catFilter = document.getElementById('compareCategoryFilter');
+    const priceFilter = document.getElementById('comparePriceChangeFilter');
+    if (catFilter) catFilter.value = 'Todas';
+    if (priceFilter) priceFilter.value = 'Todos';
+    renderCompareItems();
+    const tableSec = document.querySelector('.compare-details-section');
+    if (tableSec) tableSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.filterCompareToItem = function(itemName) {
+    if (!itemName) return;
+    const catFilter = document.getElementById('compareCategoryFilter');
+    const priceFilter = document.getElementById('comparePriceChangeFilter');
+    if (catFilter) catFilter.value = 'Todas';
+    if (priceFilter) priceFilter.value = 'Todos';
+    renderCompareItems();
+
+    const tableSec = document.querySelector('.compare-details-section');
+    if (tableSec) {
+        tableSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    setTimeout(() => {
+        const rows = document.querySelectorAll('#compareTableBody tr');
+        rows.forEach(r => {
+            const firstCell = r.querySelector('td');
+            if (firstCell && firstCell.textContent.toLowerCase().includes(itemName.toLowerCase())) {
+                r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                r.style.transition = 'all 0.3s ease';
+                r.style.outline = '2px solid #818cf8';
+                r.style.backgroundColor = 'rgba(129, 140, 248, 0.2)';
+                setTimeout(() => {
+                    r.style.outline = '';
+                    r.style.backgroundColor = '';
+                }, 3500);
+            }
+        });
+    }, 150);
+};
