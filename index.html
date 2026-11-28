@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feira Certa - Gestão Inteligente de Compras</title>
     <meta name="description" content="Acompanhe preços, gere listas inteligentes e economize na sua feira mensal.">
+    <meta name="theme-color" content="#09090b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="classificacao.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
@@ -54,8 +60,9 @@
                     <div class="config-dropdown" id="configGroup">
                         <a href="#" id="importBtn"><i class="ph ph-upload-simple"></i> Carregar CSV</a>
                         <a href="#" id="importNfcBtn"><i class="ph ph-qr-code"></i> Importar Nota (NFC-e)</a>
-                        <a href="#" id="exportBackupBtn"><i class="ph ph-download-simple"></i> Baixar Backup</a>
-                        <a href="#" id="importBackupBtn"><i class="ph ph-upload-simple"></i> Restaurar Backup</a>
+                        <a href="#" id="exportBackupBtn" title="Exportar pacote completo (dados, estoque, sinônimos e preferências) para levar ao celular"><i class="ph ph-device-mobile"></i> Exportar Pacote (PC ↔ Celular)</a>
+                        <a href="#" id="importBackupBtn" title="Importar pacote completo ou backup JSON"><i class="ph ph-upload-simple"></i> Importar Pacote / Backup</a>
+                        <a href="#" id="openSynonymsMenuBtn"><i class="ph ph-git-merge"></i> Agrupar Sinônimos</a>
                         <a href="#" id="manageExcludedBtn"><i class="ph ph-trash-simple"></i> Itens Ocultados (<span
                                 id="excludedCount">0</span>)</a>
                         <input type="file" id="backupFileInput" accept=".json" style="display:none;">
@@ -238,8 +245,13 @@
             <!-- ============ PRODUCTS VIEW ============ -->
             <div id="productsView" style="display:none">
                 <section class="products-section">
-                    <div class="section-header">
+                    <div class="section-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
                         <h2>Histórico de Itens da Feira</h2>
+                        <button type="button" class="btn-synonyms-trigger" id="openSynonymsBtn">
+                            <i class="ph ph-git-merge"></i>
+                            <span>Agrupar Sinônimos</span>
+                            <span class="synonyms-badge" id="synonymsBadge" style="display:none;">0</span>
+                        </button>
                     </div>
                     <div class="category-filters" id="categoryFilters"></div>
                     <div class="products-grid" id="productsGrid"></div>
@@ -292,6 +304,11 @@
                         <div class="compare-categories-grid" id="compareCategoriesGrid">
                             <!-- Gerado dinamicamente -->
                         </div>
+                    </div>
+
+                    <!-- Comparativo por Mercado (Onde Comprar Mais Barato) -->
+                    <div class="compare-markets-summary" id="compareMarketsSummary">
+                        <!-- Gerado dinamicamente -->
                     </div>
 
                     <!-- Detalhes dos Itens -->
@@ -600,13 +617,17 @@
                         <option value="Outros">Outros</option>
                     </select>
                 </div>
-                <div style="margin-bottom:1.5rem">
+                <div style="margin-bottom:1.25rem">
                     <label class="form-label">Prioridade no Orçamento</label>
                     <select id="editPriority" class="form-input">
                         <option value="Alta">🔴 Alta (Essencial)</option>
                         <option value="Média">🟡 Média (Importante)</option>
                         <option value="Baixa">🟢 Baixa (Desejável)</option>
                     </select>
+                </div>
+                <div style="margin-bottom:1.5rem">
+                    <label for="editTargetPrice" class="form-label"><i class="ph ph-target" style="color:#34d399;"></i> Preço Alvo (R$) — <span style="font-weight:400; color:var(--text-secondary);">Opcional</span></label>
+                    <input type="number" step="0.01" min="0" id="editTargetPrice" class="form-input" placeholder="Ex: 19.90 (alerta se passar desse valor)">
                 </div>
                 <button id="saveEditBtn" class="btn-primary w-100">
                     <i class="ph ph-floppy-disk"></i> Salvar Mudanças
@@ -809,11 +830,51 @@
             </div>
         </div>
 
+        <!-- ===== MODAL AGRUPAR SINÔNIMOS ===== -->
+        <div class="modal-overlay" id="synonymsModal">
+            <div class="modal-content" style="max-width: 720px;">
+                <button class="close-modal" id="closeSynonymsModal"><i class="ph ph-x"></i></button>
+                <h2><i class="ph ph-git-merge" style="color:#a78bfa;"></i> Agrupamento Inteligente de Sinônimos</h2>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    Unifique produtos iguais que aparecem com nomes diferentes em notas fiscais distintas para consolidar o histórico de preços e a reposição.
+                </p>
+
+                <div class="synonyms-section">
+                    <h4><i class="ph ph-sparkle" style="color:#f59e0b;"></i> Sugestões Automáticas de Itens Similares</h4>
+                    <div id="synonymsSuggestionsList" class="synonyms-list"></div>
+                </div>
+
+                <div class="synonyms-section" style="margin-top:1.25rem;">
+                    <h4><i class="ph ph-arrows-merge" style="color:#60a5fa;"></i> Mesclagem Manual</h4>
+                    <div class="synonyms-manual-row">
+                        <select id="synonymSourceSelect" class="form-input"></select>
+                        <i class="ph ph-arrow-right" style="color:var(--text-secondary);"></i>
+                        <select id="synonymTargetSelect" class="form-input"></select>
+                        <button type="button" id="btnMergeSynonymManual" class="btn-primary" style="white-space:nowrap;">
+                            <i class="ph ph-git-merge"></i> Mesclar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="synonyms-section" style="margin-top:1.25rem;">
+                    <h4><i class="ph ph-link" style="color:#34d399;"></i> Sinônimos Ativos (<span id="activeSynonymsCount">0</span>)</h4>
+                    <div id="activeSynonymsList" class="synonyms-list"></div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- .app-container -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="app.js"></script>
     <script src="classificacao.js"></script>
+    <script>
+        if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 
 </html>

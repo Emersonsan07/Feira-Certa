@@ -19,6 +19,7 @@ ns = {'nfe': 'https://www.dfe.ms.gov.br/nfe/consulta/'}
 # Mapeamento de Razão Social para Nome Fantasia
 NOMES_FANTASIA = {
     'SENDAS DISTRIBUIDORA S/A': 'Assaí',
+    'SUPERMERCADO GAUCHAO LTDA JULIO CASTILHO': 'Gauchao',   
     'G T MIYAZATO - FRUTARIA ME': 'Frutaria Julio',
     'SANTO ANTONIO DISTRIBUIDORA DE ALIMENTOS LTDA': 'Legal',
     'SDB COMERCIO DE ALIMENTOS LTDA': 'Fort',

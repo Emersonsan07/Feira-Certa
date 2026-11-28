@@ -39,6 +39,7 @@ if (dirtyOverrides) {
     localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
 }
 let excludedItems = JSON.parse(localStorage.getItem('feiraCertaExcludedItems')) || [];
+let productAliases = JSON.parse(localStorage.getItem('feiraCertaAliases')) || {};
 
 function saveCartToStorage() {
     localStorage.setItem('feiraCertaShoppingCart', JSON.stringify(shoppingCart));
@@ -148,20 +149,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportBackupBtn) {
         exportBackupBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            const dataStr = localStorage.getItem('feiraCertaOverrides');
-            if (!dataStr || dataStr === '{}') {
-                setStatus("Não há nomes ou categorias personalizadas para fazer backup.", true);
-                return;
-            }
-            const blob = new Blob([dataStr], { type: "application/json" });
+            const bundle = {
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                overrides: itemOverrides,
+                aliases: productAliases,
+                excluded: excludedItems,
+                estoque: JSON.parse(localStorage.getItem('feiraCertaEstoque') || '[]'),
+                userPurchases: JSON.parse(localStorage.getItem('feiraCertaUserPurchases') || '[]'),
+                shoppingCart: shoppingCart,
+                budget: localStorage.getItem('feiraCertaPlannerBudget') || '',
+                marketData: marketData || []
+            };
+            const blob = new Blob([JSON.stringify(bundle)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             const date = new Date().toISOString().slice(0, 10);
-            a.download = `feira_certa_backup_nomes_${date}.json`;
+            a.download = `feira_certa_pacote_${date}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            setStatus("Backup das edições baixado com sucesso!");
+            setStatus("📱 Pacote completo exportado! Abra este arquivo no celular para sincronizar tudo.");
+            if (configGroup) configGroup.classList.remove('open');
         });
     }
 
@@ -180,16 +189,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 reader.onload = (evt) => {
                     try {
                         const jsonObj = JSON.parse(evt.target.result);
-                        // Mesclar edicoes pra não perder as do celular/PC qdo restaurar
-                        itemOverrides = { ...itemOverrides, ...jsonObj };
-                        Object.keys(itemOverrides).forEach(k => {
-                            if (itemOverrides[k] && itemOverrides[k].customName !== undefined) {
-                                delete itemOverrides[k].customName;
+                        if (jsonObj && jsonObj.version === 2) {
+                            if (jsonObj.overrides) {
+                                itemOverrides = { ...itemOverrides, ...jsonObj.overrides };
+                                localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
                             }
-                        });
-                        localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
-                        processData(marketData, true);
-                        setStatus("Backup restaurado da nuvem com sucesso!");
+                            if (jsonObj.aliases) {
+                                productAliases = { ...productAliases, ...jsonObj.aliases };
+                                saveAliasesToStorage();
+                            }
+                            if (Array.isArray(jsonObj.excluded)) {
+                                excludedItems = [...new Set([...excludedItems, ...jsonObj.excluded])];
+                                localStorage.setItem('feiraCertaExcludedItems', JSON.stringify(excludedItems));
+                            }
+                            if (Array.isArray(jsonObj.estoque)) {
+                                estoqueItems = jsonObj.estoque;
+                                localStorage.setItem('feiraCertaEstoque', JSON.stringify(estoqueItems));
+                            }
+                            if (Array.isArray(jsonObj.userPurchases)) {
+                                localStorage.setItem('feiraCertaUserPurchases', JSON.stringify(jsonObj.userPurchases));
+                            }
+                            if (jsonObj.shoppingCart) {
+                                shoppingCart = jsonObj.shoppingCart;
+                                saveCartToStorage();
+                            }
+                            if (jsonObj.budget) {
+                                localStorage.setItem('feiraCertaPlannerBudget', jsonObj.budget);
+                            }
+                            const dataToLoad = Array.isArray(jsonObj.marketData) && jsonObj.marketData.length > 0 ? jsonObj.marketData : marketData;
+                            processData(dataToLoad, true);
+                            updateCartUI();
+                            if (typeof renderEstoque === 'function') renderEstoque();
+                            setStatus("📱 Pacote sincronizado com sucesso (dados, sinônimos, estoque e lista)!");
+                        } else {
+                            // Mesclar edicoes pra não perder as do celular/PC qdo restaurar (v1)
+                            itemOverrides = { ...itemOverrides, ...jsonObj };
+                            Object.keys(itemOverrides).forEach(k => {
+                                if (itemOverrides[k] && itemOverrides[k].customName !== undefined) {
+                                    delete itemOverrides[k].customName;
+                                }
+                            });
+                            localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
+                            processData(marketData, true);
+                            setStatus("Backup restaurado com sucesso!");
+                        }
                     } catch (err) {
                         setStatus("Arquivo de backup .json inválido ou corrompido.", true);
                     }
@@ -348,6 +391,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const restoreAllExcludedBtn = document.getElementById('restoreAllExcludedBtn');
     if (restoreAllExcludedBtn) {
         restoreAllExcludedBtn.addEventListener('click', restoreAllProducts);
+    }
+
+    const openSynonymsBtn = document.getElementById('openSynonymsBtn');
+    const openSynonymsMenuBtn = document.getElementById('openSynonymsMenuBtn');
+    const closeSynonymsModal = document.getElementById('closeSynonymsModal');
+    const btnMergeSynonymManual = document.getElementById('btnMergeSynonymManual');
+
+    if (openSynonymsBtn) openSynonymsBtn.addEventListener('click', openSynonymsModal);
+    if (openSynonymsMenuBtn) {
+        openSynonymsMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (configGroup) configGroup.classList.remove('open');
+            openSynonymsModal();
+        });
+    }
+    if (closeSynonymsModal) {
+        closeSynonymsModal.addEventListener('click', () => {
+            document.getElementById('synonymsModal').classList.remove('active');
+        });
+    }
+    if (btnMergeSynonymManual) {
+        btnMergeSynonymManual.addEventListener('click', () => {
+            const src = document.getElementById('synonymSourceSelect')?.value;
+            const tgt = document.getElementById('synonymTargetSelect')?.value;
+            if (!src || !tgt || src === tgt) {
+                setStatus('Selecione dois produtos diferentes para mesclar.', true);
+                return;
+            }
+            mergeProductSynonym(src, tgt);
+        });
     }
 
     // Ouvintes para os controles de Comparativo
@@ -789,8 +862,8 @@ function processData(data, replace = true) {
         const dateRaw = row['Data']?.trim();
         const market = row['Fornecedor']?.trim();
 
-        // Product name is simplified automatically to group similar items
-        let product = getSimplifiedName(originalProduct);
+        // Product name is simplified automatically to group similar items + user aliases
+        let product = resolveAlias(getSimplifiedName(originalProduct));
         let customCat = null;
 
         if (itemOverrides[originalProduct] && itemOverrides[originalProduct].customCategory) {
@@ -868,6 +941,7 @@ function processData(data, replace = true) {
 
     initCategoryFilters();
     renderProducts();
+    updateSynonymsBadge();
     updateFinanceDashboard();
     renderEconomyTips();
     renderCategorySpending();
@@ -1042,8 +1116,10 @@ function renderProducts(filter = '') {
                         </span>
                     </div>
                 </div>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                    Última compra: ${latestEntry.date} &bull; Unidade: ${latestEntry.unit}
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; display:flex; flex-wrap:wrap; align-items:center; gap:0.35rem;">
+                    <span>Última compra: ${latestEntry.date} &bull; ${latestEntry.unit}</span>
+                    ${(() => { const nm = extractUnitMeasurement(latestEntry.originalName, latestEntry.unit, latestEntry.price); return nm ? `<span class="unit-norm-badge" title="Preço normalizado por unidade">${nm.label}</span>` : ''; })()}
+                    ${(() => { const tp = getTargetPrice(name); return tp > 0 ? `<span class="target-price-pill" title="Preço alvo definido"><i class="ph ph-target"></i> Alvo: ${formatCurrency(tp)}</span>` : ''; })()}
                 </div>
                 ${econBadgeHtml}
                 <div class="sparkline-container" title="Variação de Preço">
@@ -1624,6 +1700,7 @@ function renderCartItemCard(name, isExceeded, categoryColor) {
                 <div class="cart-item-name" title="${name}">${name}</div>
                 ${diffBadge}
             </div>
+            ${getPriceAlertBadge(name, item.price)}
             <div class="cart-item-stats" style="align-items:center;margin-top:0.2rem;">
                 <select class="cart-item-priority-select" data-name="${name}">
                     <option value="Alta" ${priority === 'Alta' ? 'selected' : ''}>🔴 Alta</option>
@@ -1981,7 +2058,7 @@ function openModal(productName) {
         item.className = 'history-item';
         item.innerHTML = `
             <div>
-                <div class="history-market">${h.market || 'Desconhecido'} <span style="font-weight:normal;font-size:0.8rem">- ${h.unit}</span></div>
+                <div class="history-market">${h.market || 'Desconhecido'} <span style="font-weight:normal;font-size:0.8rem">- ${h.unit}${(() => { const nm = extractUnitMeasurement(h.originalName, h.unit, h.price); return nm ? ' (' + nm.label + ')' : ''; })()}</span></div>
                 <div class="history-date">${h.date}</div>
             </div>
             <div class="history-price">${formatCurrency(h.price)}</div>
@@ -2015,6 +2092,12 @@ function openEditModal(name) {
     const selectPriority = document.getElementById('editPriority');
     if (selectPriority) selectPriority.value = currentPriority;
 
+    const targetPriceInput = document.getElementById('editTargetPrice');
+    if (targetPriceInput) {
+        const tp = getTargetPrice(name);
+        targetPriceInput.value = tp > 0 ? tp.toFixed(2) : '';
+    }
+
     document.getElementById('editModal').classList.add('active');
 
     document.getElementById('saveEditBtn').onclick = () => saveProductEdit(name, originals);
@@ -2023,12 +2106,19 @@ function openEditModal(name) {
 function saveProductEdit(currentName, originalNames) {
     const customCat = document.getElementById('editCategory').value;
     const customPriority = document.getElementById('editPriority').value;
+    const rawTarget = parseFloat(document.getElementById('editTargetPrice')?.value);
+    const targetPrice = (!isNaN(rawTarget) && rawTarget > 0) ? rawTarget : 0;
 
     originalNames.forEach(orig => {
         if (!itemOverrides[orig]) itemOverrides[orig] = {};
         delete itemOverrides[orig].customName;
         itemOverrides[orig].customCategory = customCat;
         itemOverrides[orig].customPriority = customPriority;
+        if (targetPrice > 0) {
+            itemOverrides[orig].targetPrice = targetPrice;
+        } else {
+            delete itemOverrides[orig].targetPrice;
+        }
     });
 
     localStorage.setItem('feiraCertaOverrides', JSON.stringify(itemOverrides));
@@ -2554,11 +2644,12 @@ function renderFFList() {
                 <div class="ff-item-info">
                     <div class="ff-item-name" title="${name}">${name}</div>
                     <div class="ff-item-meta">${cat}</div>
+                    <div class="ff-item-alert">${getPriceAlertBadge(name, item.price)}</div>
                 </div>
                 <div class="ff-item-right">
                     <div class="ff-item-price-wrapper">
                         <span style="font-size:0.75rem; font-weight:700; color:rgba(45,212,191,0.6)">R$</span>
-                        <input type="number" step="0.01" class="ff-item-price-input" value="${item.price.toFixed(2)}" data-name="${name}">
+                        <input type="number" step="0.01" inputmode="decimal" class="ff-item-price-input" value="${item.price.toFixed(2)}" data-name="${name}">
                     </div>
                     <div class="ff-item-qty">Qtd: ${item.qty}</div>
                     <button class="ff-notfound-btn" data-name="${name}">Não achei</button>
@@ -2567,19 +2658,18 @@ function renderFFList() {
 
             // Click no input de preço - impedir marcar item como comprado
             const priceInput = el.querySelector('.ff-item-price-input');
+            const alertSlot = el.querySelector('.ff-item-alert');
             priceInput.addEventListener('click', (e) => {
                 e.stopPropagation();
             });
-            priceInput.addEventListener('change', (e) => {
+            const handlePriceChange = (e) => {
                 const newPrice = parseFloat(e.target.value) || 0;
                 shoppingCart[name].price = newPrice;
+                if (alertSlot) alertSlot.innerHTML = getPriceAlertBadge(name, newPrice);
                 updateFFProgress();
-            });
-            priceInput.addEventListener('input', (e) => {
-                const newPrice = parseFloat(e.target.value) || 0;
-                shoppingCart[name].price = newPrice;
-                updateFFProgress();
-            });
+            };
+            priceInput.addEventListener('change', handlePriceChange);
+            priceInput.addEventListener('input', handlePriceChange);
 
             // Click principal = marcar como checked / volta para pending (em-lugar)
             el.addEventListener('click', (e) => {
@@ -3117,6 +3207,7 @@ function updateCompareView() {
 
     renderCompareExecutiveSummary(monthA, monthB, categoryExpenses, itemsComparison);
     renderCompareCategories(categoryExpenses);
+    renderCompareMarketsSummary();
     window.compareItemsData = itemsComparison;
     renderCompareItems();
 }
@@ -3302,8 +3393,11 @@ function renderCompareItems() {
             varBadge = `<span class="badge-price-change badge-price-new" title="Novo item no Mês B">Novo em B</span>`;
         }
 
-        const priceAText = item.priceA !== null ? formatCurrency(item.priceA) : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
-        const priceBText = item.priceB !== null ? formatCurrency(item.priceB) : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
+        const latestHist = groupedProducts[item.name] && groupedProducts[item.name][0];
+        const normA = (item.priceA !== null && latestHist) ? extractUnitMeasurement(latestHist.originalName, latestHist.unit, item.priceA) : null;
+        const normB = (item.priceB !== null && latestHist) ? extractUnitMeasurement(latestHist.originalName, latestHist.unit, item.priceB) : null;
+        const priceAText = item.priceA !== null ? formatCurrency(item.priceA) + (normA ? `<div class="compare-norm-sub">${normA.label}</div>` : '') : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
+        const priceBText = item.priceB !== null ? formatCurrency(item.priceB) + (normB ? `<div class="compare-norm-sub">${normB.label}</div>` : '') : '<span style="color:var(--text-secondary); opacity:0.4;">-</span>';
 
         const colorClass = getColorClassForCategory(item.category);
 
@@ -4790,3 +4884,401 @@ window.filterCompareToItem = function(itemName) {
         });
     }, 150);
 };
+
+
+
+// ==========================================================================
+//  AGRUPAMENTO INTELIGENTE DE SINÔNIMOS, NORMALIZAÇÃO, MERCADOS E ALERTAS
+// ==========================================================================
+
+function resolveAlias(name) {
+    if (!name) return '';
+    let current = name;
+    const visited = new Set();
+    while (productAliases[current] && !visited.has(current)) {
+        visited.add(current);
+        current = productAliases[current];
+    }
+    return current;
+}
+
+function saveAliasesToStorage() {
+    localStorage.setItem('feiraCertaAliases', JSON.stringify(productAliases));
+}
+
+function extractUnitMeasurement(originalName, unit, price) {
+    if (!price || isNaN(price) || price <= 0) return null;
+    const u = (unit || '').toLowerCase().trim();
+    if (u === 'kg') {
+        return { normalizedPrice: price, baseUnit: 'kg', label: `${formatCurrency(price)}/kg` };
+    }
+    if (u === 'l' || u === 'lt' || u === 'litro') {
+        return { normalizedPrice: price, baseUnit: 'L', label: `${formatCurrency(price)}/L` };
+    }
+    const text = (originalName || '').toUpperCase();
+    // Ex: 1,02KG, 672G, 500ML, 1.5L, 2L, 700 G
+    const match = text.match(/(\d+(?:[.,]\d+)?)\s*(KG|GR|G|ML|LT|L)\b/);
+    if (!match) return null;
+    const rawVal = parseFloat(match[1].replace(',', '.'));
+    if (isNaN(rawVal) || rawVal <= 0) return null;
+    const unitToken = match[2];
+
+    let factor = 0;
+    let baseUnit = '';
+    if (unitToken === 'KG') {
+        factor = rawVal;
+        baseUnit = 'kg';
+    } else if (unitToken === 'G' || unitToken === 'GR') {
+        factor = rawVal / 1000;
+        baseUnit = 'kg';
+    } else if (unitToken === 'L' || unitToken === 'LT') {
+        factor = rawVal;
+        baseUnit = 'L';
+    } else if (unitToken === 'ML') {
+        factor = rawVal / 1000;
+        baseUnit = 'L';
+    }
+
+    if (factor <= 0 || factor === 1 && (u === 'kg' || u === 'l')) return null;
+    const norm = price / factor;
+    if (!isFinite(norm) || norm <= 0) return null;
+    return {
+        normalizedPrice: norm,
+        baseUnit,
+        label: `≈ ${formatCurrency(norm)}/${baseUnit}`
+    };
+}
+
+function getTargetPrice(name) {
+    const history = groupedProducts[name];
+    if (history) {
+        for (const h of history) {
+            if (h.originalName && itemOverrides[h.originalName] && itemOverrides[h.originalName].targetPrice > 0) {
+                return parseFloat(itemOverrides[h.originalName].targetPrice);
+            }
+        }
+    }
+    if (itemOverrides[name] && itemOverrides[name].targetPrice > 0) {
+        return parseFloat(itemOverrides[name].targetPrice);
+    }
+    return 0;
+}
+
+function getPriceAlertBadge(name, currentPrice) {
+    if (!currentPrice || currentPrice <= 0) return '';
+    const targetPrice = getTargetPrice(name);
+    if (targetPrice > 0) {
+        if (currentPrice <= targetPrice) {
+            return `<span class="price-alert-badge good" title="Abaixo ou igual ao seu preço alvo"><i class="ph ph-target"></i> No alvo (≤ ${formatCurrency(targetPrice)})</span>`;
+        }
+        return `<span class="price-alert-badge warn" title="Acima do seu preço alvo de ${formatCurrency(targetPrice)}"><i class="ph ph-warning"></i> Acima do alvo (${formatCurrency(targetPrice)})</span>`;
+    }
+
+    const history = groupedProducts[name];
+    if (!history || history.length < 2) return '';
+    const validPrices = history.map(h => h.price).filter(p => p > 0);
+    if (validPrices.length < 2) return '';
+    const avg = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+    if (avg <= 0) return '';
+
+    const diffPct = ((currentPrice - avg) / avg) * 100;
+    if (diffPct >= 8) {
+        return `<span class="price-alert-badge danger" title="Média histórica: ${formatCurrency(avg)}"><i class="ph ph-siren"></i> +${diffPct.toFixed(0)}% vs média (${formatCurrency(avg)})</span>`;
+    }
+    if (diffPct <= -8) {
+        return `<span class="price-alert-badge good" title="Média histórica: ${formatCurrency(avg)}"><i class="ph ph-fire"></i> ${diffPct.toFixed(0)}% vs média</span>`;
+    }
+    return '';
+}
+
+function renderCompareMarketsSummary() {
+    const container = document.getElementById('compareMarketsSummary');
+    if (!container) return;
+
+    const marketStats = {};
+    const productMarketData = {};
+
+    Object.keys(groupedProducts).forEach(prodName => {
+        const hist = groupedProducts[prodName];
+        hist.forEach(h => {
+            const m = (h.market || '').trim();
+            if (!m) return;
+            if (!marketStats[m]) {
+                marketStats[m] = { name: m, totalSpent: 0, purchases: 0, dates: new Set(), wins: 0, comparable: 0 };
+            }
+            marketStats[m].totalSpent += (h.price || 0) * (h.qty || 1);
+            marketStats[m].purchases += 1;
+            if (h.date) marketStats[m].dates.add(h.date);
+
+            if (h.price > 0) {
+                if (!productMarketData[prodName]) productMarketData[prodName] = {};
+                if (!productMarketData[prodName][m] || (h.datetime && h.datetime > productMarketData[prodName][m].datetime)) {
+                    productMarketData[prodName][m] = { price: h.price, datetime: h.datetime, date: h.date };
+                }
+            }
+        });
+    });
+
+    const multiMarketItems = [];
+    Object.keys(productMarketData).forEach(prodName => {
+        const mMap = productMarketData[prodName];
+        const mNames = Object.keys(mMap);
+        if (mNames.length < 2) return;
+
+        let minPrice = Infinity;
+        let maxPrice = -Infinity;
+        let cheapest = null;
+        let expensive = null;
+        mNames.forEach(m => {
+            const p = mMap[m].price;
+            if (p < minPrice) { minPrice = p; cheapest = m; }
+            if (p > maxPrice) { maxPrice = p; expensive = m; }
+        });
+
+        mNames.forEach(m => {
+            marketStats[m].comparable += 1;
+            if (m === cheapest && minPrice < maxPrice) {
+                marketStats[m].wins += 1;
+            }
+        });
+
+        if (maxPrice > minPrice) {
+            const diffPct = ((maxPrice - minPrice) / maxPrice) * 100;
+            multiMarketItems.push({ prodName, cheapest, minPrice, expensive, maxPrice, diffPct, diffVal: maxPrice - minPrice });
+        }
+    });
+
+    const marketsList = Object.values(marketStats).sort((a, b) => b.totalSpent - a.totalSpent);
+    if (marketsList.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    multiMarketItems.sort((a, b) => b.diffPct - a.diffPct);
+    const topDiffs = multiMarketItems.slice(0, 5);
+
+    const cardsHtml = marketsList.map(m => {
+        const winRate = m.comparable > 0 ? Math.round((m.wins / m.comparable) * 100) : 0;
+        return `
+            <div class="market-rank-card">
+                <div class="market-rank-top">
+                    <div class="market-rank-name"><i class="ph ph-storefront"></i> ${m.name}</div>
+                    ${m.comparable > 0 ? `<span class="market-win-badge ${winRate >= 50 ? 'best' : ''}" title="Percentual de itens comparáveis em que este mercado teve o menor preço">${winRate}% mais barato</span>` : ''}
+                </div>
+                <div class="market-rank-stats">
+                    <div><span>Total gasto:</span> <strong>${formatCurrency(m.totalSpent)}</strong></div>
+                    <div><span>Compras / Idas:</span> <strong>${m.purchases} itens (${m.dates.size} notas)</strong></div>
+                    ${m.comparable > 0 ? `<div><span>Melhor preço em:</span> <strong>${m.wins} de ${m.comparable} itens</strong></div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const diffsHtml = topDiffs.length > 0 ? `
+        <div class="market-top-diffs">
+            <h4><i class="ph ph-piggy-bank"></i> Onde Comprar Mais Barato (Maiores Diferenças)</h4>
+            <div class="market-diffs-list">
+                ${topDiffs.map(d => `
+                    <div class="market-diff-row" onclick="openModal('${d.prodName.replace(/'/g, "\\'")}')">
+                        <span class="diff-prod">${d.prodName}</span>
+                        <span class="diff-best"><i class="ph ph-check-circle"></i> ${d.cheapest}: <strong>${formatCurrency(d.minPrice)}</strong></span>
+                        <span class="diff-worst">vs ${d.expensive}: ${formatCurrency(d.maxPrice)}</span>
+                        <span class="exec-badge success">-${d.diffPct.toFixed(0)}%</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    container.innerHTML = `
+        <h3 class="compare-subtitle"><i class="ph ph-storefront"></i> Comparativo por Mercado (Onde Comprar Mais Barato)</h3>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; margin-top: -0.5rem;">
+            Ranking de competitividade entre fornecedores com base no último preço registrado de cada item em comum.
+        </p>
+        <div class="market-rank-grid">${cardsHtml}</div>
+        ${diffsHtml}
+    `;
+}
+
+// ==========================================================================
+//  AGRUPAMENTO INTELIGENTE DE SINÔNIMOS
+// ==========================================================================
+function normalizeForSimilarity(str) {
+    return (str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\b\d+(?:[.,]\d+)?\s*(kg|gr|g|ml|lt|l|un|pc|pct|cx|fd)\b/g, ' ')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter(t => t.length >= 3 && !['com', 'sem', 'para', 'tipo', 'trad', 'orig', 'zero'].includes(t));
+}
+
+function findSimilarProductPairs() {
+    const names = Object.keys(groupedProducts).sort();
+    const tokenMap = {};
+    names.forEach(n => {
+        tokenMap[n] = new Set(normalizeForSimilarity(n));
+    });
+
+    const pairs = [];
+    for (let i = 0; i < names.length; i++) {
+        const a = names[i];
+        const setA = tokenMap[a];
+        if (setA.size === 0) continue;
+
+        for (let j = i + 1; j < names.length; j++) {
+            const b = names[j];
+            const setB = tokenMap[b];
+            if (setB.size === 0) continue;
+
+            let intersection = 0;
+            setA.forEach(t => { if (setB.has(t)) intersection++; });
+            if (intersection === 0) continue;
+
+            const union = new Set([...setA, ...setB]).size;
+            const jaccard = intersection / union;
+            const prefixMatch = (a.slice(0, 6).toLowerCase() === b.slice(0, 6).toLowerCase()) ? 0.15 : 0;
+            const score = Math.min(1, jaccard + prefixMatch);
+
+            if (score >= 0.55) {
+                const countA = groupedProducts[a]?.length || 0;
+                const countB = groupedProducts[b]?.length || 0;
+                const target = countA >= countB ? a : b;
+                const source = target === a ? b : a;
+                pairs.push({ source, target, score });
+            }
+        }
+    }
+
+    pairs.sort((x, y) => y.score - x.score);
+    return pairs.slice(0, 25);
+}
+
+function updateSynonymsBadge() {
+    const badge = document.getElementById('synonymsBadge');
+    if (!badge) return;
+    const suggestions = findSimilarProductPairs();
+    if (suggestions.length > 0) {
+        badge.textContent = suggestions.length;
+        badge.style.display = 'inline-flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function mergeProductSynonym(source, target) {
+    if (!source || !target || source === target) return;
+    const resolvedTarget = resolveAlias(target);
+    if (source === resolvedTarget) return;
+
+    Object.keys(productAliases).forEach(k => {
+        if (productAliases[k] === source) {
+            productAliases[k] = resolvedTarget;
+        }
+    });
+    productAliases[source] = resolvedTarget;
+    saveAliasesToStorage();
+
+    if (shoppingCart[source]) {
+        if (!shoppingCart[resolvedTarget]) {
+            shoppingCart[resolvedTarget] = { ...shoppingCart[source] };
+        } else {
+            shoppingCart[resolvedTarget].qty += shoppingCart[source].qty;
+        }
+        delete shoppingCart[source];
+        saveCartToStorage();
+    }
+
+    processData(marketData, true);
+    updateCartUI();
+    renderSynonymsModalContent();
+    setStatus(`🔗 "${source}" unificado em "${resolvedTarget}"!`);
+}
+
+function removeProductSynonym(source) {
+    if (!productAliases[source]) return;
+    delete productAliases[source];
+    saveAliasesToStorage();
+    processData(marketData, true);
+    updateCartUI();
+    renderSynonymsModalContent();
+    setStatus(`Vínculo de "${source}" removido.`);
+}
+
+function openSynonymsModal() {
+    const modal = document.getElementById('synonymsModal');
+    if (!modal) return;
+    renderSynonymsModalContent();
+    modal.classList.add('active');
+}
+
+function renderSynonymsModalContent() {
+    const suggList = document.getElementById('synonymsSuggestionsList');
+    const activeList = document.getElementById('activeSynonymsList');
+    const activeCount = document.getElementById('activeSynonymsCount');
+    const srcSelect = document.getElementById('synonymSourceSelect');
+    const tgtSelect = document.getElementById('synonymTargetSelect');
+
+    const names = Object.keys(groupedProducts).sort((a, b) => a.localeCompare(b));
+    if (srcSelect && tgtSelect) {
+        const opts = names.map(n => `<option value="${n.replace(/"/g, '&quot;')}">${n}</option>`).join('');
+        srcSelect.innerHTML = opts;
+        tgtSelect.innerHTML = opts;
+        if (names.length > 1) tgtSelect.selectedIndex = 1;
+    }
+
+    if (suggList) {
+        const pairs = findSimilarProductPairs();
+        if (pairs.length === 0) {
+            suggList.innerHTML = '<div class="synonyms-empty">Nenhuma duplicidade provável encontrada automaticamente.</div>';
+        } else {
+            suggList.innerHTML = pairs.map(p => `
+                <div class="synonyms-row">
+                    <div class="synonyms-pair">
+                        <span class="syn-src">${p.source}</span>
+                        <i class="ph ph-arrow-right"></i>
+                        <span class="syn-tgt">${p.target}</span>
+                        <span class="syn-score">${Math.round(p.score * 100)}%</span>
+                    </div>
+                    <button type="button" class="btn-syn-merge" data-src="${p.source.replace(/"/g, '&quot;')}" data-tgt="${p.target.replace(/"/g, '&quot;')}">
+                        <i class="ph ph-git-merge"></i> Mesclar
+                    </button>
+                </div>
+            `).join('');
+
+            suggList.querySelectorAll('.btn-syn-merge').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    mergeProductSynonym(btn.getAttribute('data-src'), btn.getAttribute('data-tgt'));
+                });
+            });
+        }
+    }
+
+    const aliasKeys = Object.keys(productAliases);
+    if (activeCount) activeCount.textContent = aliasKeys.length;
+    if (activeList) {
+        if (aliasKeys.length === 0) {
+            activeList.innerHTML = '<div class="synonyms-empty">Nenhum sinônimo configurado ainda.</div>';
+        } else {
+            activeList.innerHTML = aliasKeys.map(src => `
+                <div class="synonyms-row">
+                    <div class="synonyms-pair">
+                        <span class="syn-src">${src}</span>
+                        <i class="ph ph-arrow-right"></i>
+                        <span class="syn-tgt">${productAliases[src]}</span>
+                    </div>
+                    <button type="button" class="btn-syn-remove" data-src="${src.replace(/"/g, '&quot;')}" title="Desfazer agrupamento">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            activeList.querySelectorAll('.btn-syn-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    removeProductSynonym(btn.getAttribute('data-src'));
+                });
+            });
+        }
+    }
+}
